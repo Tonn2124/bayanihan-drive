@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import styles from '../Style/Auth.module.css' // <-- 1. Import the CSS module
 
 // Eye Icons (as inline SVG)
 const EyeIcon = () => (
@@ -15,7 +16,7 @@ export default function Auth() {
   
   // Form States
   const [email, setEmail] = useState('')
-  const [username, setUsername] = useState('') // For Sign Up
+  const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -32,9 +33,7 @@ export default function Auth() {
     setMessage(null)
   }
 
-  // --- VALIDATION HELPERS ---
   const isValidPhone = (num) => {
-    // Regex: Starts with 09, followed by exactly 9 digits (total 11)
     const phPhoneRegex = /^09\d{9}$/
     return phPhoneRegex.test(num)
   }
@@ -61,8 +60,6 @@ export default function Auth() {
 
     } else {
       // --- SIGN UP LOGIC ---
-      
-      // Validations
       if (!email || !password || !fullName || !phone || !username || !confirmPassword) {
         setError('All fields are required.')
         return
@@ -81,12 +78,11 @@ export default function Auth() {
         email: email,
         password: password,
         options: {
-          // Pass all the extra data to metadata so our SQL Trigger handles it
           data: {
             full_name: fullName,
             username: username,
             phone: phone,
-            avatar_url: '', // Empty for now, user can update later
+            avatar_url: '', 
           },
         },
       })
@@ -95,7 +91,6 @@ export default function Auth() {
         setError(error.message)
       } else {
         setMessage('Sign up successful! Please check your email to confirm your account.')
-        // Clear form
         setEmail('')
         setPassword('')
         setConfirmPassword('')
@@ -108,9 +103,9 @@ export default function Auth() {
   }
 
   return (
-    <div className="card auth-card">
-      <h2 className="auth-title">Bayanihan Drive</h2>
-      <p className="auth-subtitle">
+    <div className={`card ${styles.authCard}`}>
+      <h2 className={styles.authTitle}>Bayanihan Drive</h2>
+      <p className={styles.authSubtitle}>
         {isLogin ? 'Sign in to your account' : 'Create your account to get started'}
       </p>
 
@@ -119,7 +114,6 @@ export default function Auth() {
 
       <form onSubmit={handleAuth}>
         
-        {/* --- SIGN UP FIELDS ONLY --- */}
         {!isLogin && (
           <>
             <div className="form-group">
@@ -156,19 +150,17 @@ export default function Auth() {
                 value={phone}
                 maxLength={11}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '') // Only allow numbers
+                  const val = e.target.value.replace(/\D/g, '')
                   setPhone(val)
                 }}
               />
-              {/* Real-time validation hint */}
               {phone && !isValidPhone(phone) && (
-                <div className="validation-error">Must start with 09 (11 digits)</div>
+                <div className={styles.validationError}>Must start with 09 (11 digits)</div>
               )}
             </div>
           </>
         )}
 
-        {/* --- EMAIL (For Login & Sign Up) --- */}
         <div className="form-group">
           <label htmlFor="email">Email</label>
           <input
@@ -181,13 +173,12 @@ export default function Auth() {
           />
         </div>
 
-        {/* --- PASSWORD (For Login & Sign Up) --- */}
         <div className="form-group">
           <label htmlFor="password">Password</label>
-          <div className="password-wrapper">
+          <div className={styles.passwordWrapper}>
             <input
               id="password"
-              className="form-control"
+              className={`form-control ${styles.passwordInput}`}
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
@@ -195,7 +186,7 @@ export default function Auth() {
             />
             <button 
               type="button"
-              className="password-toggle-icon"
+              className={styles.passwordToggleIcon}
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -203,14 +194,13 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* --- CONFIRM PASSWORD (SIGN UP ONLY) --- */}
         {!isLogin && (
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
-            <div className="password-wrapper">
+            <div className={styles.passwordWrapper}>
                 <input
                     id="confirmPassword"
-                    className="form-control"
+                    className={`form-control ${styles.passwordInput}`}
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={confirmPassword}
@@ -218,15 +208,14 @@ export default function Auth() {
                 />
                 <button 
                   type="button"
-                  className="password-toggle-icon"
+                  className={styles.passwordToggleIcon}
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
             </div>
-            {/* Real-time password match validation */}
             {confirmPassword && password !== confirmPassword && (
-                <div className="validation-error">Passwords do not match</div>
+                <div className={styles.validationError}>Passwords do not match</div>
             )}
           </div>
         )}
@@ -242,7 +231,6 @@ export default function Auth() {
           onClick={() => {
             setIsLogin(!isLogin)
             clearMessages()
-            // Reset fields when switching modes
             setEmail('')
             setPassword('')
             setConfirmPassword('')

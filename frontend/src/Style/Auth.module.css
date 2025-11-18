@@ -1,0 +1,57 @@
+.authCard {
+  max-width: 480px;
+  margin: 3rem auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.authTitle {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.authSubtitle {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* This class is for the input *inside* the wrapper */
+.passwordInput {
+  padding-right: 3.5rem !important; /* Make sure it doesn't get_hidden by icon */
+}
+
+.passwordToggleIcon {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  width: auto; 
+  margin-bottom: 0; 
+  box-shadow: none; 
+}
+
+.passwordToggleIcon:hover {
+  color: var(--color-primary);
+}
+
+.validationError {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  margin-top: 0.35rem;
+}

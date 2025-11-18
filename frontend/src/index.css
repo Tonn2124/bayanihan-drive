@@ -1,37 +1,37 @@
 /*
- * BAYANIHAN DRIVE - BASE STYLESHEET
- * * Color Palette:
- * --color-primary: A deep, trustworthy blue (#0038A8 - inspired by PH flag)
- * --color-accent: A warm, hopeful yellow (#FCD116 - inspired by PH sun)
- * --color-bg-alt: A very light, clean off-white
+ * BAYANIHAN DRIVE - GLOBAL STYLESHEET
  */
 
 /* 1. Root Variables */
 :root {
-  --color-primary: #0038A8; /* Deep trustworthy blue */
-  --color-primary-dark: #002a7d;
-  --color-accent: #FCD116; /* Warm hopeful yellow */
-  --color-accent-dark: #e8c014;
-  --color-success: #28a745;
-  --color-danger: #dc3545;
-  --color-light: #f8f9fa;
-  --color-dark: #343a40;
-  --color-text: #212529;
-  --color-text-muted: #6c757d;
-  --color-bg: #ffffff;
-  --color-bg-alt: #fcfcfc; /* Very light background */
+  /* Brand Colors */
+  --color-primary: #0056D2; /* Brighter, modern blue */
+  --color-primary-hover: #0041A3;
+  --color-accent: #F9A825; /* Deep yellow/gold */
+  
+  /* Status Colors */
+  --color-success: #10B981; /* Soft green */
+  --color-danger: #EF4444; /* Soft red */
+  
+  /* Neutrals */
+  --color-bg: #F3F4F6; /* Light gray background */
+  --color-surface: #FFFFFF; /* White cards */
+  --color-text-main: #111827; /* Almost black */
+  --color-text-secondary: #6B7280; /* Gray text */
+  --color-border: #E5E7EB; /* Light borders */
 
-  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --border-radius: 0.5rem;
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  /* Typography */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --border-radius: 12px; /* More rounded corners */
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* 2. Global Reset */
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -40,99 +40,80 @@
 /* 3. Body Styles */
 body {
   font-family: var(--font-family-base);
-  line-height: 1.6;
-  background-color: var(--color-bg-alt);
-  color: var(--color-text);
+  line-height: 1.5;
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 /* 4. Utility Classes */
 .container {
-  max-width: 1100px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
 }
 
 .card {
-  background: var(--color-bg);
+  background: var(--color-surface);
   border-radius: var(--border-radius);
-  border: 1px solid #eee;
-  box-shadow: var(--shadow-md);
-  padding: 2.5rem 2.5rem;
-  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  padding: 2.5rem;
 }
 
-.auth-card {
-  max-width: 480px;
-  margin: 3rem auto;
-  box-shadow: var(--shadow-lg);
-}
-
-/* 5. Logo/Title */
-.auth-title {
-  text-align: center;
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 0.5rem;
-}
-
-.auth-subtitle {
-  text-align: center;
-  font-size: 1rem;
-  color: var(--color-text-muted);
-  margin-bottom: 2rem;
-}
-
-/* 6. Form Elements */
+/* 5. Form Elements */
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
-  font-weight: 600; /* Bolder labels */
+  font-weight: 500; 
   margin-bottom: 0.5rem;
-  color: var(--color-dark);
+  color: var(--color-text-main);
+  font-size: 0.95rem;
 }
 
 .form-control {
   display: block;
   width: 100%;
-  padding: 0.9rem 1rem;
+  padding: 0.875rem 1rem;
   font-size: 1rem;
-  font-family: var(--font-family-base);
-  border-radius: var(--border-radius);
-  border: 1px solid #ced4da;
-  background-color: #fff;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  border-radius: 8px; /* Slightly smaller radius for inputs */
+  border: 1px solid var(--color-border);
+  background-color: #F9FAFB; /* Very light gray inside input */
+  transition: all 0.2s ease;
+  color: var(--color-text-main);
 }
 
 .form-control:focus {
   border-color: var(--color-primary);
+  background-color: #fff;
   outline: 0;
-  box-shadow: 0 0 0 0.25rem rgba(0, 56, 168, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.1); /* Soft focus ring */
 }
 
-/* 7. Button Styles */
+/* 6. Button Styles */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 600;
   text-align: center;
-  vertical-align: middle;
   cursor: pointer;
-  user-select: none;
   background-color: transparent;
   border: 1px solid transparent;
-  padding: 0.9rem 1.25rem;
+  padding: 0.875rem 1.5rem;
   font-size: 1rem;
-  line-height: 1.5;
-  border-radius: var(--border-radius);
-  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   width: 100%;
-  margin-bottom: 0.75rem;
   box-shadow: var(--shadow-sm);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn-primary {
@@ -142,83 +123,52 @@ body {
 }
 
 .btn-primary:not(:disabled):hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  background-color: var(--color-primary-hover);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .btn-secondary {
-  color: var(--color-dark);
-  background-color: var(--color-bg);
-  border-color: #ced4da;
+  color: var(--color-text-main);
+  background-color: #fff;
+  border-color: var(--color-border);
 }
 
 .btn-secondary:not(:disabled):hover {
-  background-color: var(--color-bg-alt);
-  border-color: #b0b9c3;
-  box-shadow: var(--shadow-md);
+  background-color: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.btn-danger {
+  color: #fff;
+  background-color: var(--color-danger);
+}
+
+.btn-danger:not(:disabled):hover {
+  background-color: #DC2626;
 }
 
 .btn:disabled {
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* 8. Alerts */
+/* 7. Alerts */
 .alert {
-  padding: 1rem 1.25rem;
+  padding: 1rem;
   margin-bottom: 1.5rem;
-  border: 1px solid transparent;
-  border-radius: var(--border-radius);
+  border-radius: 8px;
   font-weight: 500;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
 }
 .alert-danger {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
+  color: #991B1B;
+  background-color: #FEE2E2;
+  border: 1px solid #FECACA;
 }
 .alert-success {
-  color: #155724;
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-}
-
-/* 9. Password Toggle Icon Styles */
-.password-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-/* Make input padding larger on the right to not overlap icon */
-.password-wrapper .form-control {
-  padding-right: 3.5rem; 
-}
-
-.password-toggle-icon {
-  position: absolute;
-  right: 1rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-  padding: 0;
-  margin: 0;
-  width: auto; /* Override .btn width */
-  margin-bottom: 0; /* Override .btn margin */
-  box-shadow: none; /* Override .btn shadow */
-}
-
-.password-toggle-icon:hover {
-  color: var(--color-primary);
-}
-
-/* 10. Validation Error Text */
-.validation-error {
-  color: var(--color-danger);
-  font-size: 0.875rem;
-  margin-top: 0.35rem;
+  color: #065F46;
+  background-color: #D1FAE5;
+  border: 1px solid #A7F3D0;
 }

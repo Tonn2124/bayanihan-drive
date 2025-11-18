@@ -1,0 +1,73 @@
+.formCard {
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 3rem;
+  box-shadow: var(--shadow-lg);
+  border: none;
+}
+
+.formTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.formSubtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
+}
+
+.textarea {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: var(--font-family-base);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: #F9FAFB;
+  transition: all 0.2s ease;
+  line-height: 1.6;
+  min-height: 150px; /* Taller by default */
+  resize: vertical; 
+}
+
+.textarea:focus {
+  border-color: var(--color-primary);
+  background-color: #fff;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.1);
+}
+
+.horizontalGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two equal columns */
+  gap: 1.5rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+  .horizontalGroup {
+    grid-template-columns: 1fr; /* Stack on mobile */
+  }
+}
+
+.buttonGroup {
+  display: flex; 
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.buttonGroup button {
+  width: auto; /* Natural width buttons */
+  min-width: 120px;
+}
