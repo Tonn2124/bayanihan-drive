@@ -4,6 +4,26 @@ import { supabase } from '../supabaseClient';
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
 
+// Share Icon
+const ShareIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+);
+
+// Heart Icon
+const HeartIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+);
+
+// Calendar Icon
+const CalendarIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+);
+
+// Location Icon
+const LocationIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+);
+
 export default function CampaignDetails({ campaignId, onBack }) {
   const [campaign, setCampaign] = useState(null);
   const [organizer, setOrganizer] = useState(null);
@@ -15,9 +35,8 @@ export default function CampaignDetails({ campaignId, onBack }) {
   const fetchData = useCallback(async () => {
       try {
         setLoading(true);
-        setError(null); // Reset error on new fetch
+        setError(null);
 
-        // A. Fetch Campaign
         const campaignRes = await axios.get(`http://localhost:8080/api/campaigns/${campaignId}`);
         const campaignData = campaignRes.data;
         
@@ -27,8 +46,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
         
         setCampaign(campaignData);
 
-        // B. Fetch Organizer
-        // We check if organizerId exists to avoid bad requests
         if (campaignData.organizerId) {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -38,19 +55,16 @@ export default function CampaignDetails({ campaignId, onBack }) {
           
           if (profileError) {
             console.warn("Could not fetch organizer profile:", profileError.message);
-            // Don't throw here, just let organizer be null
           } else {
             setOrganizer(profileData);
           }
         }
 
-        // C. Fetch Donations
         try {
             const donationsRes = await axios.get(`http://localhost:8080/api/donations/campaign/${campaignId}`);
             setDonations(donationsRes.data);
         } catch (donationErr) {
             console.warn("Could not fetch donations:", donationErr);
-            // Don't block the whole page if donations fail
         }
 
       } catch (err) {
@@ -67,13 +81,23 @@ export default function CampaignDetails({ campaignId, onBack }) {
     }
   }, [campaignId, fetchData]);
 
-  if (loading) return <div className="container" style={{textAlign:'center', marginTop:'4rem'}}>Loading details...</div>;
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p>Loading campaign details...</p>
+      </div>
+    );
+  }
   
   if (error) return (
-    <div className="container" style={{marginTop:'2rem'}}>
-        <div className="alert alert-danger">
-            {error}
-            <button className="btn btn-secondary" onClick={onBack} style={{marginTop: '1rem', width: 'auto'}}>Go Back</button>
+    <div className={styles.errorContainer}>
+        <div className={styles.errorCard}>
+            <h3>Unable to load campaign</h3>
+            <p>{error}</p>
+            <button className={styles.backButton} onClick={onBack}>
+              ← Back to Dashboard
+            </button>
         </div>
     </div>
   );
@@ -93,13 +117,16 @@ export default function CampaignDetails({ campaignId, onBack }) {
     }).format(amount);
   };
 
-  // Use optional chaining (?.) for safer access in render
   const organizerName = organizer?.full_name || organizer?.username || 'Unknown Organizer';
   const organizerUsername = organizer?.username ? `@${organizer.username}` : '';
   const organizerInitial = organizerName.charAt(0).toUpperCase();
 
+  const daysLeft = campaign.endDate 
+    ? Math.max(0, Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
+    : null;
+
   return (
-    <div className={styles.detailsContainer}>
+    <div className={styles.pageWrapper}>
       {showDonateModal && (
         <DonateModal 
           campaign={campaign} 
@@ -108,126 +135,181 @@ export default function CampaignDetails({ campaignId, onBack }) {
         />
       )}
 
-      <button className={styles.backButton} onClick={onBack}>
-        ← Back to Dashboard
-      </button>
+      {/* Navigation Bar */}
+      <div className={styles.navBar}>
+        <button className={styles.backBtn} onClick={onBack}>
+          ← Back
+        </button>
+        <div className={styles.navActions}>
+          <button className={styles.iconButton} title="Share">
+            <ShareIcon />
+          </button>
+          <button className={styles.iconButton} title="Save">
+            <HeartIcon />
+          </button>
+        </div>
+      </div>
 
-      <img 
-        src={campaign.coverImageUrl || 'https://placehold.co/1200x600/F3F4F6/9CA3AF?text=Bayanihan'} 
-        alt={campaign.title} 
-        className={styles.headerImage}
-        onError={(e) => {e.target.src = 'https://placehold.co/1200x600/F3F4F6/9CA3AF?text=Image+Not+Found'}}
-      />
+      {/* Header Image */}
+      <div className={styles.headerImageWrapper}>
+        <img 
+          src={campaign.coverImageUrl || 'https://placehold.co/1200x500/EFF6FF/0056D2?text=Campaign+Image'} 
+          alt={campaign.title} 
+          className={styles.headerImage}
+          onError={(e) => {e.target.src = 'https://placehold.co/1200x500/EFF6FF/0056D2?text=Image+Not+Found'}}
+        />
+        <div className={styles.categoryBadge}>
+          {campaign.category ? campaign.category.replace('_', ' ') : 'Others'}
+        </div>
+      </div>
 
-      <div className={styles.mainGrid}>
-        <div className={styles.contentSection}>
-          <span className={styles.categoryTag}>
-            {campaign.category ? campaign.category.replace('_', ' ') : 'General'}
-          </span>
-          <h1>{campaign.title}</h1>
-          
-          <div className={styles.organizerSection}>
-             <div className={styles.organizerLabel}>Organizer</div>
-             <div className={styles.organizerName}>
-                {organizer ? (
-                  <>
-                    <div style={{
-                      width: '40px', 
-                      height: '40px', 
-                      borderRadius: '50%', 
-                      backgroundColor: '#E5E7EB', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      fontWeight: 'bold',
-                      color: '#6B7280',
-                      overflow: 'hidden',
-                      marginRight: '0.75rem'
-                    }}>
-                      {organizer.avatar_url ? <img src={organizer.avatar_url} alt="avatar" style={{width:'100%', height:'100%', objectFit: 'cover'}}/> : organizerInitial}
-                    </div>
-                    <div>
-                      {organizerName}
-                      {organizerUsername && <span style={{fontWeight: 'normal', color: '#6B7280', marginLeft: '0.5rem', fontSize: '0.9em'}}>{organizerUsername}</span>}
-                    </div>
-                  </>
-                ) : (
-                  <span style={{color: '#6B7280', fontStyle: 'italic'}}>Organizer info unavailable</span>
-                )}
-             </div>
+      {/* Main Content */}
+      <div className={styles.contentContainer}>
+        <div className={styles.mainContent}>
+          {/* Campaign Title & Meta */}
+          <div className={styles.titleSection}>
+            <h1 className={styles.campaignTitle}>{campaign.title}</h1>
+            
+            <div className={styles.metaInfo}>
+              {campaign.location && (
+                <div className={styles.metaItem}>
+                  <LocationIcon />
+                  <span>{campaign.location}</span>
+                </div>
+              )}
+              {campaign.createdAt && (
+                <div className={styles.metaItem}>
+                  <CalendarIcon />
+                  <span>Created {new Date(campaign.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          <hr style={{margin: '2rem 0', borderColor: '#E5E7EB'}}/>
+          {/* Organizer Card */}
+          <div className={styles.organizerCard}>
+            <div className={styles.organizerAvatar}>
+              {organizer?.avatar_url ? (
+                <img src={organizer.avatar_url} alt="Organizer" />
+              ) : (
+                <span>{organizerInitial}</span>
+              )}
+            </div>
+            <div className={styles.organizerInfo}>
+              <div className={styles.organizerLabel}>Organized by</div>
+              <div className={styles.organizerName}>
+                {organizerName}
+                {organizerUsername && <span className={styles.organizerUsername}>{organizerUsername}</span>}
+              </div>
+            </div>
+          </div>
 
-          <h3>About this campaign</h3>
-          <p className={styles.description}>{campaign.description}</p>
+          {/* Campaign Description */}
+          <div className={styles.descriptionSection}>
+            <h2 className={styles.sectionTitle}>Story</h2>
+            <p className={styles.description}>{campaign.description}</p>
+          </div>
+
+          {/* Recent Donations Section */}
+          <div className={styles.donationsSection}>
+            <h2 className={styles.sectionTitle}>
+              Donations ({donations.length})
+            </h2>
+            
+            {donations.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>No donations yet. Be the first to support this cause!</p>
+              </div>
+            ) : (
+              <div className={styles.donationsList}>
+                {donations.map((donation) => (
+                  <div key={donation.id} className={styles.donationItem}>
+                    <div className={styles.donorAvatar}>
+                      {donation.isAnonymous ? '?' : donation.donorName?.charAt(0) || 'D'}
+                    </div>
+                    <div className={styles.donationContent}>
+                      <div className={styles.donationHeader}>
+                        <span className={styles.donorName}>
+                          {donation.isAnonymous ? 'Anonymous' : donation.donorName || 'A Supporter'}
+                        </span>
+                        <span className={styles.donationAmount}>{formatCurrency(donation.amount)}</span>
+                      </div>
+                      {donation.message && (
+                        <p className={styles.donationMessage}>"{donation.message}"</p>
+                      )}
+                      {donation.createdAt && (
+                        <span className={styles.donationTime}>
+                          {new Date(donation.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Sidebar */}
         <div className={styles.sidebar}>
           <div className={styles.donationCard}>
-            <div className={styles.progressSection}>
-              <div>
-                <span className={styles.amountLarge}>
-                  {formatCurrency(campaign.currentAmount)}
-                </span>
-                <span className={styles.amountGoal}>
-                  raised of {formatCurrency(campaign.goalAmount)} goal
-                </span>
+            {/* Progress Stats */}
+            <div className={styles.statsGrid}>
+              <div className={styles.statItem}>
+                <div className={styles.statValue}>{formatCurrency(campaign.currentAmount)}</div>
+                <div className={styles.statLabel}>raised of {formatCurrency(campaign.goalAmount)}</div>
               </div>
+              <div className={styles.statItem}>
+                <div className={styles.statValue}>
+                  <HeartIcon />
+                  {donations.length}
+                </div>
+                <div className={styles.statLabel}>Donors</div>
+              </div>
+              {daysLeft !== null && (
+                <div className={styles.statItem}>
+                  <div className={styles.statValue}>{daysLeft}</div>
+                  <div className={styles.statLabel}>Days Left</div>
+                </div>
+              )}
+            </div>
 
-              <div className={styles.progressBarContainer}>
+            {/* Progress Bar */}
+            <div className={styles.progressContainer}>
+              <div className={styles.progressBar}>
                 <div 
-                  className={styles.progressBarFill} 
+                  className={styles.progressFill} 
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
-              
-              <div className={styles.donorCount}>
-                {donations.length} people have donated
-              </div>
+              <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
             </div>
 
+            {/* Donate Button */}
             <button 
-              className={`btn btn-primary ${styles.donateBtn}`}
+              className={styles.donateButton}
               onClick={() => setShowDonateModal(true)}
             >
               Donate Now
             </button>
 
-            <div style={{marginTop: '2rem'}}>
-                <h4 style={{fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text-main)'}}>Recent Donations</h4>
-                <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                    {donations.length === 0 ? (
-                        <p style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem', fontStyle: 'italic'}}>Be the first to donate!</p>
-                    ) : (
-                        donations.slice(0, 5).map((donation) => (
-                            <div key={donation.id} style={{display: 'flex', alignItems: 'flex-start', gap: '0.75rem'}}>
-                                <div style={{
-                                    width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#EFF6FF', 
-                                    color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                                    fontSize: '0.8rem', fontWeight: 'bold', flexShrink: 0
-                                }}>
-                                    {donation.isAnonymous ? '?' : 'D'} 
-                                </div>
-                                <div>
-                                    <div style={{fontWeight: '600', fontSize: '0.9rem', color: 'var(--color-text-main)'}}>
-                                        {donation.isAnonymous ? 'Anonymous' : 'A Supporter'} 
-                                    </div>
-                                    <div style={{fontSize: '0.85rem', color: 'var(--color-text-secondary)'}}>
-                                        donated <span style={{color: 'var(--color-success)', fontWeight: '600'}}>{formatCurrency(donation.amount)}</span>
-                                    </div>
-                                    {donation.message && (
-                                        <div style={{fontSize: '0.85rem', color: '#4B5563', marginTop: '0.25rem', fontStyle: 'italic'}}>
-                                            "{donation.message}"
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
+            {/* Share Section */}
+            <div className={styles.shareSection}>
+              <div className={styles.shareDivider}>
+                <span>Share this campaign</span>
+              </div>
+              <div className={styles.shareButtons}>
+                <button className={styles.shareBtn} title="Share via Facebook">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </button>
+                <button className={styles.shareBtn} title="Share via Twitter">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                </button>
+                <button className={styles.shareBtn} title="Copy link">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                </button>
+              </div>
             </div>
-
           </div>
         </div>
       </div>
