@@ -1,0 +1,154 @@
+.detailsContainer {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  .backButton {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .backButton:hover {
+    color: var(--color-primary);
+  }
+  
+  .headerImage {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+    background-color: #e5e7eb;
+  }
+  
+  .mainGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Content takes 2/3, Sidebar 1/3 */
+    gap: 3rem;
+  }
+  
+  @media (max-width: 768px) {
+    .mainGrid {
+      grid-template-columns: 1fr; /* Stack on mobile */
+    }
+  }
+  
+  /* Left Column */
+  .contentSection h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  
+  .categoryTag {
+    display: inline-block;
+    background-color: #EFF6FF;
+    color: var(--color-primary);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  
+  .description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #4B5563;
+    white-space: pre-line; /* Respects line breaks from textarea */
+  }
+  
+  /* Right Column (Sidebar) */
+  .sidebar {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+  }
+  
+  .donationCard {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+  }
+  
+  .progressSection {
+    margin-bottom: 2rem;
+  }
+  
+  .amountLarge {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+  }
+  
+  .amountGoal {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    margin-left: 0.5rem;
+  }
+  
+  .progressBarContainer {
+    height: 10px;
+    background-color: #E5E7EB;
+    border-radius: 5px;
+    margin: 1rem 0;
+    overflow: hidden;
+  }
+  
+  .progressBarFill {
+    height: 100%;
+    background-color: var(--color-success);
+    border-radius: 5px;
+    transition: width 1s ease;
+  }
+  
+  .donorCount {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+  
+  .donateBtn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+  }
+  
+  .organizerSection {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  
+  .organizerLabel {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .organizerName {
+    font-weight: 600;
+    color: var(--color-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }

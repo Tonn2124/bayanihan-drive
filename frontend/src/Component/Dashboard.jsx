@@ -1,20 +1,18 @@
-import { useState, useEffect, useCallback } from 'react' // <-- Import useCallback
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabaseClient'
 import styles from '../Style/Dashboard.module.css'
 import CampaignList from './CampaignList'
-import AddFundsModal from './AddFundsModal' // <-- 1. Import Modal
+import AddFundsModal from './AddFundsModal'
 
 export default function Dashboard({ session, onNavigate }) {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
   const [wallet, setWallet] = useState(null)
   const [error, setError] = useState(null)
-  const [showAddFunds, setShowAddFunds] = useState(false) // <-- 2. Modal State
+  const [showAddFunds, setShowAddFunds] = useState(false) 
 
-  // 3. Wrap fetch logic in useCallback so we can re-call it easily
   const fetchData = useCallback(async () => {
       try {
-        // Keep loading true only on first load, optional logic
         const { user } = session
         
         let { data: profileData, error: profileError } = await supabase
@@ -60,12 +58,11 @@ export default function Dashboard({ session, onNavigate }) {
 
   return (
     <div className={`card ${styles.dashboardCard}`}>
-      {/* 4. Render Modal if state is true */}
       {showAddFunds && (
         <AddFundsModal 
           onClose={() => setShowAddFunds(false)} 
           onSuccess={() => {
-            fetchData() // Refresh wallet balance after adding funds
+            fetchData()
             alert("Funds added successfully!")
           }} 
         />
@@ -94,13 +91,12 @@ export default function Dashboard({ session, onNavigate }) {
                   <button 
                     className="btn btn-primary" 
                     style={{ width: 'auto' }}
-                    onClick={() => setShowAddFunds(true)} // <-- 5. Open Modal
+                    onClick={() => setShowAddFunds(true)} 
                   >
                     Add Funds (Mock)
                   </button>
               </div>
               
-              {/* ... rest of component ... */}
               <div className={styles.infoBlock}>
                 <h4>Your Profile</h4>
                  <p><strong>Name:</strong> {profile?.full_name || 'Not set'}</p>
@@ -121,7 +117,8 @@ export default function Dashboard({ session, onNavigate }) {
             </div>
 
             <div style={{marginTop: '4rem'}}>
-              <CampaignList />
+              {/* --- FIX: Pass onNavigate to the list --- */}
+              <CampaignList onNavigate={onNavigate} />
             </div>
           </>
         )}

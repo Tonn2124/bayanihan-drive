@@ -3,7 +3,8 @@ import axios from 'axios';
 import CampaignCard from './CampaignCard';
 import styles from '../Style/CampaignList.module.css';
 
-export default function CampaignList() {
+// --- FIX: Accept onNavigate prop ---
+export default function CampaignList({ onNavigate }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,7 +13,6 @@ export default function CampaignList() {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
-        // Note: No Auth header needed for this public endpoint
         const response = await axios.get('http://localhost:8080/api/campaigns');
         setCampaigns(response.data);
       } catch (err) {
@@ -27,7 +27,7 @@ export default function CampaignList() {
   }, []);
 
   if (loading) {
-    return <div style={{textAlign: 'center', padding: '2rem'}}>Loading campaigns...</div>;
+    return <div style={{textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)'}}>Loading campaigns...</div>;
   }
 
   if (error) {
@@ -45,12 +45,17 @@ export default function CampaignList() {
 
   return (
     <div>
-      <h2 style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem'}}>
+      <h2 style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', color: 'var(--color-text-main)'}}>
         Active Donation Drives
       </h2>
       <div className={styles.gridContainer}>
         {campaigns.map((campaign) => (
-          <CampaignCard key={campaign.id} campaign={campaign} />
+          // --- FIX: Pass onNavigate to the card ---
+          <CampaignCard 
+            key={campaign.id} 
+            campaign={campaign} 
+            onNavigate={onNavigate} 
+          />
         ))}
       </div>
     </div>
