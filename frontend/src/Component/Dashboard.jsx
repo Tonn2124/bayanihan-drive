@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react' // <-- Import useCallback
 import { supabase } from '../supabaseClient'
 import styles from '../Style/Dashboard.module.css'
-import CampaignList from './CampaignList' // <-- Import CSS Module
+import CampaignList from './CampaignList'
+import AddFundsModal from './AddFundsModal' // <-- 1. Import Modal
 
 export default function Dashboard({ session, onNavigate }) {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
   const [wallet, setWallet] = useState(null)
   const [error, setError] = useState(null)
+  const [showAddFunds, setShowAddFunds] = useState(false) // <-- 2. Modal State
 
-  useEffect(() => {
-    const fetchData = async () => {
+  // 3. Wrap fetch logic in useCallback so we can re-call it easily
+  const fetchData = useCallback(async () => {
       try {
-        setLoading(true)
+        // Keep loading true only on first load, optional logic
         const { user } = session
         
         let { data: profileData, error: profileError } = await supabase
@@ -21,9 +23,7 @@ export default function Dashboard({ session, onNavigate }) {
           .eq('id', user.id)
           .single() 
 
-        if (profileError) {
-          throw profileError
-        }
+        if (profileError) throw profileError
         setProfile(profileData)
 
         let { data: walletData, error: walletError } = await supabase
@@ -32,9 +32,7 @@ export default function Dashboard({ session, onNavigate }) {
           .eq('user_id', user.id)
           .single() 
 
-        if (walletError) {
-          throw walletError
-        }
+        if (walletError) throw walletError
         setWallet(walletData)
 
       } catch (error) {
@@ -42,17 +40,15 @@ export default function Dashboard({ session, onNavigate }) {
       } finally {
         setLoading(false)
       }
-    }
+  }, [session])
 
+  useEffect(() => {
     fetchData()
-  }, [session]) 
+  }, [fetchData]) 
 
   const handleLogout = async () => {
     setLoading(true)
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      setError(error.message)
-    }
+    await supabase.auth.signOut()
   }
 
   const formatCurrency = (amount) => {
@@ -64,6 +60,17 @@ export default function Dashboard({ session, onNavigate }) {
 
   return (
     <div className={`card ${styles.dashboardCard}`}>
+      {/* 4. Render Modal if state is true */}
+      {showAddFunds && (
+        <AddFundsModal 
+          onClose={() => setShowAddFunds(false)} 
+          onSuccess={() => {
+            fetchData() // Refresh wallet balance after adding funds
+            alert("Funds added successfully!")
+          }} 
+        />
+      )}
+
       <div className={styles.header}>
         <h2 className={styles.welcomeTitle}>Welcome, {profile?.username || 'User'}!</h2>
         <button className={`btn btn-danger ${styles.logoutButton}`} onClick={handleLogout} disabled={loading}>
@@ -71,9 +78,7 @@ export default function Dashboard({ session, onNavigate }) {
         </button>
       </div>
 
-      {/* No HR here anymore */}
-
-      <div className={styles.contentArea}> {/* <-- ADD THIS WRAPPER DIV */}
+      <div className={styles.contentArea}>
         {error && <div className="alert alert-danger">{error}</div>}
         
         {loading ? (
@@ -81,20 +86,23 @@ export default function Dashboard({ session, onNavigate }) {
         ) : (
           <>
             <div className={styles.horizontalGroup}>
-              {/* ... Wallet and Profile blocks same as before ... */}
               <div className={styles.infoBlock}>
                   <h4>Your Wallet</h4>
                   <p className={styles.walletBalance}>
                     {wallet ? formatCurrency(wallet.balance) : '...'}
                   </p>
-                  <button className="btn btn-primary" style={{ width: 'auto' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    style={{ width: 'auto' }}
+                    onClick={() => setShowAddFunds(true)} // <-- 5. Open Modal
+                  >
                     Add Funds (Mock)
                   </button>
               </div>
-
+              
+              {/* ... rest of component ... */}
               <div className={styles.infoBlock}>
                 <h4>Your Profile</h4>
-                 {/* ... profile details ... */}
                  <p><strong>Name:</strong> {profile?.full_name || 'Not set'}</p>
                  <p><strong>Email:</strong> {session.user.email}</p>
                  <p><strong>Username:</strong> @{profile?.username}</p>
@@ -102,7 +110,6 @@ export default function Dashboard({ session, onNavigate }) {
             </div>
             
             <div className={styles.ctaSection}>
-              {/* ... CTA content same as before ... */}
               <h4>Start a new Donation Drive</h4>
               <p>Ready to make a difference? Start your Bayanihan Drive today.</p>
               <button 
@@ -113,14 +120,12 @@ export default function Dashboard({ session, onNavigate }) {
               </button>
             </div>
 
-            {/* 2. ADD THE CAMPAIGN LIST HERE */}
             <div style={{marginTop: '4rem'}}>
               <CampaignList />
             </div>
-            
           </>
         )}
-      </div> {/* <-- END WRAPPER DIV */}
+      </div> 
     </div>
   )
 }
