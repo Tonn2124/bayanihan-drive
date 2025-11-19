@@ -1,57 +1,466 @@
-.authCard {
-  max-width: 480px;
-  margin: 3rem auto;
-  box-shadow: var(--shadow-lg);
+/* ===========================================
+   PROFESSIONAL AUTHENTICATION UI
+   Split-screen design with modern aesthetics
+   =========================================== */
+
+/* Main Container */
+.authContainer {
+  display: flex;
+  min-height: 100vh;
+  background: #ffffff;
 }
 
-.authTitle {
+/* Left Panel - Branding */
+.leftPanel {
+  flex: 1;
+  background: linear-gradient(135deg, #0056D2 0%, #003d99 100%);
+  padding: 4rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.leftPanel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: pulse 15s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.brandContent {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  color: #ffffff;
+}
+
+.logoSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.logoCircle {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.logoCircle svg {
+  color: #ffffff;
+}
+
+.brandTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
   text-align: center;
-  font-size: 2.25rem;
+}
+
+.brandTagline {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  opacity: 0.95;
+  text-align: center;
+  margin-bottom: 3rem;
+  font-weight: 300;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feature {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.featureIcon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+  flex-shrink: 0;
 }
 
-.authSubtitle {
-  text-align: center;
-  font-size: 1rem;
-  color: var(--color-text-muted);
+.feature h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: #ffffff;
+}
+
+.feature p {
+  font-size: 0.9375rem;
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Right Panel - Form */
+.rightPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: #f8f9fa;
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  animation: slideInRight 0.5s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Tab Switcher */
+.tabSwitcher {
+  display: flex;
+  gap: 0.5rem;
+  background: #f1f3f5;
+  padding: 0.5rem;
+  border-radius: 12px;
   margin-bottom: 2rem;
 }
 
-.passwordWrapper {
+.tab {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #495057;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.tab:hover {
+  color: #0056D2;
+}
+
+.activeTab {
+  background: #ffffff;
+  color: #0056D2;
+  box-shadow: 0 2px 8px rgba(0, 86, 210, 0.15);
+}
+
+/* Welcome Section */
+.welcomeSection {
+  margin-bottom: 2rem;
+}
+
+.formTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.formSubtitle {
+  font-size: 1rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Alerts */
+.alertDanger,
+.alertSuccess {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alertDanger {
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+  color: #c53030;
+}
+
+.alertDanger svg {
+  color: #c53030;
+  flex-shrink: 0;
+}
+
+.alertSuccess {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.alertSuccess svg {
+  color: #166534;
+  flex-shrink: 0;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-/* This class is for the input *inside* the wrapper */
-.passwordInput {
-  padding-right: 3.5rem !important; /* Make sure it doesn't get_hidden by icon */
+.inputWrapper svg:first-child {
+  position: absolute;
+  left: 1rem;
+  color: #6c757d;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.passwordToggleIcon {
+.input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input::placeholder {
+  color: #adb5bd;
+}
+
+.input:hover {
+  background: #e9ecef;
+}
+
+.input:focus {
+  background: #ffffff;
+  border-color: #0056D2;
+  box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
+}
+
+.eyeToggle {
   position: absolute;
   right: 1rem;
   background: none;
   border: none;
+  padding: 0.5rem;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: #6c757d;
   display: flex;
   align-items: center;
-  padding: 0;
-  margin: 0;
-  width: auto; 
-  margin-bottom: 0; 
-  box-shadow: none; 
+  justify-content: center;
+  transition: color 0.2s ease;
+  border-radius: 6px;
 }
 
-.passwordToggleIcon:hover {
-  color: var(--color-primary);
+.eyeToggle:hover {
+  color: #0056D2;
+  background: rgba(0, 86, 210, 0.05);
 }
 
 .validationError {
-  color: var(--color-danger);
   font-size: 0.875rem;
-  margin-top: 0.35rem;
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Submit Button */
+.submitButton {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0056D2 0%, #0041A3 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0041A3 0%, #003380 100%);
+  box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4);
+  transform: translateY(-2px);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Form Footer */
+.formFooter {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.formFooter p {
+  font-size: 0.9375rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: #0056D2;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.linkButton:hover {
+  color: #0041A3;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .leftPanel {
+    display: none;
+  }
+  
+  .rightPanel {
+    flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .rightPanel {
+    padding: 2rem 1rem;
+  }
+
+  .formWrapper {
+    padding: 2rem 1.5rem;
+  }
+
+  .formTitle {
+    font-size: 1.5rem;
+  }
+
+  .brandTitle {
+    font-size: 2rem;
+  }
 }

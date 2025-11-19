@@ -5,29 +5,46 @@
 /* 1. Root Variables */
 :root {
   /* Brand Colors */
-  --color-primary: #0056D2; /* Brighter, modern blue */
+  --color-primary: #0056D2;
   --color-primary-hover: #0041A3;
-  --color-accent: #F9A825; /* Deep yellow/gold */
+  --color-primary-light: rgba(0, 86, 210, 0.1);
+  --color-accent: #F9A825;
+  --color-accent-light: rgba(249, 168, 37, 0.1);
   
   /* Status Colors */
-  --color-success: #10B981; /* Soft green */
-  --color-danger: #EF4444; /* Soft red */
+  --color-success: #10B981;
+  --color-success-bg: #D1FAE5;
+  --color-success-border: #A7F3D0;
+  --color-success-text: #065F46;
+  --color-danger: #EF4444;
+  --color-danger-bg: #FEE2E2;
+  --color-danger-border: #FECACA;
+  --color-danger-text: #991B1B;
   
   /* Neutrals */
-  --color-bg: #F3F4F6; /* Light gray background */
-  --color-surface: #FFFFFF; /* White cards */
-  --color-text-main: #111827; /* Almost black */
-  --color-text-secondary: #6B7280; /* Gray text */
-  --color-border: #E5E7EB; /* Light borders */
+  --color-bg: #F3F4F6;
+  --color-surface: #FFFFFF;
+  --color-text-main: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-border: #E5E7EB;
+  --color-border-focus: #D1D5DB;
+  --color-input-bg: #F9FAFB;
 
   /* Typography */
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --border-radius: 12px; /* More rounded corners */
+  --border-radius: 12px;
+  --border-radius-sm: 8px;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --transition-base: all 0.2s ease;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 2. Global Reset */
@@ -40,10 +57,11 @@
 /* 3. Body Styles */
 body {
   font-family: var(--font-family-base);
-  line-height: 1.5;
+  line-height: 1.6;
   background-color: var(--color-bg);
   color: var(--color-text-main);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
@@ -60,6 +78,11 @@ body {
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
   padding: 2.5rem;
+  transition: var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 /* 5. Form Elements */
@@ -73,6 +96,12 @@ body {
   margin-bottom: 0.5rem;
   color: var(--color-text-main);
   font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.form-group label .required {
+  color: var(--color-danger);
+  margin-left: 0.25rem;
 }
 
 .form-control {
@@ -80,18 +109,40 @@ body {
   width: 100%;
   padding: 0.875rem 1rem;
   font-size: 1rem;
-  border-radius: 8px; /* Slightly smaller radius for inputs */
+  line-height: 1.5;
+  border-radius: var(--border-radius-sm);
   border: 1px solid var(--color-border);
-  background-color: #F9FAFB; /* Very light gray inside input */
-  transition: all 0.2s ease;
+  background-color: var(--color-input-bg);
+  transition: var(--transition-base);
   color: var(--color-text-main);
+  font-family: var(--font-family-base);
+}
+
+.form-control::placeholder {
+  color: var(--color-text-muted);
 }
 
 .form-control:focus {
   border-color: var(--color-primary);
-  background-color: #fff;
+  background-color: var(--color-surface);
   outline: 0;
-  box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.1); /* Soft focus ring */
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.form-control:disabled {
+  background-color: #F3F4F6;
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Form Help Text */
+.form-help {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
 }
 
 /* 6. Button Styles */
@@ -106,10 +157,18 @@ body {
   border: 1px solid transparent;
   padding: 0.875rem 1.5rem;
   font-size: 1rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  line-height: 1.5;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-base);
   width: 100%;
   box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  font-family: var(--font-family-base);
+}
+
+.btn:focus {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .btn:active {
@@ -125,50 +184,84 @@ body {
 .btn-primary:not(:disabled):hover {
   background-color: var(--color-primary-hover);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   color: var(--color-text-main);
-  background-color: #fff;
+  background-color: var(--color-surface);
   border-color: var(--color-border);
 }
 
 .btn-secondary:not(:disabled):hover {
   background-color: #F3F4F6;
-  border-color: #D1D5DB;
+  border-color: var(--color-border-focus);
 }
 
 .btn-danger {
   color: #fff;
   background-color: var(--color-danger);
+  border-color: var(--color-danger);
 }
 
 .btn-danger:not(:disabled):hover {
   background-color: #DC2626;
+  box-shadow: var(--shadow-md);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* 7. Alerts */
 .alert {
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
-  border-radius: 8px;
+  border-radius: var(--border-radius-sm);
   font-weight: 500;
   font-size: 0.95rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  line-height: 1.5;
+  animation: slideDown 0.3s ease;
 }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .alert-danger {
-  color: #991B1B;
-  background-color: #FEE2E2;
-  border: 1px solid #FECACA;
+  color: var(--color-danger-text);
+  background-color: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
 }
+
 .alert-success {
-  color: #065F46;
-  background-color: #D1FAE5;
-  border: 1px solid #A7F3D0;
+  color: var(--color-success-text);
+  background-color: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+}
+
+/* 8. Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .card {
+    padding: 1.5rem;
+  }
+  
+  .btn {
+    padding: 0.75rem 1.25rem;
+  }
 }
