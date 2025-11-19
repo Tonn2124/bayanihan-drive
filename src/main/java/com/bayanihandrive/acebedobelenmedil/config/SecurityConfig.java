@@ -31,11 +31,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/campaigns", "/api/campaigns/**").permitAll() 
+                // Allow public GET requests for campaigns
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/campaigns", "/api/campaigns/**").permitAll()
+                
+                // --- FIX: Allow public GET requests for donations ---
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/donations/campaign/**").permitAll()
+                
+                // All other API requests must be authenticated
                 .requestMatchers("/api/**").authenticated() 
                 .anyRequest().permitAll()
             )
-            // 2. Configure oauth2 to use our custom JWT Decoder
             .oauth2ResourceServer(oauth2 -> 
                 oauth2.jwt(jwt -> jwt.decoder(jwtDecoder()))
             );

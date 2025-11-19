@@ -1,27 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { supabase } from '../supabaseClient'; // <-- 1. Import Supabase client
+import { supabase } from '../supabaseClient'; 
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
 
 export default function CampaignDetails({ campaignId, onBack }) {
   const [campaign, setCampaign] = useState(null);
-  const [organizer, setOrganizer] = useState(null); // <-- 2. New State for Organizer
+  const [organizer, setOrganizer] = useState(null);
+  const [donations, setDonations] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDonateModal, setShowDonateModal] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = useCallback(async () => {
       try {
         setLoading(true);
+        setError(null); // Reset error on new fetch
+
+        // A. Fetch Campaign
+        const campaignRes = await axios.get(`http://localhost:8080/api/campaigns/${campaignId}`);
+        const campaignData = campaignRes.data;
         
-        // 1. Fetch Campaign from Spring Boot
-        const response = await axios.get(`http://localhost:8080/api/campaigns/${campaignId}`);
-        const campaignData = response.data;
+        if (!campaignData) {
+            throw new Error("Campaign data is empty");
+        }
+        
         setCampaign(campaignData);
 
-        // 2. Fetch Organizer Profile from Supabase using the ID we just got
+        // B. Fetch Organizer
+        // We check if organizerId exists to avoid bad requests
         if (campaignData.organizerId) {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -30,27 +37,47 @@ export default function CampaignDetails({ campaignId, onBack }) {
             .single();
           
           if (profileError) {
-            console.error("Error fetching organizer:", profileError);
+            console.warn("Could not fetch organizer profile:", profileError.message);
+            // Don't throw here, just let organizer be null
           } else {
             setOrganizer(profileData);
           }
         }
 
+        // C. Fetch Donations
+        try {
+            const donationsRes = await axios.get(`http://localhost:8080/api/donations/campaign/${campaignId}`);
+            setDonations(donationsRes.data);
+        } catch (donationErr) {
+            console.warn("Could not fetch donations:", donationErr);
+            // Don't block the whole page if donations fail
+        }
+
       } catch (err) {
-        console.error("Error fetching campaign details:", err);
-        setError("Could not load campaign details.");
+        console.error("Critical Error fetching details:", err);
+        setError(err.message || "Could not load campaign details.");
       } finally {
         setLoading(false);
       }
-    };
+  }, [campaignId]);
 
+  useEffect(() => {
     if (campaignId) {
       fetchData();
     }
-  }, [campaignId]);
+  }, [campaignId, fetchData]);
 
   if (loading) return <div className="container" style={{textAlign:'center', marginTop:'4rem'}}>Loading details...</div>;
-  if (error) return <div className="alert alert-danger container" style={{marginTop:'2rem'}}>{error}</div>;
+  
+  if (error) return (
+    <div className="container" style={{marginTop:'2rem'}}>
+        <div className="alert alert-danger">
+            {error}
+            <button className="btn btn-secondary" onClick={onBack} style={{marginTop: '1rem', width: 'auto'}}>Go Back</button>
+        </div>
+    </div>
+  );
+
   if (!campaign) return null;
 
   const progress = Math.min(
@@ -66,13 +93,18 @@ export default function CampaignDetails({ campaignId, onBack }) {
     }).format(amount);
   };
 
+  // Use optional chaining (?.) for safer access in render
+  const organizerName = organizer?.full_name || organizer?.username || 'Unknown Organizer';
+  const organizerUsername = organizer?.username ? `@${organizer.username}` : '';
+  const organizerInitial = organizerName.charAt(0).toUpperCase();
+
   return (
     <div className={styles.detailsContainer}>
       {showDonateModal && (
         <DonateModal 
           campaign={campaign} 
           onClose={() => setShowDonateModal(false)}
-          onSuccess={() => window.location.reload()} 
+          onSuccess={() => fetchData()} 
         />
       )}
 
@@ -90,37 +122,37 @@ export default function CampaignDetails({ campaignId, onBack }) {
       <div className={styles.mainGrid}>
         <div className={styles.contentSection}>
           <span className={styles.categoryTag}>
-            {campaign.category.replace('_', ' ')}
+            {campaign.category ? campaign.category.replace('_', ' ') : 'General'}
           </span>
           <h1>{campaign.title}</h1>
           
           <div className={styles.organizerSection}>
              <div className={styles.organizerLabel}>Organizer</div>
              <div className={styles.organizerName}>
-                {/* 3. Display the Real Name and Username */}
                 {organizer ? (
                   <>
                     <div style={{
-                      width: '32px', 
-                      height: '32px', 
+                      width: '40px', 
+                      height: '40px', 
                       borderRadius: '50%', 
                       backgroundColor: '#E5E7EB', 
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
                       fontWeight: 'bold',
-                      color: '#6B7280'
+                      color: '#6B7280',
+                      overflow: 'hidden',
+                      marginRight: '0.75rem'
                     }}>
-                      {/* Avatar Fallback */}
-                      {organizer.avatar_url ? <img src={organizer.avatar_url} alt="avatar" style={{width:'100%', height:'100%', borderRadius:'50%'}}/> : organizer.username?.charAt(0).toUpperCase()}
+                      {organizer.avatar_url ? <img src={organizer.avatar_url} alt="avatar" style={{width:'100%', height:'100%', objectFit: 'cover'}}/> : organizerInitial}
                     </div>
                     <div>
-                      {organizer.full_name || organizer.username}
-                      {organizer.full_name && <span style={{fontWeight: 'normal', color: '#6B7280', marginLeft: '0.5rem'}}>@{organizer.username}</span>}
+                      {organizerName}
+                      {organizerUsername && <span style={{fontWeight: 'normal', color: '#6B7280', marginLeft: '0.5rem', fontSize: '0.9em'}}>{organizerUsername}</span>}
                     </div>
                   </>
                 ) : (
-                  'Loading organizer...'
+                  <span style={{color: '#6B7280', fontStyle: 'italic'}}>Organizer info unavailable</span>
                 )}
              </div>
           </div>
@@ -151,7 +183,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
               </div>
               
               <div className={styles.donorCount}>
-                Be the next supporter!
+                {donations.length} people have donated
               </div>
             </div>
 
@@ -161,6 +193,41 @@ export default function CampaignDetails({ campaignId, onBack }) {
             >
               Donate Now
             </button>
+
+            <div style={{marginTop: '2rem'}}>
+                <h4 style={{fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text-main)'}}>Recent Donations</h4>
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                    {donations.length === 0 ? (
+                        <p style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem', fontStyle: 'italic'}}>Be the first to donate!</p>
+                    ) : (
+                        donations.slice(0, 5).map((donation) => (
+                            <div key={donation.id} style={{display: 'flex', alignItems: 'flex-start', gap: '0.75rem'}}>
+                                <div style={{
+                                    width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#EFF6FF', 
+                                    color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                    fontSize: '0.8rem', fontWeight: 'bold', flexShrink: 0
+                                }}>
+                                    {donation.isAnonymous ? '?' : 'D'} 
+                                </div>
+                                <div>
+                                    <div style={{fontWeight: '600', fontSize: '0.9rem', color: 'var(--color-text-main)'}}>
+                                        {donation.isAnonymous ? 'Anonymous' : 'A Supporter'} 
+                                    </div>
+                                    <div style={{fontSize: '0.85rem', color: 'var(--color-text-secondary)'}}>
+                                        donated <span style={{color: 'var(--color-success)', fontWeight: '600'}}>{formatCurrency(donation.amount)}</span>
+                                    </div>
+                                    {donation.message && (
+                                        <div style={{fontSize: '0.85rem', color: '#4B5563', marginTop: '0.25rem', fontStyle: 'italic'}}>
+                                            "{donation.message}"
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
           </div>
         </div>
       </div>
