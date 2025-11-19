@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.List;
 
 @Service
 public class CampaignService {
@@ -37,5 +38,9 @@ public class CampaignService {
 
         // 3. Save to database
         return campaignRepository.save(campaign);
+    }
+    
+    public List<Campaign> getAllActiveCampaigns() {
+        return campaignRepository.findByIsActive(true);
     }
 }

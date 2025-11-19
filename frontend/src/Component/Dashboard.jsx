@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import styles from '../Style/Dashboard.module.css' // <-- Import CSS Module
+import styles from '../Style/Dashboard.module.css'
+import CampaignList from './CampaignList' // <-- Import CSS Module
 
 export default function Dashboard({ session, onNavigate }) {
   const [loading, setLoading] = useState(true)
@@ -111,6 +112,12 @@ export default function Dashboard({ session, onNavigate }) {
                 Create New Campaign
               </button>
             </div>
+
+            {/* 2. ADD THE CAMPAIGN LIST HERE */}
+            <div style={{marginTop: '4rem'}}>
+              <CampaignList />
+            </div>
+            
           </>
         )}
       </div> {/* <-- END WRAPPER DIV */}

@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/campaigns")
@@ -40,5 +41,11 @@ public class CampaignController {
         return ResponseEntity
             .created(URI.create("/api/campaigns/" + createdCampaign.getId()))
             .body(createdCampaign);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Campaign>> getAllCampaigns() {
+        List<Campaign> campaigns = campaignService.getAllActiveCampaigns();
+        return ResponseEntity.ok(campaigns);
     }
 }
