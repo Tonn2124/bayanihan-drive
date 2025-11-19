@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CampaignService {
@@ -42,5 +43,10 @@ public class CampaignService {
     
     public List<Campaign> getAllActiveCampaigns() {
         return campaignRepository.findByIsActive(true);
+    }
+
+    public Campaign getCampaignById(Long id) {
+        return campaignRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Campaign not found with id: " + id));
     }
 }
