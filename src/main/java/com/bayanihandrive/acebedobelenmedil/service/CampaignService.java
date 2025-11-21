@@ -49,4 +49,8 @@ public class CampaignService {
         return campaignRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Campaign not found with id: " + id));
     }
+
+    public List<Campaign> getCampaignsByOrganizer(String organizerId) {
+        return campaignRepository.findByOrganizerId(UUID.fromString(organizerId));
+    }
 }

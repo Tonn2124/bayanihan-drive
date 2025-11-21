@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import styles from '../Style/Dashboard.module.css'
 import CampaignList from './CampaignList'
 import AddFundsModal from './AddFundsModal'
+import MyCampaigns from './MyCampaigns'
 
 export default function Dashboard({ session, onNavigate }) {
   const [loading, setLoading] = useState(true)
@@ -10,6 +11,7 @@ export default function Dashboard({ session, onNavigate }) {
   const [wallet, setWallet] = useState(null)
   const [error, setError] = useState(null)
   const [showAddFunds, setShowAddFunds] = useState(false) 
+  const [activeTab, setActiveTab] = useState('all'); 
 
   const fetchData = useCallback(async () => {
       try {
@@ -116,9 +118,27 @@ export default function Dashboard({ session, onNavigate }) {
               </button>
             </div>
 
-            <div style={{marginTop: '4rem'}}>
-              {/* --- FIX: Pass onNavigate to the list --- */}
-              <CampaignList onNavigate={onNavigate} />
+            <div className={styles.tabs}>
+              <button 
+                className={`${styles.tabButton} ${activeTab === 'all' ? styles.active : ''}`}
+                onClick={() => setActiveTab('all')}
+              >
+                All Campaigns
+              </button>
+              <button 
+                className={`${styles.tabButton} ${activeTab === 'my' ? styles.active : ''}`}
+                onClick={() => setActiveTab('my')}
+              >
+                My Campaigns
+              </button>
+            </div>
+
+            <div>
+              {activeTab === 'all' ? (
+                <CampaignList onNavigate={onNavigate} />
+              ) : (
+                <MyCampaigns onNavigate={onNavigate} />
+              )}
             </div>
           </>
         )}

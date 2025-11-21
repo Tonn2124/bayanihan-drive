@@ -122,7 +122,7 @@ export default function Auth() {
 
   return (
     <div className={styles.authContainer}>
-      {/* Left Panel - Branding */}
+      {}
       <div className={styles.leftPanel}>
         <div className={styles.brandContent}>
           <div className={styles.logoSection}>
@@ -160,10 +160,10 @@ export default function Auth() {
         </div>
       </div>
 
-      {/* Right Panel - Form */}
+      {}
       <div className={styles.rightPanel}>
         <div className={styles.formWrapper}>
-          {/* Tab Switcher */}
+          {}
           <div className={styles.tabSwitcher}>
             <button
               type="button"
@@ -187,7 +187,7 @@ export default function Auth() {
             </button>
           </div>
 
-          {/* Welcome Message */}
+          {}
           <div className={styles.welcomeSection}>
             <h2 className={styles.formTitle}>
               {isLogin ? 'Welcome back!' : 'Create your account'}
@@ -195,7 +195,7 @@ export default function Auth() {
             <p className={styles.formSubtitle}>
               {isLogin 
                 ? 'Sign in to continue your generosity journey' 
-                : 'Join thousands of Filipinos making a difference'}
+                : 'Join thousands of Filipinos making a difference!'}
             </p>
           </div>
 

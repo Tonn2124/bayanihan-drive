@@ -54,4 +54,11 @@ public class CampaignController {
         Campaign campaign = campaignService.getCampaignById(id);
         return ResponseEntity.ok(campaign);
     }
+
+    @GetMapping("/my-campaigns")
+    public ResponseEntity<List<Campaign>> getMyCampaigns(@AuthenticationPrincipal Jwt jwt) {
+        String organizerId = jwt.getSubject(); // Get ID from token
+        List<Campaign> campaigns = campaignService.getCampaignsByOrganizer(organizerId);
+        return ResponseEntity.ok(campaigns);
+    }
 }

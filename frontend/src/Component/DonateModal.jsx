@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-import styles from '../Style/AddFundsModal.module.css'; // Reuse existing modal styles!
+import styles from '../Style/AddFundsModal.module.css'; 
 
 export default function DonateModal({ campaign, onClose, onSuccess }) {
   const [amount, setAmount] = useState('');

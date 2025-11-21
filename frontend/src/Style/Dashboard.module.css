@@ -1,7 +1,7 @@
 .dashboardCard {
-  max-width: 1000px; /* Wider dashboard */
+  max-width: 1000px;
   margin: 2rem auto;
-  padding: 0; /* Remove default padding for full-width header */
+  padding: 0;
   border: none;
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -110,4 +110,33 @@
   padding: 1rem 2rem;
   font-size: 1.1rem;
   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tabButton {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tabButton:hover {
+  color: var(--color-primary);
+}
+
+.tabButton.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }

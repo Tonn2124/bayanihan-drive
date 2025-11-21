@@ -1,8 +1,8 @@
-import React from 'react'; // Removed useState and Modal imports
+import React from 'react'; 
 import styles from '../Style/CampaignList.module.css';
 
 export default function CampaignCard({ campaign, onNavigate }) {
-  // ... (progress and currency helpers same as before) ...
+
   const progress = Math.min((campaign.currentAmount / campaign.goalAmount) * 100, 100);
   const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount);
   const imageUrl = campaign.coverImageUrl || 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Bayanihan';
@@ -10,8 +10,8 @@ export default function CampaignCard({ campaign, onNavigate }) {
   return (
     <div 
       className={styles.campaignCard} 
-      style={{cursor: 'pointer'}} // Make it look clickable
-      onClick={() => onNavigate('campaignDetails', campaign.id)} // <-- Navigate on click
+      style={{cursor: 'pointer'}} 
+      onClick={() => onNavigate('campaignDetails', campaign.id)} 
     >
       <img 
         src={imageUrl} 
@@ -43,7 +43,7 @@ export default function CampaignCard({ campaign, onNavigate }) {
         </div>
 
         <div className={styles.cardFooter}>
-          {/* Changed button to "View Details" since clicking card navigates anyway */}
+          {}
           <button className={`btn btn-secondary ${styles.donateButton}`}>
             View Details
           </button>
