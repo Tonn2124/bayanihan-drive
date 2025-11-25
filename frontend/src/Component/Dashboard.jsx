@@ -4,6 +4,7 @@ import styles from '../Style/Dashboard.module.css'
 import CampaignList from './CampaignList'
 import AddFundsModal from './AddFundsModal'
 import MyCampaigns from './MyCampaigns'
+import MyDonations from './MyDonations';
 
 export default function Dashboard({ session, onNavigate }) {
   const [loading, setLoading] = useState(true)
@@ -131,17 +132,21 @@ export default function Dashboard({ session, onNavigate }) {
               >
                 My Campaigns
               </button>
+              {/* 2. Add My Donations Tab */}
+              <button 
+                className={`${styles.tabButton} ${activeTab === 'donations' ? styles.active : ''}`}
+                onClick={() => setActiveTab('donations')}
+              >
+                My Donations
+              </button>
             </div>
 
             <div>
-              {activeTab === 'all' ? (
-                <CampaignList onNavigate={onNavigate} />
-                
-              ) : (
-                <MyCampaigns onNavigate={onNavigate} />
-              )}
+              {activeTab === 'all' && <CampaignList onNavigate={onNavigate} />}
+              {activeTab === 'my' && <MyCampaigns onNavigate={onNavigate} />}
+              {/* 3. Add Conditional Render */}
+              {activeTab === 'donations' && <MyDonations />}
             </div>
-
           </>
         )}
       </div> 

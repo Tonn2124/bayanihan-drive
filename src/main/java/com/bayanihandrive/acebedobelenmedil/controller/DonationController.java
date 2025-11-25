@@ -39,4 +39,10 @@ public class DonationController {
     public ResponseEntity<List<Donation>> getCampaignDonations(@PathVariable Long campaignId) {
         return ResponseEntity.ok(donationService.getDonationsForCampaign(campaignId));
     }
+
+    @GetMapping("/my-donations")
+    public ResponseEntity<List<Donation>> getMyDonations(@AuthenticationPrincipal Jwt jwt) {
+        String donorId = jwt.getSubject();
+        return ResponseEntity.ok(donationService.getDonationsByDonor(donorId));
+    }
 }

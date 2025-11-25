@@ -37,4 +37,8 @@ public class DonationService {
     public List<Donation> getDonationsForCampaign(Long campaignId) {
         return donationRepository.findByCampaignIdOrderByCreatedAtDesc(campaignId);
     }
+
+    public List<Donation> getDonationsByDonor(String donorId) {
+        return donationRepository.findByDonorIdOrderByCreatedAtDesc(UUID.fromString(donorId));
+    }
 }
