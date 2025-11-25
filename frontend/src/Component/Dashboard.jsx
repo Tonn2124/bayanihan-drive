@@ -136,10 +136,12 @@ export default function Dashboard({ session, onNavigate }) {
             <div>
               {activeTab === 'all' ? (
                 <CampaignList onNavigate={onNavigate} />
+                
               ) : (
                 <MyCampaigns onNavigate={onNavigate} />
               )}
             </div>
+
           </>
         )}
       </div> 

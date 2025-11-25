@@ -3,14 +3,14 @@ import { supabase } from './supabaseClient'
 import Auth from './Component/Auth'
 import Dashboard from './Component/Dashboard'
 import CreateCampaign from './Component/CreateCampaign' 
-import CampaignDetails from './Component/CampaignDetails' // <-- 1. Import Details Page
+import CampaignDetails from './Component/CampaignDetails' 
 import styles from './App.module.css' 
 
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState('dashboard') 
-  const [selectedCampaignId, setSelectedCampaignId] = useState(null) // <-- 2. New State
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null) 
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -26,7 +26,7 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // 3. Helper function to handle navigation
+  
   const handleNavigate = (page, campaignId = null) => {
     setCurrentPage(page)
     if (campaignId) setSelectedCampaignId(campaignId)
@@ -42,13 +42,13 @@ function App() {
 
   const renderPage = () => {
     if (currentPage === 'dashboard') {
-      // Pass handleNavigate to dashboard
+      
       return <Dashboard session={session} onNavigate={handleNavigate} />
     }
     if (currentPage === 'createCampaign') {
       return <CreateCampaign session={session} onNavigate={handleNavigate} />
     }
-    // 4. Add Details Route
+   
     if (currentPage === 'campaignDetails') {
       return (
         <CampaignDetails 

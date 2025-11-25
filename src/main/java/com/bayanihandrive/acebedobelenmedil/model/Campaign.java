@@ -79,4 +79,17 @@ public class Campaign {
     public void setEndDate(Instant endDate) { this.endDate = endDate; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+
+    //WITHDRAWAL FEAETURE
+    @Column(name = "withdrawn_amount")
+    private BigDecimal withdrawnAmount = BigDecimal.ZERO;
+
+    
+    public BigDecimal getWithdrawnAmount() { return withdrawnAmount; }
+    public void setWithdrawnAmount(BigDecimal withdrawnAmount) { this.withdrawnAmount = withdrawnAmount; }
+    
+    
+    public BigDecimal getAvailableBalance() {
+        return currentAmount.subtract(withdrawnAmount);
+    }
 }

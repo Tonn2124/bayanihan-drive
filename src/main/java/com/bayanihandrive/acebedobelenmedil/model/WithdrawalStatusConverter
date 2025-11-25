@@ -1,0 +1,19 @@
+package com.bayanihandrive.acebedobelenmedil.model;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
+@Converter(autoApply = true)
+public class WithdrawalStatusConverter implements AttributeConverter<WithdrawalStatus, String> {
+    @Override
+    public String convertToDatabaseColumn(WithdrawalStatus status) {
+        if (status == null) return null;
+        return status.name(); // PENDING -> "PENDING"
+    }
+
+    @Override
+    public WithdrawalStatus convertToEntityAttribute(String dbData) {
+        if (dbData == null) return null;
+        return WithdrawalStatus.valueOf(dbData);
+    }
+}

@@ -3,23 +3,18 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient'; 
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
+import WithdrawalModal from './WithdrawalModal'; // <-- 1. Import Withdrawal Modal
 
-// Share Icon
+// Icons (No changes needed here)
 const ShareIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
 );
-
-// Heart Icon
 const HeartIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
 );
-
-// Calendar Icon
 const CalendarIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
 );
-
-// Location Icon
 const LocationIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
 );
@@ -30,22 +25,31 @@ export default function CampaignDetails({ campaignId, onBack }) {
   const [donations, setDonations] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Modal States
   const [showDonateModal, setShowDonateModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false); // <-- 2. New State
+
+  // User State (to check if organizer)
+  const [currentUser, setCurrentUser] = useState(null); // <-- 3. New State
 
   const fetchData = useCallback(async () => {
       try {
         setLoading(true);
         setError(null);
 
+        // Get Current User (Need this to check if they own the campaign)
+        const { data: { session } } = await supabase.auth.getSession();
+        setCurrentUser(session?.user || null);
+
+        // A. Fetch Campaign
         const campaignRes = await axios.get(`http://localhost:8080/api/campaigns/${campaignId}`);
         const campaignData = campaignRes.data;
         
-        if (!campaignData) {
-            throw new Error("Campaign data is empty");
-        }
-        
+        if (!campaignData) throw new Error("Campaign data is empty");
         setCampaign(campaignData);
 
+        // B. Fetch Organizer
         if (campaignData.organizerId) {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -53,13 +57,12 @@ export default function CampaignDetails({ campaignId, onBack }) {
             .eq('id', campaignData.organizerId)
             .single();
           
-          if (profileError) {
-            console.warn("Could not fetch organizer profile:", profileError.message);
-          } else {
+          if (!profileError) {
             setOrganizer(profileData);
           }
         }
 
+        // C. Fetch Donations
         try {
             const donationsRes = await axios.get(`http://localhost:8080/api/donations/campaign/${campaignId}`);
             setDonations(donationsRes.data);
@@ -68,7 +71,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
         }
 
       } catch (err) {
-        console.error("Critical Error fetching details:", err);
+        console.error("Error fetching details:", err);
         setError(err.message || "Could not load campaign details.");
       } finally {
         setLoading(false);
@@ -76,9 +79,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
   }, [campaignId]);
 
   useEffect(() => {
-    if (campaignId) {
-      fetchData();
-    }
+    if (campaignId) fetchData();
   }, [campaignId, fetchData]);
 
   if (loading) {
@@ -104,11 +105,8 @@ export default function CampaignDetails({ campaignId, onBack }) {
 
   if (!campaign) return null;
 
-  const progress = Math.min(
-    (campaign.currentAmount / campaign.goalAmount) * 100,
-    100
-  );
-
+  const progress = Math.min((campaign.currentAmount / campaign.goalAmount) * 100, 100);
+  
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
@@ -125,6 +123,11 @@ export default function CampaignDetails({ campaignId, onBack }) {
     ? Math.max(0, Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
     : null;
 
+  // --- 4. Organizer Logic ---
+  const isOrganizer = currentUser && campaign.organizerId === currentUser.id;
+  const withdrawnAmount = campaign.withdrawnAmount || 0;
+  const availableBalance = campaign.currentAmount - withdrawnAmount;
+
   return (
     <div className={styles.pageWrapper}>
       {showDonateModal && (
@@ -132,6 +135,16 @@ export default function CampaignDetails({ campaignId, onBack }) {
           campaign={campaign} 
           onClose={() => setShowDonateModal(false)}
           onSuccess={() => fetchData()} 
+        />
+      )}
+
+      {/* 5. Render Withdrawal Modal */}
+      {showWithdrawModal && (
+        <WithdrawalModal
+            campaign={campaign}
+            availableBalance={availableBalance}
+            onClose={() => setShowWithdrawModal(false)}
+            onSuccess={() => fetchData()}
         />
       )}
 
@@ -292,6 +305,26 @@ export default function CampaignDetails({ campaignId, onBack }) {
             >
               Donate Now
             </button>
+
+            {/* 6. ORGANIZER ACTIONS (Withdrawal) */}
+            {isOrganizer && (
+                <div style={{marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #E5E7EB'}}>
+                    <h4 style={{fontSize: '0.85rem', color: '#6B7280', textTransform: 'uppercase', fontWeight: '600', marginBottom: '0.5rem'}}>Organizer Actions</h4>
+                    
+                    <div style={{marginBottom: '1rem', fontSize: '0.9rem', color: '#1F2937'}}>
+                        Available for Payout: <strong style={{color: '#10B981'}}>{formatCurrency(availableBalance)}</strong>
+                    </div>
+
+                    <button 
+                        className="btn btn-secondary" 
+                        style={{width: '100%', fontSize: '0.9rem', padding: '0.75rem'}}
+                        onClick={() => setShowWithdrawModal(true)}
+                        disabled={availableBalance <= 0}
+                    >
+                        Request Withdrawal
+                    </button>
+                </div>
+            )}
 
             {/* Share Section */}
             <div className={styles.shareSection}>
