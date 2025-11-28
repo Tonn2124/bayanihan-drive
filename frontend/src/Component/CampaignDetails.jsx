@@ -3,9 +3,9 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient'; 
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
-import WithdrawalModal from './WithdrawalModal'; // <-- 1. Import Withdrawal Modal
+import WithdrawalModal from './WithdrawalModal'; 
 
-// Icons (No changes needed here)
+// Icons (No changes)
 const ShareIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
 );
@@ -28,28 +28,25 @@ export default function CampaignDetails({ campaignId, onBack }) {
   
   // Modal States
   const [showDonateModal, setShowDonateModal] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false); // <-- 2. New State
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  // User State (to check if organizer)
-  const [currentUser, setCurrentUser] = useState(null); // <-- 3. New State
+  // User State
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchData = useCallback(async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Get Current User (Need this to check if they own the campaign)
         const { data: { session } } = await supabase.auth.getSession();
         setCurrentUser(session?.user || null);
 
-        // A. Fetch Campaign
         const campaignRes = await axios.get(`http://localhost:8080/api/campaigns/${campaignId}`);
         const campaignData = campaignRes.data;
         
         if (!campaignData) throw new Error("Campaign data is empty");
         setCampaign(campaignData);
 
-        // B. Fetch Organizer
         if (campaignData.organizerId) {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -62,7 +59,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
           }
         }
 
-        // C. Fetch Donations
         try {
             const donationsRes = await axios.get(`http://localhost:8080/api/donations/campaign/${campaignId}`);
             setDonations(donationsRes.data);
@@ -81,6 +77,35 @@ export default function CampaignDetails({ campaignId, onBack }) {
   useEffect(() => {
     if (campaignId) fetchData();
   }, [campaignId, fetchData]);
+
+  // --- SOCIAL SHARING FUNCTIONS ---
+  const handleShareFacebook = () => {
+    // Ideally, replace with your deployed URL. For localhost, this might just open FB.
+    const url = window.location.href; 
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const handleShareTwitter = () => {
+    const url = window.location.href;
+    const text = `Check out this donation drive: ${campaign?.title}`;
+    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    // Use document.execCommand for better compatibility in iframes
+    const textArea = document.createElement("textarea");
+    textArea.value = url;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        alert("Link copied to clipboard!");
+    } catch (err) {
+        console.error('Unable to copy', err);
+    }
+    document.body.removeChild(textArea);
+  };
 
   if (loading) {
     return (
@@ -123,10 +148,8 @@ export default function CampaignDetails({ campaignId, onBack }) {
     ? Math.max(0, Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
     : null;
 
-  // --- 4. Organizer Logic ---
   const isOrganizer = currentUser && campaign.organizerId === currentUser.id;
   const isApproved = campaign.status === 'APPROVED';
-  // Allow withdrawal only if user is organizer AND campaign is approved
   const canWithdraw = isOrganizer && isApproved;
 
   const withdrawnAmount = campaign.withdrawnAmount || 0;
@@ -142,7 +165,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
         />
       )}
 
-      {/* 5. Render Withdrawal Modal */}
       {showWithdrawModal && (
         <WithdrawalModal
             campaign={campaign}
@@ -152,13 +174,12 @@ export default function CampaignDetails({ campaignId, onBack }) {
         />
       )}
 
-      {/* Navigation Bar */}
       <div className={styles.navBar}>
         <button className={styles.backBtn} onClick={onBack}>
           ← Back
         </button>
         <div className={styles.navActions}>
-          <button className={styles.iconButton} title="Share">
+          <button className={styles.iconButton} title="Share" onClick={handleShareFacebook}>
             <ShareIcon />
           </button>
           <button className={styles.iconButton} title="Save">
@@ -167,7 +188,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
         </div>
       </div>
 
-      {/* Header Image */}
       <div className={styles.headerImageWrapper}>
         <img 
           src={campaign.coverImageUrl || 'https://placehold.co/1200x500/EFF6FF/0056D2?text=Campaign+Image'} 
@@ -180,10 +200,8 @@ export default function CampaignDetails({ campaignId, onBack }) {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className={styles.contentContainer}>
         <div className={styles.mainContent}>
-          {/* Campaign Title & Meta */}
           <div className={styles.titleSection}>
             <h1 className={styles.campaignTitle}>{campaign.title}</h1>
             
@@ -203,7 +221,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
             </div>
           </div>
 
-          {/* Organizer Card */}
           <div className={styles.organizerCard}>
             <div className={styles.organizerAvatar}>
               {organizer?.avatar_url ? (
@@ -221,13 +238,11 @@ export default function CampaignDetails({ campaignId, onBack }) {
             </div>
           </div>
 
-          {/* Campaign Description */}
           <div className={styles.descriptionSection}>
             <h2 className={styles.sectionTitle}>Story</h2>
             <p className={styles.description}>{campaign.description}</p>
           </div>
 
-          {/* Recent Donations Section */}
           <div className={styles.donationsSection}>
             <h2 className={styles.sectionTitle}>
               Donations ({donations.length})
@@ -267,10 +282,8 @@ export default function CampaignDetails({ campaignId, onBack }) {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className={styles.sidebar}>
           <div className={styles.donationCard}>
-            {/* Progress Stats */}
             <div className={styles.statsGrid}>
               <div className={styles.statItem}>
                 <div className={styles.statValue}>{formatCurrency(campaign.currentAmount)}</div>
@@ -291,7 +304,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
               )}
             </div>
 
-            {/* Progress Bar */}
             <div className={styles.progressContainer}>
               <div className={styles.progressBar}>
                 <div 
@@ -302,7 +314,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
               <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
             </div>
 
-            {/* Donate Button */}
             <button 
               className={styles.donateButton}
               onClick={() => setShowDonateModal(true)}
@@ -310,54 +321,44 @@ export default function CampaignDetails({ campaignId, onBack }) {
               Donate Now
             </button>
 
-            {/* --- INSERT WITHDRAWAL LOGIC HERE --- */}
-            
-            {/* 1. Show Withdrawal Button (Only if Approved Organizer) */}
             {canWithdraw && (
-              <div className={styles.organizerActions}>
-    
-                <div className={styles.organizerActionsTitle}>Organizer Actions</div>
+                <div className={styles.organizerActions}>
+                    <h4 className={styles.organizerActionsTitle}>Organizer Actions</h4>
+                    
+                    <div className={styles.payoutInfo}>
+                        Available for Payout: <strong className={styles.payoutAmount}>{formatCurrency(availableBalance)}</strong>
+                    </div>
 
-                <div className={styles.payoutInfo}>
-                  Available for Payout:{" "}
-                  <strong className={styles.payoutAmount}>
-                  {formatCurrency(availableBalance)}
-                  </strong>
+                    <button 
+                        className={styles.withdrawButton}
+                        onClick={() => setShowWithdrawModal(true)}
+                        disabled={availableBalance <= 0}
+                    >
+                        Request Withdrawal
+                    </button>
                 </div>
-
-                <button
-                  className={styles.withdrawButton}
-                  onClick={() => setShowWithdrawModal(true)}
-                  disabled={availableBalance <= 0}
-                >
-                  Request Withdrawal
-                </button>
-              </div>
             )}
 
-            {/* 2. Show Warning (If Organizer but NOT Approved) */}
             {isOrganizer && !isApproved && (
-              <div className={styles.warningAlert}>
-                Your campaign is currently <strong>{campaign.status}</strong>.  
-                You can request withdrawals once it is approved.
-              </div>
+                <div className={styles.warningAlert}>
+                    Your campaign is currently <strong>{campaign.status}</strong>. 
+                    You can request withdrawals once it is approved.
+                </div>
             )}
 
-            {/* --- END WITHDRAWAL LOGIC --- */}
-
-            {/* Share Section */}
+            {/* Share Section with Handlers */}
             <div className={styles.shareSection}>
               <div className={styles.shareDivider}>
                 <span>Share this campaign</span>
               </div>
               <div className={styles.shareButtons}>
-                <button className={styles.shareBtn} title="Share via Facebook">
+                <button className={styles.shareBtn} title="Share via Facebook" onClick={handleShareFacebook}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 </button>
-                <button className={styles.shareBtn} title="Share via Twitter">
+                <button className={styles.shareBtn} title="Share via Twitter" onClick={handleShareTwitter}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
                 </button>
-                <button className={styles.shareBtn} title="Copy link">
+                <button className={styles.shareBtn} title="Copy link" onClick={handleCopyLink}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                 </button>
               </div>
