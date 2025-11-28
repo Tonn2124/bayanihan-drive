@@ -47,9 +47,7 @@ public class CampaignService {
         return campaignRepository.save(campaign);
     }
     
-    public List<Campaign> getAllActiveCampaigns() {
-        return campaignRepository.findByIsActive(true);
-    }
+
 
     public Campaign getCampaignById(Long id) {
         return campaignRepository.findById(id)
@@ -76,5 +74,19 @@ public class CampaignService {
         Campaign campaign = getCampaignById(campaignId);
         campaign.setStatus(approve ? CampaignStatus.APPROVED : CampaignStatus.REJECTED);
         return campaignRepository.save(campaign);
+    }
+
+    // Update this to use the new repository method
+    public List<Campaign> getAllActiveCampaigns() {
+        return campaignRepository.findAllActiveAndApproved();
+    }
+
+    // --- ADD SEARCH METHOD ---
+    public List<Campaign> searchCampaigns(String query, String category) {
+        // If category is "ALL" or empty, send null to repository to ignore the filter
+        String categoryFilter = (category != null && !category.equalsIgnoreCase("ALL")) ? category.toLowerCase() : null;
+        String searchQuery = (query != null) ? query : "";
+        
+        return campaignRepository.searchCampaigns(searchQuery, categoryFilter);
     }
 }

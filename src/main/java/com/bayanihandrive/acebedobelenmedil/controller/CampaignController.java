@@ -15,8 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/campaigns")
-// We set global CORS in SecurityConfig, but this is also good for clarity
-@CrossOrigin(origins = "http://localhost:3000") 
+@CrossOrigin(origins = "http://localhost:3000")
 public class CampaignController {
 
     private final CampaignService campaignService;
@@ -31,34 +30,39 @@ public class CampaignController {
             @Valid @RequestBody CreateCampaignRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         
-        // 1. Get the authenticated user's ID (the UUID) from the JWT.
         String organizerId = jwt.getSubject();
-
-        // 2. Call the service to create the campaign
         Campaign createdCampaign = campaignService.createCampaign(request, organizerId);
 
-        // 3. Return a "201 Created" response
         return ResponseEntity
             .created(URI.create("/api/campaigns/" + createdCampaign.getId()))
             .body(createdCampaign);
     }
 
+    // --- SEARCH & FILTER (PUBLIC) ---
     @GetMapping
-    public ResponseEntity<List<Campaign>> getAllCampaigns() {
-        List<Campaign> campaigns = campaignService.getAllActiveCampaigns();
-        return ResponseEntity.ok(campaigns);
+    public ResponseEntity<List<Campaign>> getAllCampaigns(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String category) {
+        
+        if ((query != null && !query.isEmpty()) || (category != null && !category.isEmpty())) {
+            return ResponseEntity.ok(campaignService.searchCampaigns(query, category));
+        }
+        
+        return ResponseEntity.ok(campaignService.getAllActiveCampaigns());
     }
 
+    // --- MY CAMPAIGNS (SECURED) ---
+    @GetMapping("/my-campaigns")
+    public ResponseEntity<List<Campaign>> getMyCampaigns(@AuthenticationPrincipal Jwt jwt) {
+        String organizerId = jwt.getSubject(); 
+        List<Campaign> campaigns = campaignService.getCampaignsByOrganizer(organizerId);
+        return ResponseEntity.ok(campaigns);
+    }
+    
+    // --- GET SINGLE CAMPAIGN (PUBLIC) ---
     @GetMapping("/{id}")
     public ResponseEntity<Campaign> getCampaignById(@PathVariable Long id) {
         Campaign campaign = campaignService.getCampaignById(id);
         return ResponseEntity.ok(campaign);
-    }
-
-    @GetMapping("/my-campaigns")
-    public ResponseEntity<List<Campaign>> getMyCampaigns(@AuthenticationPrincipal Jwt jwt) {
-        String organizerId = jwt.getSubject(); // Get ID from token
-        List<Campaign> campaigns = campaignService.getCampaignsByOrganizer(organizerId);
-        return ResponseEntity.ok(campaigns);
     }
 }
