@@ -18,9 +18,10 @@ export default function Dashboard({ session, onNavigate }) {
       try {
         const { user } = session
         
+        // Fetch Profile including ROLE
         let { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('full_name, avatar_url, username') 
+          .select('full_name, avatar_url, username, role') // <-- Make sure to select 'role'
           .eq('id', user.id)
           .single() 
 
@@ -59,6 +60,9 @@ export default function Dashboard({ session, onNavigate }) {
     }).format(amount)
   }
 
+  // Check if user is admin (case-insensitive check is safer)
+  const isAdmin = profile?.role?.toUpperCase() === 'ADMIN';
+
   return (
     <div className={`card ${styles.dashboardCard}`}>
       {showAddFunds && (
@@ -73,9 +77,28 @@ export default function Dashboard({ session, onNavigate }) {
 
       <div className={styles.header}>
         <h2 className={styles.welcomeTitle}>Welcome, {profile?.username || 'User'}!</h2>
-        <button className={`btn btn-danger ${styles.logoutButton}`} onClick={handleLogout} disabled={loading}>
-          {loading ? '...' : 'Sign Out'}
-        </button>
+        
+        <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+            {/* FIX: Only show Admin Panel if user is ADMIN */}
+            {isAdmin && (
+                <button 
+                    className="btn btn-secondary" 
+                    onClick={() => onNavigate('admin')} 
+                    style={{width: 'auto', marginBottom: 0}}
+                >
+                    Admin Panel
+                </button>
+            )}
+            
+            {/* Keep only this Sign Out button */}
+            <button 
+                className={`btn btn-danger ${styles.logoutButton}`} 
+                onClick={handleLogout} 
+                disabled={loading}
+            >
+                {loading ? '...' : 'Sign Out'}
+            </button>
+        </div>
       </div>
 
       <div className={styles.contentArea}>
@@ -105,6 +128,8 @@ export default function Dashboard({ session, onNavigate }) {
                  <p><strong>Name:</strong> {profile?.full_name || 'Not set'}</p>
                  <p><strong>Email:</strong> {session.user.email}</p>
                  <p><strong>Username:</strong> @{profile?.username}</p>
+                 {/* Optional: Show role badge */}
+                 {isAdmin && <span style={{background: '#FEE2E2', color: '#991B1B', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold'}}>ADMIN</span>}
               </div>
             </div>
             
@@ -132,7 +157,6 @@ export default function Dashboard({ session, onNavigate }) {
               >
                 My Campaigns
               </button>
-              {/* 2. Add My Donations Tab */}
               <button 
                 className={`${styles.tabButton} ${activeTab === 'donations' ? styles.active : ''}`}
                 onClick={() => setActiveTab('donations')}
@@ -144,7 +168,6 @@ export default function Dashboard({ session, onNavigate }) {
             <div>
               {activeTab === 'all' && <CampaignList onNavigate={onNavigate} />}
               {activeTab === 'my' && <MyCampaigns onNavigate={onNavigate} />}
-              {/* 3. Add Conditional Render */}
               {activeTab === 'donations' && <MyDonations />}
             </div>
           </>

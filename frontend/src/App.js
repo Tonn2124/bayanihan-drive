@@ -5,6 +5,7 @@ import Dashboard from './Component/Dashboard'
 import CreateCampaign from './Component/CreateCampaign' 
 import CampaignDetails from './Component/CampaignDetails' 
 import styles from './App.module.css' 
+import AdminDashboard from './Component/AdminDashboard';
 
 function App() {
   const [session, setSession] = useState(null)
@@ -57,6 +58,11 @@ function App() {
         />
       )
     }
+
+    if (currentPage === 'admin') {
+      return <AdminDashboard onNavigate={handleNavigate} />
+  }
+  
     return <Dashboard session={session} onNavigate={handleNavigate} />
   }
 

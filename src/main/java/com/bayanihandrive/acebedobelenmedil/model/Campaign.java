@@ -2,7 +2,8 @@ package com.bayanihandrive.acebedobelenmedil.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.ColumnTransformer; // <-- IMPORT THIS
+import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,13 +33,10 @@ public class Campaign {
     @Column(name = "current_amount", nullable = false)
     private BigDecimal currentAmount;
 
-    // --- THIS IS THE NEW FIX ---
-    // 1. We remove columnDefinition = "campaign_category"
+
     @Column(name = "category", nullable = false)
-    @Convert(converter = CampaignCategoryConverter.class) // This turns EDUCATION -> "education"
-    // 2. We add @ColumnTransformer.
-    // This forces Hibernate to cast our string ("education") to the 
-    // correct "campaign_category" enum type in the SQL query.
+    @Convert(converter = CampaignCategoryConverter.class) 
+
     @ColumnTransformer(write = "?::campaign_category")
     private CampaignCategory category;
 
@@ -84,6 +82,12 @@ public class Campaign {
     @Column(name = "withdrawn_amount")
     private BigDecimal withdrawnAmount = BigDecimal.ZERO;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @ColumnTransformer(write = "?::campaign_status")
+    private CampaignStatus status = CampaignStatus.PENDING;
+
     
     public BigDecimal getWithdrawnAmount() { return withdrawnAmount; }
     public void setWithdrawnAmount(BigDecimal withdrawnAmount) { this.withdrawnAmount = withdrawnAmount; }
@@ -92,4 +96,14 @@ public class Campaign {
     public BigDecimal getAvailableBalance() {
         return currentAmount.subtract(withdrawnAmount);
     }
+
+    public CampaignStatus getStatus() { 
+        return status; 
+    }
+    
+    public void setStatus(CampaignStatus status) { 
+        this.status = status; 
+    }
+
+    
 }

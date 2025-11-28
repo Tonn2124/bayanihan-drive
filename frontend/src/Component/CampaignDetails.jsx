@@ -125,6 +125,10 @@ export default function CampaignDetails({ campaignId, onBack }) {
 
   // --- 4. Organizer Logic ---
   const isOrganizer = currentUser && campaign.organizerId === currentUser.id;
+  const isApproved = campaign.status === 'APPROVED';
+  // Allow withdrawal only if user is organizer AND campaign is approved
+  const canWithdraw = isOrganizer && isApproved;
+
   const withdrawnAmount = campaign.withdrawnAmount || 0;
   const availableBalance = campaign.currentAmount - withdrawnAmount;
 
@@ -306,25 +310,40 @@ export default function CampaignDetails({ campaignId, onBack }) {
               Donate Now
             </button>
 
-            {/* 6. ORGANIZER ACTIONS (Withdrawal) */}
-            {isOrganizer && (
-                <div style={{marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #E5E7EB'}}>
-                    <h4 style={{fontSize: '0.85rem', color: '#6B7280', textTransform: 'uppercase', fontWeight: '600', marginBottom: '0.5rem'}}>Organizer Actions</h4>
-                    
-                    <div style={{marginBottom: '1rem', fontSize: '0.9rem', color: '#1F2937'}}>
-                        Available for Payout: <strong style={{color: '#10B981'}}>{formatCurrency(availableBalance)}</strong>
-                    </div>
+            {/* --- INSERT WITHDRAWAL LOGIC HERE --- */}
+            
+            {/* 1. Show Withdrawal Button (Only if Approved Organizer) */}
+            {canWithdraw && (
+              <div className={styles.organizerActions}>
+    
+                <div className={styles.organizerActionsTitle}>Organizer Actions</div>
 
-                    <button 
-                        className="btn btn-secondary" 
-                        style={{width: '100%', fontSize: '0.9rem', padding: '0.75rem'}}
-                        onClick={() => setShowWithdrawModal(true)}
-                        disabled={availableBalance <= 0}
-                    >
-                        Request Withdrawal
-                    </button>
+                <div className={styles.payoutInfo}>
+                  Available for Payout:{" "}
+                  <strong className={styles.payoutAmount}>
+                  {formatCurrency(availableBalance)}
+                  </strong>
                 </div>
+
+                <button
+                  className={styles.withdrawButton}
+                  onClick={() => setShowWithdrawModal(true)}
+                  disabled={availableBalance <= 0}
+                >
+                  Request Withdrawal
+                </button>
+              </div>
             )}
+
+            {/* 2. Show Warning (If Organizer but NOT Approved) */}
+            {isOrganizer && !isApproved && (
+              <div className={styles.warningAlert}>
+                Your campaign is currently <strong>{campaign.status}</strong>.  
+                You can request withdrawals once it is approved.
+              </div>
+            )}
+
+            {/* --- END WITHDRAWAL LOGIC --- */}
 
             {/* Share Section */}
             <div className={styles.shareSection}>

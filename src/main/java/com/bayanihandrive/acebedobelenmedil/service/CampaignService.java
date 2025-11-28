@@ -2,7 +2,11 @@ package com.bayanihandrive.acebedobelenmedil.service;
 
 import com.bayanihandrive.acebedobelenmedil.dto.CreateCampaignRequest;
 import com.bayanihandrive.acebedobelenmedil.model.Campaign;
+import com.bayanihandrive.acebedobelenmedil.model.CampaignStatus;
 import com.bayanihandrive.acebedobelenmedil.repository.CampaignRepository;
+import com.bayanihandrive.acebedobelenmedil.repository.ProfileRepository;
+import com.bayanihandrive.acebedobelenmedil.model.Profile;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +19,12 @@ import java.util.Optional;
 public class CampaignService {
 
     private final CampaignRepository campaignRepository;
+    private final ProfileRepository profileRepository;
 
     @Autowired
-    public CampaignService(CampaignRepository campaignRepository) {
+    public CampaignService(CampaignRepository campaignRepository, ProfileRepository profileRepository) {
         this.campaignRepository = campaignRepository;
+        this.profileRepository = profileRepository;
     }
 
     public Campaign createCampaign(CreateCampaignRequest request, String organizerId) {
@@ -52,5 +58,23 @@ public class CampaignService {
 
     public List<Campaign> getCampaignsByOrganizer(String organizerId) {
         return campaignRepository.findByOrganizerId(UUID.fromString(organizerId));
+    }
+
+    // --- ADMIN METHODS ---
+
+    public boolean isAdmin(String userId) {
+        return profileRepository.findById(UUID.fromString(userId))
+                .map(profile -> "ADMIN".equalsIgnoreCase(profile.getRole()))
+                .orElse(false);
+    }
+
+    public List<Campaign> getPendingCampaigns() {
+        return campaignRepository.findByStatus(CampaignStatus.PENDING);
+    }
+
+    public Campaign verifyCampaign(Long campaignId, boolean approve) {
+        Campaign campaign = getCampaignById(campaignId);
+        campaign.setStatus(approve ? CampaignStatus.APPROVED : CampaignStatus.REJECTED);
+        return campaignRepository.save(campaign);
     }
 }
