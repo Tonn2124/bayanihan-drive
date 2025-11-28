@@ -3,6 +3,7 @@ package com.bayanihandrive.acebedobelenmedil.config;
 import org.springframework.beans.factory.annotation.Value; // <-- IMPORT THIS
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -36,6 +37,8 @@ public class SecurityConfig {
                 
                 // --- FIX: Allow public GET requests for donations ---
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/donations/campaign/**").permitAll()
+
+                .requestMatchers(HttpMethod.GET, "/api/social/**").permitAll() 
                 
                 // All other API requests must be authenticated
                 .requestMatchers("/api/**").authenticated() 

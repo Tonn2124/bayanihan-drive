@@ -5,7 +5,7 @@ import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
 import WithdrawalModal from './WithdrawalModal'; 
 
-// Icons (No changes)
+// ... Icons remain the same ...
 const ShareIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
 );
@@ -26,45 +26,59 @@ export default function CampaignDetails({ campaignId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Modal States
+  // UI States
+  const [activeTab, setActiveTab] = useState('story');
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+
+  // Social State
+  const [newComment, setNewComment] = useState('');
+  const [newUpdateTitle, setNewUpdateTitle] = useState('');
+  const [newUpdateContent, setNewUpdateContent] = useState('');
+  const [comments, setComments] = useState([]);
+  const [updates, setUpdates] = useState([]);
+  
+  // Loading states for posting
+  const [postingComment, setPostingComment] = useState(false);
+  const [postingUpdate, setPostingUpdate] = useState(false);
 
   // User State
   const [currentUser, setCurrentUser] = useState(null);
 
-  const fetchData = useCallback(async () => {
+  // --- Fetch Logic ---
+  const fetchCampaignData = useCallback(async () => {
       try {
-        setLoading(true);
         setError(null);
+        // Only show full loading spinner on initial load
+        if (!campaign) setLoading(true);
 
         const { data: { session } } = await supabase.auth.getSession();
         setCurrentUser(session?.user || null);
 
+        // 1. Campaign
         const campaignRes = await axios.get(`http://localhost:8080/api/campaigns/${campaignId}`);
         const campaignData = campaignRes.data;
-        
         if (!campaignData) throw new Error("Campaign data is empty");
         setCampaign(campaignData);
 
+        // 2. Organizer
         if (campaignData.organizerId) {
-          const { data: profileData, error: profileError } = await supabase
+          const { data: profileData } = await supabase
             .from('profiles')
             .select('full_name, username, avatar_url')
             .eq('id', campaignData.organizerId)
             .single();
-          
-          if (!profileError) {
-            setOrganizer(profileData);
-          }
+          setOrganizer(profileData || {});
         }
 
+        // 3. Donations
         try {
             const donationsRes = await axios.get(`http://localhost:8080/api/donations/campaign/${campaignId}`);
-            setDonations(donationsRes.data);
-        } catch (donationErr) {
-            console.warn("Could not fetch donations:", donationErr);
-        }
+            setDonations(donationsRes.data || []);
+        } catch (e) { console.warn("Donations fetch error", e); }
+
+        // 4. Social Features
+        await fetchSocialData();
 
       } catch (err) {
         console.error("Error fetching details:", err);
@@ -74,293 +88,284 @@ export default function CampaignDetails({ campaignId, onBack }) {
       }
   }, [campaignId]);
 
-  useEffect(() => {
-    if (campaignId) fetchData();
-  }, [campaignId, fetchData]);
+  // Separated social fetch to easily refresh just comments/updates
+  const fetchSocialData = async () => {
+      try {
+        const [commentsRes, updatesRes] = await Promise.all([
+            axios.get(`http://localhost:8080/api/social/comments/${campaignId}`),
+            axios.get(`http://localhost:8080/api/social/updates/${campaignId}`)
+        ]);
+        // Ensure we always set arrays to avoid .map errors
+        setComments(commentsRes.data || []);
+        setUpdates(updatesRes.data || []);
+      } catch (e) {
+          console.warn("Social data fetch warning", e);
+      }
+  };
 
-  // --- SOCIAL SHARING FUNCTIONS ---
+  useEffect(() => {
+    if (campaignId) fetchCampaignData();
+  }, [campaignId, fetchCampaignData]);
+
+  // --- Handlers ---
+  const handlePostComment = async (e) => {
+      e.preventDefault();
+      if (!newComment.trim()) return;
+      
+      setPostingComment(true);
+      try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+              alert("Please log in to comment.");
+              setPostingComment(false);
+              return;
+          }
+          
+          // Send to backend
+          await axios.post('http://localhost:8080/api/social/comments', 
+            { campaignId, content: newComment }, 
+            { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+          );
+          
+          // Clear input
+          setNewComment('');
+          
+          // Fetch fresh list from backend (cleanest way)
+          await fetchSocialData();
+          
+      } catch (err) { 
+          console.error(err);
+          alert("Failed to post comment.");
+      } finally {
+          setPostingComment(false);
+      }
+  };
+
+  const handlePostUpdate = async (e) => {
+      e.preventDefault();
+      if (!newUpdateTitle.trim() || !newUpdateContent.trim()) return;
+
+      setPostingUpdate(true);
+      try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          await axios.post('http://localhost:8080/api/social/updates', 
+            { campaignId, title: newUpdateTitle, content: newUpdateContent }, 
+            { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+          );
+          
+          setNewUpdateTitle('');
+          setNewUpdateContent('');
+          
+          await fetchSocialData();
+      } catch (err) { 
+          console.error(err);
+          alert("Failed to post update."); 
+      } finally {
+          setPostingUpdate(false);
+      }
+  };
+
+  // ... Social Sharing Handlers (Keep existing) ...
   const handleShareFacebook = () => {
-    // Ideally, replace with your deployed URL. For localhost, this might just open FB.
     const url = window.location.href; 
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
   };
-
   const handleShareTwitter = () => {
     const url = window.location.href;
     const text = `Check out this donation drive: ${campaign?.title}`;
     window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
   };
-
   const handleCopyLink = () => {
     const url = window.location.href;
-    // Use document.execCommand for better compatibility in iframes
-    const textArea = document.createElement("textarea");
-    textArea.value = url;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-        document.execCommand('copy');
-        alert("Link copied to clipboard!");
-    } catch (err) {
-        console.error('Unable to copy', err);
-    }
-    document.body.removeChild(textArea);
+    navigator.clipboard.writeText(url).then(() => alert("Link copied!")).catch(() => alert("Failed to copy"));
   };
 
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Loading campaign details...</p>
-      </div>
-    );
-  }
-  
-  if (error) return (
-    <div className={styles.errorContainer}>
-        <div className={styles.errorCard}>
-            <h3>Unable to load campaign</h3>
-            <p>{error}</p>
-            <button className={styles.backButton} onClick={onBack}>
-              ← Back to Dashboard
-            </button>
-        </div>
-    </div>
-  );
-
+  if (loading) return <div className={styles.loadingContainer}><div className={styles.spinner}></div><p>Loading...</p></div>;
+  if (error) return <div className={styles.errorContainer}><div className={styles.errorCard}><p>{error}</p><button className={styles.backButton} onClick={onBack}>Back</button></div></div>;
   if (!campaign) return null;
 
-  const progress = Math.min((campaign.currentAmount / campaign.goalAmount) * 100, 100);
-  
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Calculations
+  const currentAmount = campaign.currentAmount || 0;
+  const goalAmount = campaign.goalAmount || 1; 
+  const progress = Math.min((currentAmount / goalAmount) * 100, 100);
+  const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount);
 
   const organizerName = organizer?.full_name || organizer?.username || 'Unknown Organizer';
   const organizerUsername = organizer?.username ? `@${organizer.username}` : '';
   const organizerInitial = organizerName.charAt(0).toUpperCase();
 
-  const daysLeft = campaign.endDate 
-    ? Math.max(0, Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
-    : null;
-
   const isOrganizer = currentUser && campaign.organizerId === currentUser.id;
   const isApproved = campaign.status === 'APPROVED';
   const canWithdraw = isOrganizer && isApproved;
-
-  const withdrawnAmount = campaign.withdrawnAmount || 0;
-  const availableBalance = campaign.currentAmount - withdrawnAmount;
+  const availableBalance = currentAmount - (campaign.withdrawnAmount || 0);
 
   return (
     <div className={styles.pageWrapper}>
-      {showDonateModal && (
-        <DonateModal 
-          campaign={campaign} 
-          onClose={() => setShowDonateModal(false)}
-          onSuccess={() => fetchData()} 
-        />
-      )}
+      {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={() => fetchCampaignData()} />}
+      {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={() => fetchCampaignData()} />}
 
-      {showWithdrawModal && (
-        <WithdrawalModal
-            campaign={campaign}
-            availableBalance={availableBalance}
-            onClose={() => setShowWithdrawModal(false)}
-            onSuccess={() => fetchData()}
-        />
-      )}
-
+      {/* Nav */}
       <div className={styles.navBar}>
-        <button className={styles.backBtn} onClick={onBack}>
-          ← Back
-        </button>
+        <button className={styles.backBtn} onClick={onBack}>← Back</button>
         <div className={styles.navActions}>
-          <button className={styles.iconButton} title="Share" onClick={handleShareFacebook}>
-            <ShareIcon />
-          </button>
-          <button className={styles.iconButton} title="Save">
-            <HeartIcon />
-          </button>
+          <button className={styles.iconButton} title="Share" onClick={handleShareFacebook}><ShareIcon /></button>
+          <button className={styles.iconButton} title="Save"><HeartIcon /></button>
         </div>
       </div>
 
+      {/* Header Image */}
       <div className={styles.headerImageWrapper}>
-        <img 
-          src={campaign.coverImageUrl || 'https://placehold.co/1200x500/EFF6FF/0056D2?text=Campaign+Image'} 
-          alt={campaign.title} 
-          className={styles.headerImage}
-          onError={(e) => {e.target.src = 'https://placehold.co/1200x500/EFF6FF/0056D2?text=Image+Not+Found'}}
-        />
-        <div className={styles.categoryBadge}>
-          {campaign.category ? campaign.category.replace('_', ' ') : 'Others'}
-        </div>
+        <img src={campaign.coverImageUrl || 'https://placehold.co/1200x500/EFF6FF/0056D2?text=Campaign+Image'} alt={campaign.title} className={styles.headerImage} />
+        <div className={styles.categoryBadge}>{campaign.category ? campaign.category.replace('_', ' ') : 'General'}</div>
       </div>
 
       <div className={styles.contentContainer}>
+        {/* LEFT CONTENT */}
         <div className={styles.mainContent}>
           <div className={styles.titleSection}>
             <h1 className={styles.campaignTitle}>{campaign.title}</h1>
-            
             <div className={styles.metaInfo}>
-              {campaign.location && (
-                <div className={styles.metaItem}>
-                  <LocationIcon />
-                  <span>{campaign.location}</span>
-                </div>
-              )}
-              {campaign.createdAt && (
-                <div className={styles.metaItem}>
-                  <CalendarIcon />
-                  <span>Created {new Date(campaign.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                </div>
-              )}
+                <div className={styles.metaItem}><CalendarIcon /> <span>Created {new Date(campaign.createdAt).toLocaleDateString()}</span></div>
             </div>
           </div>
 
           <div className={styles.organizerCard}>
-            <div className={styles.organizerAvatar}>
-              {organizer?.avatar_url ? (
-                <img src={organizer.avatar_url} alt="Organizer" />
-              ) : (
-                <span>{organizerInitial}</span>
-              )}
-            </div>
-            <div className={styles.organizerInfo}>
-              <div className={styles.organizerLabel}>Organized by</div>
-              <div className={styles.organizerName}>
-                {organizerName}
-                {organizerUsername && <span className={styles.organizerUsername}>{organizerUsername}</span>}
-              </div>
-            </div>
+             <div className={styles.organizerAvatar}>{organizer?.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial}</div>
+             <div className={styles.organizerInfo}>
+               <div className={styles.organizerLabel}>Organized by</div>
+               <div className={styles.organizerName}>{organizerName}</div>
+               <div className={styles.organizerUsername}>{organizerUsername}</div>
+             </div>
           </div>
 
-          <div className={styles.descriptionSection}>
-            <h2 className={styles.sectionTitle}>Story</h2>
-            <p className={styles.description}>{campaign.description}</p>
+          {/* TABS */}
+          <div className={styles.tabs}>
+              <button className={`${styles.tabButton} ${activeTab === 'story' ? styles.active : ''}`} onClick={() => setActiveTab('story')}>Story</button>
+              <button className={`${styles.tabButton} ${activeTab === 'updates' ? styles.active : ''}`} onClick={() => setActiveTab('updates')}>Updates ({updates.length})</button>
+              <button className={`${styles.tabButton} ${activeTab === 'comments' ? styles.active : ''}`} onClick={() => setActiveTab('comments')}>Comments ({comments.length})</button>
           </div>
 
-          <div className={styles.donationsSection}>
-            <h2 className={styles.sectionTitle}>
-              Donations ({donations.length})
-            </h2>
-            
-            {donations.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>No donations yet. Be the first to support this cause!</p>
+          {/* TAB CONTENT */}
+          {activeTab === 'story' && (
+              <div className={styles.descriptionSection}>
+                <p className={styles.description}>{campaign.description}</p>
               </div>
-            ) : (
-              <div className={styles.donationsList}>
-                {donations.map((donation) => (
-                  <div key={donation.id} className={styles.donationItem}>
-                    <div className={styles.donorAvatar}>
-                      {donation.isAnonymous ? '?' : donation.donorName?.charAt(0) || 'D'}
-                    </div>
-                    <div className={styles.donationContent}>
-                      <div className={styles.donationHeader}>
-                        <span className={styles.donorName}>
-                          {donation.isAnonymous ? 'Anonymous' : donation.donorName || 'A Supporter'}
-                        </span>
-                        <span className={styles.donationAmount}>{formatCurrency(donation.amount)}</span>
+          )}
+
+          {activeTab === 'updates' && (
+              <div>
+                  {isOrganizer && (
+                      <div className={styles.updateForm}>
+                          <h4 style={{marginBottom:'1rem'}}>Post an Update</h4>
+                          <input className="form-control" style={{marginBottom:'1rem'}} placeholder="Update Title" value={newUpdateTitle} onChange={e => setNewUpdateTitle(e.target.value)} />
+                          <textarea className="form-control" style={{minHeight:'100px', marginBottom:'1rem'}} placeholder="Share the latest news..." value={newUpdateContent} onChange={e => setNewUpdateContent(e.target.value)} />
+                          <button className="btn btn-primary" onClick={handlePostUpdate} disabled={postingUpdate}>
+                            {postingUpdate ? 'Posting...' : 'Post Update'}
+                          </button>
                       </div>
-                      {donation.message && (
-                        <p className={styles.donationMessage}>"{donation.message}"</p>
-                      )}
-                      {donation.createdAt && (
-                        <span className={styles.donationTime}>
-                          {new Date(donation.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )}
+                  {updates.length === 0 ? <p style={{color:'#6B7280', fontStyle:'italic'}}>No updates yet.</p> : (
+                      updates.map(u => (
+                          <div key={u.id} className={styles.updateItem}>
+                              <div className={styles.updateDate}>{new Date(u.createdAt).toLocaleDateString()}</div>
+                              <h3 className={styles.updateTitle}>{u.title}</h3>
+                              <p className={styles.updateBody}>{u.content}</p>
+                          </div>
+                      ))
+                  )}
               </div>
-            )}
-          </div>
+          )}
+
+          {activeTab === 'comments' && (
+              <div>
+                  <form className={styles.commentForm} onSubmit={handlePostComment}>
+                      <textarea className={styles.commentInput} placeholder="Leave a comment..." value={newComment} onChange={e => setNewComment(e.target.value)} />
+                      <button className="btn btn-secondary" type="submit" disabled={!newComment || postingComment}>
+                        {postingComment ? 'Posting...' : 'Post Comment'}
+                      </button>
+                  </form>
+                  <div className={styles.commentList}>
+                      {comments.length === 0 ? <p style={{color:'#6B7280', fontStyle:'italic'}}>No comments yet. Be the first!</p> : comments.map(c => (
+                          <div key={c.id} className={styles.commentItem}>
+                              <div className={styles.commentAvatar}>?</div>
+                              <div className={styles.commentContent}>
+                                  <div className={styles.commentHeader}>
+                                      <span className={styles.commentAuthor}>User</span>
+                                      <span className={styles.commentTime}>{new Date(c.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                  <p>{c.content}</p>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+          )}
         </div>
 
+        {/* SIDEBAR (RIGHT) */}
         <div className={styles.sidebar}>
           <div className={styles.donationCard}>
             <div className={styles.statsGrid}>
               <div className={styles.statItem}>
-                <div className={styles.statValue}>{formatCurrency(campaign.currentAmount)}</div>
-                <div className={styles.statLabel}>raised of {formatCurrency(campaign.goalAmount)}</div>
+                <div className={styles.statValue}>{formatCurrency(currentAmount)}</div>
+                <div className={styles.statLabel}>raised of {formatCurrency(goalAmount)}</div>
               </div>
               <div className={styles.statItem}>
-                <div className={styles.statValue}>
-                  <HeartIcon />
-                  {donations.length}
-                </div>
+                <div className={styles.statValue}><HeartIcon /> {donations.length}</div>
                 <div className={styles.statLabel}>Donors</div>
               </div>
-              {daysLeft !== null && (
-                <div className={styles.statItem}>
-                  <div className={styles.statValue}>{daysLeft}</div>
-                  <div className={styles.statLabel}>Days Left</div>
-                </div>
-              )}
             </div>
 
             <div className={styles.progressContainer}>
               <div className={styles.progressBar}>
-                <div 
-                  className={styles.progressFill} 
-                  style={{ width: `${progress}%` }}
-                ></div>
+                <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
               </div>
               <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
             </div>
 
-            <button 
-              className={styles.donateButton}
-              onClick={() => setShowDonateModal(true)}
-            >
-              Donate Now
-            </button>
+            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>
 
+            {/* Organizer Actions */}
             {canWithdraw && (
                 <div className={styles.organizerActions}>
                     <h4 className={styles.organizerActionsTitle}>Organizer Actions</h4>
-                    
-                    <div className={styles.payoutInfo}>
-                        Available for Payout: <strong className={styles.payoutAmount}>{formatCurrency(availableBalance)}</strong>
-                    </div>
-
-                    <button 
-                        className={styles.withdrawButton}
-                        onClick={() => setShowWithdrawModal(true)}
-                        disabled={availableBalance <= 0}
-                    >
-                        Request Withdrawal
-                    </button>
+                    <div className={styles.payoutInfo}>Available: <strong className={styles.payoutAmount}>{formatCurrency(availableBalance)}</strong></div>
+                    <button className={styles.withdrawButton} onClick={() => setShowWithdrawModal(true)} disabled={availableBalance <= 0}>Request Withdrawal</button>
                 </div>
             )}
 
             {isOrganizer && !isApproved && (
                 <div className={styles.warningAlert}>
-                    Your campaign is currently <strong>{campaign.status}</strong>. 
-                    You can request withdrawals once it is approved.
+                    <strong>Status: {campaign.status}</strong><br/>
+                    You can request withdrawals once approved.
                 </div>
             )}
 
-            {/* Share Section with Handlers */}
+            <div className={styles.donationsSection}>
+                <h4 className={styles.sectionTitle} style={{fontSize: '1rem'}}>Recent Donations</h4>
+                <div className={styles.donationsList}>
+                    {donations.slice(0, 5).map(d => (
+                        <div key={d.id} className={styles.donationItem} style={{padding: '0.75rem'}}>
+                            <div className={styles.donorAvatar} style={{width: '32px', height: '32px', fontSize: '0.8rem'}}>{d.isAnonymous ? '?' : 'D'}</div>
+                            <div className={styles.donationContent}>
+                                <div className={styles.donationHeader} style={{flexDirection: 'column', alignItems: 'flex-start'}}>
+                                    <span className={styles.donorName} style={{fontSize: '0.9rem'}}>{d.isAnonymous ? 'Anonymous' : 'Supporter'}</span>
+                                    <span className={styles.donationAmount} style={{fontSize: '0.9rem'}}>{formatCurrency(d.amount)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {donations.length === 0 && <p style={{fontSize: '0.9rem', color: '#6B7280'}}>No donations yet.</p>}
+                </div>
+            </div>
+
             <div className={styles.shareSection}>
-              <div className={styles.shareDivider}>
-                <span>Share this campaign</span>
-              </div>
+              <div className={styles.shareDivider}><span>Share</span></div>
               <div className={styles.shareButtons}>
-                <button className={styles.shareBtn} title="Share via Facebook" onClick={handleShareFacebook}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                </button>
-                <button className={styles.shareBtn} title="Share via Twitter" onClick={handleShareTwitter}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                </button>
-                <button className={styles.shareBtn} title="Copy link" onClick={handleCopyLink}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                </button>
+                <button className={styles.shareBtn} onClick={handleShareFacebook}><ShareIcon /></button>
+                <button className={styles.shareBtn} onClick={handleShareTwitter}><ShareIcon /></button>
+                <button className={styles.shareBtn} onClick={handleCopyLink}><ShareIcon /></button>
               </div>
             </div>
           </div>

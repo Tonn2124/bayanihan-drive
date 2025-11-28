@@ -1,0 +1,188 @@
+.container {
+    font-family: var(--font-family-base);
+    color: #1F2937;
+    background-color: #FFFFFF;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Header / Nav */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    letter-spacing: -0.02em;
+  }
+  
+  .navButtons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .loginBtn {
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #4B5563;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .loginBtn:hover {
+    color: var(--color-primary);
+  }
+  
+  .ctaBtn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .ctaBtn:hover {
+    background-color: var(--color-primary-hover); /* Ensure you have this variable or use a hex */
+  }
+  
+  /* Hero Section */
+  .heroSection {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(to bottom, #FFFFFF, #F9FAFB);
+  }
+  
+  .heroContent {
+    max-width: 800px;
+  }
+  
+  .heroTitle {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: #111827;
+  }
+  
+  .heroTitle span {
+    color: var(--color-primary);
+  }
+  
+  .heroSubtitle {
+    font-size: 1.25rem;
+    color: #6B7280;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+  }
+  
+  .heroActions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .primaryBtn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .primaryBtn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .secondaryBtn {
+    background-color: white;
+    color: #374151;
+    border: 1px solid #D1D5DB;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .secondaryBtn:hover {
+    background-color: #F3F4F6;
+  }
+  
+  /* Features Section */
+  .featuresSection {
+    padding: 4rem 2rem;
+    background-color: white;
+  }
+  
+  .featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .featureCard {
+    padding: 2rem;
+    background: #F9FAFB;
+    border-radius: 12px;
+    text-align: left;
+  }
+  
+  .featureIcon {
+    width: 48px;
+    height: 48px;
+    background-color: #EFF6FF;
+    color: var(--color-primary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+  
+  .featureTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #111827;
+  }
+  
+  .featureDesc {
+    color: #6B7280;
+    line-height: 1.6;
+  }
+  
+  /* Footer */
+  .footer {
+    padding: 2rem;
+    text-align: center;
+    color: #9CA3AF;
+    font-size: 0.9rem;
+    border-top: 1px solid #E5E7EB;
+    margin-top: auto;
+  }
