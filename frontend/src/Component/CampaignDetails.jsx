@@ -3,7 +3,8 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient'; 
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
-import WithdrawalModal from './WithdrawalModal'; 
+import WithdrawalModal from './WithdrawalModal';
+import Skeleton from './Skeleton';
 
 // ... Icons remain the same ...
 const ShareIcon = () => (
@@ -181,7 +182,44 @@ export default function CampaignDetails({ campaignId, onBack }) {
     navigator.clipboard.writeText(url).then(() => alert("Link copied!")).catch(() => alert("Failed to copy"));
   };
 
-  if (loading) return <div className={styles.loadingContainer}><div className={styles.spinner}></div><p>Loading...</p></div>;
+  if (loading) {
+    return (
+      <div className={styles.pageWrapper}>
+         <div className={styles.navBar}>
+             <Skeleton type="text" width="80px" />
+         </div>
+         <div className={styles.headerImageWrapper} style={{backgroundColor: '#E5E7EB'}}>
+             <Skeleton type="rect" height="100%" />
+         </div>
+         <div className={styles.contentContainer}>
+             <div className={styles.mainContent}>
+                 <div style={{marginBottom:'2rem'}}>
+                     <Skeleton type="text" width="60%" height="2.5rem" style={{marginBottom:'1rem'}} />
+                     <Skeleton type="text" width="30%" />
+                 </div>
+                 <div className={styles.organizerCard}>
+                     <Skeleton type="circle" width="48px" height="48px" />
+                     <div style={{marginLeft:'1rem', flex:1}}>
+                         <Skeleton type="text" width="40%" />
+                         <Skeleton type="text" width="30%" />
+                     </div>
+                 </div>
+                 <div style={{marginTop:'3rem'}}>
+                     <Skeleton type="text" width="100%" />
+                     <Skeleton type="text" width="100%" />
+                     <Skeleton type="text" width="90%" />
+                     <Skeleton type="text" width="95%" />
+                 </div>
+             </div>
+             <div className={styles.sidebar}>
+                 <div className={styles.donationCard} style={{height: '400px'}}>
+                     <Skeleton type="rect" height="100%" />
+                 </div>
+             </div>
+         </div>
+      </div>
+    );
+  }
   if (error) return <div className={styles.errorContainer}><div className={styles.errorCard}><p>{error}</p><button className={styles.backButton} onClick={onBack}>Back</button></div></div>;
   if (!campaign) return null;
 

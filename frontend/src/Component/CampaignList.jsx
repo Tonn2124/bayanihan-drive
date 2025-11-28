@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import CampaignCard from './CampaignCard';
 import styles from '../Style/CampaignList.module.css';
+import Skeleton from './Skeleton'; // <-- Import
 
 const categories = ['All', 'Community', 'Animal Welfare', 'Medical', 'Education', 'Disaster Relief', 'Other'];
 
@@ -40,6 +41,26 @@ export default function CampaignList({ onNavigate }) {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery, selectedCategory]);
+
+  const renderSkeletons = () => {
+    return Array(6).fill(0).map((_, i) => (
+        <div key={i} style={{
+            background:'white', borderRadius:'12px', border:'1px solid #E5E7EB', 
+            overflow:'hidden', display:'flex', flexDirection:'column', height:'400px'
+        }}>
+            <Skeleton type="rect" height="180px" />
+            <div style={{padding: '1.5rem', flex: 1}}>
+                <Skeleton type="text" width="30%" style={{marginBottom:'1rem'}} />
+                <Skeleton type="text" width="80%" height="1.5rem" style={{marginBottom:'1rem'}} />
+                <Skeleton type="text" width="100%" />
+                <Skeleton type="text" width="90%" />
+                <div style={{marginTop:'1.5rem'}}>
+                  <Skeleton type="rect" height="8px" width="100%" />
+                </div>
+            </div>
+        </div>
+    ));
+  };
 
   return (
     <div>
