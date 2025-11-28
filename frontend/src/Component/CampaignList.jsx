@@ -11,15 +11,12 @@ export default function CampaignList({ onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Search States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      
-      // Build Query Params
       const params = {};
       if (searchQuery) params.query = searchQuery;
       if (selectedCategory !== 'All') params.category = selectedCategory.toUpperCase().replace(' ', '_');
@@ -34,7 +31,6 @@ export default function CampaignList({ onNavigate }) {
     }
   };
 
-  // Debounce search (wait 500ms after typing stops)
   useEffect(() => {
     const timer = setTimeout(() => {
         fetchCampaigns();
@@ -42,24 +38,25 @@ export default function CampaignList({ onNavigate }) {
     return () => clearTimeout(timer);
   }, [searchQuery, selectedCategory]);
 
+  // --- SKELETON LOADING UI ---
   const renderSkeletons = () => {
-    return Array(6).fill(0).map((_, i) => (
-        <div key={i} style={{
-            background:'white', borderRadius:'12px', border:'1px solid #E5E7EB', 
-            overflow:'hidden', display:'flex', flexDirection:'column', height:'400px'
-        }}>
-            <Skeleton type="rect" height="180px" />
-            <div style={{padding: '1.5rem', flex: 1}}>
-                <Skeleton type="text" width="30%" style={{marginBottom:'1rem'}} />
-                <Skeleton type="text" width="80%" height="1.5rem" style={{marginBottom:'1rem'}} />
-                <Skeleton type="text" width="100%" />
-                <Skeleton type="text" width="90%" />
-                <div style={{marginTop:'1.5rem'}}>
-                  <Skeleton type="rect" height="8px" width="100%" />
-                </div>
-            </div>
-        </div>
-    ));
+      return Array(6).fill(0).map((_, i) => (
+          <div key={i} style={{
+              background:'white', borderRadius:'12px', border:'1px solid #E5E7EB', 
+              overflow:'hidden', display:'flex', flexDirection:'column', height:'400px'
+          }}>
+              <Skeleton type="rect" height="180px" />
+              <div style={{padding: '1.5rem', flex: 1}}>
+                  <Skeleton type="text" width="30%" style={{marginBottom:'1rem'}} />
+                  <Skeleton type="text" width="80%" height="1.5rem" style={{marginBottom:'1rem'}} />
+                  <Skeleton type="text" width="100%" />
+                  <Skeleton type="text" width="90%" />
+                  <div style={{marginTop:'1.5rem'}}>
+                    <Skeleton type="rect" height="8px" width="100%" />
+                  </div>
+              </div>
+          </div>
+      ));
   };
 
   return (
@@ -69,7 +66,6 @@ export default function CampaignList({ onNavigate }) {
             Active Donation Drives
         </h2>
 
-        {/* Search & Filter Controls */}
         <div style={{display: 'flex', gap: '0.5rem', flex: 1, justifyContent: 'flex-end'}}>
             <input 
                 type="text" 
@@ -91,7 +87,9 @@ export default function CampaignList({ onNavigate }) {
       </div>
 
       {loading ? (
-        <div style={{textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)'}}>Loading campaigns...</div>
+        <div className={styles.gridContainer}>
+            {renderSkeletons()}
+        </div>
       ) : error ? (
         <div className="alert alert-danger">{error}</div>
       ) : campaigns.length === 0 ? (
