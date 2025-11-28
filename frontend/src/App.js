@@ -6,6 +6,7 @@ import CreateCampaign from './Component/CreateCampaign'
 import CampaignDetails from './Component/CampaignDetails'
 import AdminDashboard from './Component/AdminDashboard'
 import LandingPage from './Component/LandingPage' 
+import ProfileSettings from './Component/ProfileSettings'
 import styles from './App.module.css' 
 
 function App() {
@@ -62,6 +63,11 @@ function App() {
         />
       )
     }
+
+    if (currentPage === 'profileSettings') {
+      return <ProfileSettings onBack={() => handleNavigate('dashboard')} />
+    }
+
     if (currentPage === 'admin') {
         return <AdminDashboard onNavigate={handleNavigate} />
     }

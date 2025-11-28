@@ -89,6 +89,15 @@ export default function Dashboard({ session, onNavigate }) {
                     Admin Panel
                 </button>
             )}
+
+            {/* --- NEW SETTINGS BUTTON --- */}
+            <button 
+                className="btn btn-secondary" 
+                onClick={() => onNavigate('profileSettings')} 
+                style={{width: 'auto', marginBottom: 0}}
+            >
+                Profile Settings
+            </button>
             
             {/* Keep only this Sign Out button */}
             <button 
