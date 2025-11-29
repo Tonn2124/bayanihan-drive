@@ -1,4 +1,4 @@
-/* --- Base Modal Styles (Copied from AddFundsModal.module.css) --- */
+/* --- Base Modal Styles --- */
 .overlay {
   position: fixed;
   top: 0;
@@ -20,14 +20,14 @@
   to { opacity: 1; }
 }
 
-/* Modal Container */
+/* Modal Container - SCROLLBAR REMOVED & HEIGHT COMPRESSED */
 .modal {
   background: #ffffff;
   border-radius: 20px;
   width: 100%;
   max-width: 520px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 95vh; /* Reduced to 80vh */
+  overflow-y: hidden; /* CRITICAL: Hides the scrollbar */
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -44,11 +44,11 @@
   }
 }
 
-/* Close Button */
+/* Close Button - Reduced position */
 .closeButton {
   position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 1rem;
+  right: 1rem;
   width: 36px;
   height: 36px;
   display: flex;
@@ -74,17 +74,17 @@
   cursor: not-allowed;
 }
 
-/* Header Section */
+/* Header Section - Reduced vertical padding */
 .header {
   text-align: center;
-  padding: 2.5rem 2.5rem 2rem;
+  padding: 1.5rem 2.5rem 1rem; 
   border-bottom: 1px solid #f1f3f5;
 }
 
 .iconWrapper {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1.25rem;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.75rem;
   background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
   border-radius: 50%;
   display: flex;
@@ -108,10 +108,10 @@
   line-height: 1.6;
 }
 
-/* Error Alert */
+/* Error Alert - Reduced margins/padding */
 .errorAlert {
-  margin: 1.5rem 2.5rem 0;
-  padding: 1rem 1.25rem;
+  margin: 1rem 2.5rem 0;
+  padding: 0.75rem 1.25rem;
   background: #FFF5F5;
   border: 1px solid #FEB2B2;
   border-radius: 10px;
@@ -134,9 +134,9 @@
   flex-shrink: 0;
 }
 
-/* Preset Section */
+/* Preset Section - Compressed padding */
 .presetSection {
-  padding: 2rem 2.5rem 1.5rem;
+  padding: 1rem 2.5rem 0.5rem;
 }
 
 .sectionLabel {
@@ -217,9 +217,9 @@
   100% { transform: scale(1); }
 }
 
-/* Custom Amount Section */
+/* Custom Amount Section - Compressed padding */
 .customSection {
-  padding: 1.5rem 2.5rem 2rem;
+  padding: 0.5rem 2.5rem 0.5rem;
 }
 
 .inputWrapper {
@@ -272,19 +272,19 @@
 }
 
 .inputHint {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   font-size: 0.8125rem;
   color: #6c757d;
   margin-bottom: 0;
 }
 
-/* Security Badge */
+/* Security Badge - Compressed padding */
 .securityBadge {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0 2.5rem 1.5rem;
+  padding: 0 2.5rem 0.5rem;
   color: #6c757d;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -294,11 +294,11 @@
   color: #10B981;
 }
 
-/* Action Buttons */
+/* Action Buttons - Reduced bottom padding */
 .actions {
   display: flex;
   gap: 1rem;
-  padding: 0 2.5rem 2.5rem;
+  padding: 0 2.5rem 1.5rem;
 }
 
 .cancelButton,
@@ -370,10 +370,10 @@
   to { transform: rotate(360deg); }
 }
 
-/* --- Donation-Specific Sections (Cleaned) --- */
+/* --- Donation-Specific Sections (Compressed) --- */
 
 .messageSection {
-  padding: 0 2.5rem 2rem; 
+  padding: 0.5rem 2.5rem 0.5rem; 
 }
 
 .customTextarea {
@@ -405,7 +405,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem; /* Reduced margin */
 }
 
 .checkboxInput {
@@ -448,44 +448,42 @@
   cursor: pointer;
 }
 
-/* --- Responsive Design (Updated) --- */
+/* --- Responsive Design (Updated and Compressed) --- */
 @media (max-width: 640px) {
   .modal {
     border-radius: 20px 20px 0 0;
-    max-height: 95vh;
+    max-height: 100vh;
+    overflow-y: hidden; /* Hides scroll on mobile */
   }
 
   .header {
-    padding: 2rem 1.5rem 1.5rem;
+    padding: 1rem 1.5rem 0.5rem; /* Further reduced */
   }
 
-  .title {
-    font-size: 1.5rem;
+  .closeButton {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+  
+  .errorAlert {
+    margin: 1rem 1.5rem 0;
   }
 
   .presetSection,
   .customSection,
-  .messageSection { /* Added .messageSection here */
+  .messageSection {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
     padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
 
-  .summaryCard {
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
-  }
-
   .actions {
-    padding: 0 1.5rem 2rem;
+    padding: 0 1.5rem 1rem; /* Reduced bottom padding */
   }
 
   .amountGrid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .closeButton {
-    top: 1rem;
-    right: 1rem;
   }
 }
 
