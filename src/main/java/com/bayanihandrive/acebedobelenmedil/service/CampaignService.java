@@ -5,7 +5,6 @@ import com.bayanihandrive.acebedobelenmedil.model.Campaign;
 import com.bayanihandrive.acebedobelenmedil.model.CampaignStatus;
 import com.bayanihandrive.acebedobelenmedil.repository.CampaignRepository;
 import com.bayanihandrive.acebedobelenmedil.repository.ProfileRepository;
-import com.bayanihandrive.acebedobelenmedil.model.Profile;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CampaignService {
