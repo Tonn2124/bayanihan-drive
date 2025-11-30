@@ -1,187 +1,273 @@
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../supabaseClient'
-import styles from '../Style/Dashboard.module.css'
-import CampaignList from './CampaignList'
-import AddFundsModal from './AddFundsModal'
-import MyCampaigns from './MyCampaigns'
-import MyDonations from './MyDonations';
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "../supabaseClient";
+import styles from "../Style/Dashboard.module.css";
+import CampaignList from "./CampaignList";
+import AddFundsModal from "./AddFundsModal";
+import MyCampaigns from "./MyCampaigns";
+import MyDonations from "./MyDonations";
 
 export default function Dashboard({ session, onNavigate }) {
-  const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState(null)
-  const [wallet, setWallet] = useState(null)
-  const [error, setError] = useState(null)
-  const [showAddFunds, setShowAddFunds] = useState(false) 
-  const [activeTab, setActiveTab] = useState('all'); 
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [wallet, setWallet] = useState(null);
+  const [error, setError] = useState(null);
+  const [showAddFunds, setShowAddFunds] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
 
-  const fetchData = useCallback(async () => {
-      try {
-        const { user } = session
-        
-        // Fetch Profile including ROLE
-        let { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('full_name, avatar_url, username, role') // <-- Make sure to select 'role'
-          .eq('id', user.id)
-          .single() 
+ const fetchData = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
 
-        if (profileError) throw profileError
-        setProfile(profileData)
+    const { user } = session;
 
-        let { data: walletData, error: walletError } = await supabase
-          .from('wallets')
-          .select('balance')
-          .eq('user_id', user.id)
-          .single() 
+    // PROFILE
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("full_name, avatar_url, username, role")
+      .eq("id", user.id)
+      .single();
 
-        if (walletError) throw walletError
-        setWallet(walletData)
+    if (profileError) {
+      console.error("Profile error:", profileError);
+      setError("Failed to load profile");
+    } else {
+      setProfile(profileData);
+    }
 
-      } catch (error) {
-        setError(error.message)
-      } finally {
-        setLoading(false)
+    // WALLET
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("balance")
+      .eq("user_id", user.id)
+      .single();
+
+    if (walletError) {
+      console.warn("Wallet error:", walletError);
+      // If wallet row does not exist yet, treat as zero balance instead of failing
+      if (walletError.code === "PGRST116") {
+        setWallet({ balance: 0 });
+      } else {
+        setError("Failed to load wallet");
       }
-  }, [session])
+    } else {
+      setWallet(walletData);
+    }
+  } catch (err) {
+    console.error("Dashboard fetch fatal error:", err);
+    setError("Unexpected error while loading dashboard.");
+  } finally {
+    setLoading(false);
+  }
+}, [session]);
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData]) 
+    fetchData();
+  }, [fetchData]);
 
   const handleLogout = async () => {
-    setLoading(true)
-    await supabase.auth.signOut()
-  }
+    try {
+      setLoading(true);
+      await supabase.auth.signOut();
+      window.location.reload();
+    } catch (err) {
+      console.error("Logout error:", err);
+      setLoading(false);
+    }
+  };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', { 
-      style: 'currency',
-      currency: 'PHP', 
-    }).format(amount)
-  }
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
 
-  // Check if user is admin (case-insensitive check is safer)
-  const isAdmin = profile?.role?.toUpperCase() === 'ADMIN';
+  const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
+  // MAIN RENDER
   return (
-    <div className={`card ${styles.dashboardCard}`}>
-      {showAddFunds && (
-        <AddFundsModal 
-          onClose={() => setShowAddFunds(false)} 
-          onSuccess={() => {
-            fetchData()
-            alert("Funds added successfully!")
-          }} 
-        />
-      )}
+    <div className={styles.dashboardRoot}>
+      {/* SIDEBAR */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarBrand}>Bayanihan Drive</div>
 
-      <div className={styles.header}>
-        <h2 className={styles.welcomeTitle}>Welcome, {profile?.username || 'User'}!</h2>
-        
-        <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
-            {/* FIX: Only show Admin Panel if user is ADMIN */}
-            {isAdmin && (
-                <button 
-                    className="btn btn-secondary" 
-                    onClick={() => onNavigate('admin')} 
-                    style={{width: 'auto', marginBottom: 0}}
-                >
-                    Admin Panel
-                </button>
-            )}
-
-            {/* --- NEW SETTINGS BUTTON --- */}
-            <button 
-                className="btn btn-secondary" 
-                onClick={() => onNavigate('profileSettings')} 
-                style={{width: 'auto', marginBottom: 0}}
-            >
-                Profile Settings
-            </button>
-            
-            {/* Keep only this Sign Out button */}
-            <button 
-                className={`btn btn-danger ${styles.logoutButton}`} 
-                onClick={handleLogout} 
-                disabled={loading}
-            >
-                {loading ? '...' : 'Sign Out'}
-            </button>
+        <div className={styles.sidebarUser}>
+          <div className={styles.sidebarAvatar}>
+            {profile?.fullname?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+          <div>
+            <div className={styles.sidebarName}>
+              {profile?.fullname || "User"}
+            </div>
+            <div className={styles.sidebarEmail}>{session.user.email}</div>
+          </div>
         </div>
-      </div>
 
-      <div className={styles.contentArea}>
-        {error && <div className="alert alert-danger">{error}</div>}
-        
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
-            <div className={styles.horizontalGroup}>
-              <div className={styles.infoBlock}>
+        <nav className={styles.sidebarNav}>
+          <button
+            className={`${styles.navItem} ${
+              activeTab === "all" ? styles.navItemActive : ""
+            }`}
+            onClick={() => setActiveTab("all")}
+          >
+            All Campaigns
+          </button>
+          <button
+            className={`${styles.navItem} ${
+              activeTab === "my" ? styles.navItemActive : ""
+            }`}
+            onClick={() => setActiveTab("my")}
+          >
+            My Campaigns
+          </button>
+          <button
+            className={`${styles.navItem} ${
+              activeTab === "donations" ? styles.navItemActive : ""
+            }`}
+            onClick={() => setActiveTab("donations")}
+          >
+            My Donations
+          </button>
+
+          {isAdmin && (
+            <button
+              className={styles.navItem}
+              onClick={() => onNavigate("admin")}
+            >
+              Admin Panel
+            </button>
+          )}
+
+          <button
+            className={styles.navItem}
+            onClick={() => onNavigate("profileSettings")}
+          >
+            Profile Settings
+          </button>
+        </nav>
+
+        <button
+          className={styles.sidebarLogout}
+          onClick={handleLogout}
+          disabled={loading}
+        >
+          {loading ? "Signing out..." : "Sign Out"}
+        </button>
+      </aside>
+
+      {/* MAIN AREA */}
+      <div className={styles.mainArea}>
+        <header className={styles.mainHeader}>
+          <div>
+            <h2 className={styles.welcomeTitle}>
+              Welcome, {profile?.username || "User"}!
+            </h2>
+            <p className={styles.welcomeSubtitle}>
+              Manage your wallet, campaigns, and donations in one place.
+            </p>
+          </div>
+
+          <div className={styles.headerActions}>
+            <button
+              className={styles.addFundsBtn}
+              onClick={() => setShowAddFunds(true)}
+            >
+              Add Funds
+            </button>
+            <button
+              className={styles.newCampaignBtn}
+              onClick={() => onNavigate("createCampaign")}
+            >
+              New Campaign
+            </button>
+          </div>
+        </header>
+
+        <main className={styles.contentArea}>
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          {loading ? (
+            <p>Loading dashboard...</p>
+          ) : (
+            <>
+              {/* TOP INFO BLOCKS */}
+              <section className={styles.horizontalGroup}>
+                <div className={styles.infoBlock}>
                   <h4>Your Wallet</h4>
                   <p className={styles.walletBalance}>
-                    {wallet ? formatCurrency(wallet.balance) : '...'}
+                    {wallet ? formatCurrency(wallet.balance) : "₱0"}
                   </p>
-                  <button 
-                    className="btn btn-primary" 
-                    style={{ width: 'auto' }}
-                    onClick={() => setShowAddFunds(true)} 
+                  <p>Available balance for donations and withdrawals.</p>
+                </div>
+
+                <div className={styles.infoBlock}>
+                  <h4>Your Profile</h4>
+                  <p>
+                    <strong>Name</strong> {profile?.fullname || "Not set"}
+                  </p>
+                  <p>
+                    <strong>Email</strong> {session.user.email}
+                  </p>
+                  <p>
+                    <strong>Username</strong> {profile?.username || "—"}
+                  </p>
+                  {isAdmin && (
+                    <span className={styles.adminBadge}>ADMIN</span>
+                  )}
+                </div>
+              </section>
+
+              {/* TABS + CONTENT */}
+              <section className={styles.tabsSection}>
+                <div className={styles.tabs}>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "all" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("all")}
                   >
-                    Add Funds (Mock)
+                    All Campaigns
                   </button>
-              </div>
-              
-              <div className={styles.infoBlock}>
-                <h4>Your Profile</h4>
-                 <p><strong>Name:</strong> {profile?.full_name || 'Not set'}</p>
-                 <p><strong>Email:</strong> {session.user.email}</p>
-                 <p><strong>Username:</strong> @{profile?.username}</p>
-                 {/* Optional: Show role badge */}
-                 {isAdmin && <span style={{background: '#FEE2E2', color: '#991B1B', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold'}}>ADMIN</span>}
-              </div>
-            </div>
-            
-            <div className={styles.ctaSection}>
-              <h4>Start a new Donation Drive</h4>
-              <p>Ready to make a difference? Start your Bayanihan Drive today.</p>
-              <button 
-                className={`btn btn-primary ${styles.ctaButton}`}
-                onClick={() => onNavigate('createCampaign')} 
-              >
-                Create New Campaign
-              </button>
-            </div>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "my" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("my")}
+                  >
+                    My Campaigns
+                  </button>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "donations" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("donations")}
+                  >
+                    My Donations
+                  </button>
+                </div>
 
-            <div className={styles.tabs}>
-              <button 
-                className={`${styles.tabButton} ${activeTab === 'all' ? styles.active : ''}`}
-                onClick={() => setActiveTab('all')}
-              >
-                All Campaigns
-              </button>
-              <button 
-                className={`${styles.tabButton} ${activeTab === 'my' ? styles.active : ''}`}
-                onClick={() => setActiveTab('my')}
-              >
-                My Campaigns
-              </button>
-              <button 
-                className={`${styles.tabButton} ${activeTab === 'donations' ? styles.active : ''}`}
-                onClick={() => setActiveTab('donations')}
-              >
-                My Donations
-              </button>
-            </div>
+                <div className={styles.tabContent}>
+                  {activeTab === "all" && (
+                    <CampaignList onNavigate={onNavigate} />
+                  )}
+                  {activeTab === "my" && (
+                    <MyCampaigns onNavigate={onNavigate} />
+                  )}
+                  {activeTab === "donations" && <MyDonations />}
+                </div>
+              </section>
+            </>
+          )}
+        </main>
 
-            <div>
-              {activeTab === 'all' && <CampaignList onNavigate={onNavigate} />}
-              {activeTab === 'my' && <MyCampaigns onNavigate={onNavigate} />}
-              {activeTab === 'donations' && <MyDonations />}
-            </div>
-          </>
+        {showAddFunds && (
+          <AddFundsModal
+            onClose={() => setShowAddFunds(false)}
+            onSuccess={fetchData}
+          />
         )}
-      </div> 
+      </div>
     </div>
-  )
+  );
 }
