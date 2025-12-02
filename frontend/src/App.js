@@ -21,7 +21,6 @@ function App() {
   const [authMode, setAuthMode] = useState('landing') 
 
   useEffect(() => {
-    // 1. Check Session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setLoading(false)

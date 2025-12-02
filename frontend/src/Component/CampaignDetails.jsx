@@ -241,7 +241,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
                 {/* Tab Content */}
                 {activeTab === 'updates' && (
                     <div className={styles.tabContentSection}>
-                         {isOrganizer && (
+                          {isOrganizer && (
                             <div className={styles.updateForm}>
                                 <input className={styles.formInput} placeholder="Title" value={newUpdateTitle} onChange={e => setNewUpdateTitle(e.target.value)} />
                                 <textarea className={styles.formTextarea} placeholder="What's new?" value={newUpdateContent} onChange={e => setNewUpdateContent(e.target.value)} />

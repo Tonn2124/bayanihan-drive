@@ -1,461 +1,166 @@
-/* Main Container */
-.authContainer {
-  display: flex;
-  min-height: 100vh;
-  background: #ffffff;
-}
-
-/* Left Panel - Branding */
-.leftPanel {
-  flex: 1;
-  background: linear-gradient(135deg, #0056D2 0%, #003d99 100%);
-  padding: 4rem 3rem;
+/* --- LAYOUT FIXES (Removes Global Scrollbars) --- */
+.container {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
+  /* Locks the screen height */
+  height: 100vh; 
+  width: 100vw;
+  position: fixed; 
+  top: 0;
+  left: 0;
+  overflow: hidden; /* This removes the browser scrollbar */
+  background-color: #f0f4f8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.leftPanel::before {
-  content: '';
+/* Background Gradients */
+.bgCircle1, .bgCircle2 {
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: pulse 15s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
-}
-
-.brandContent {
-  position: relative;
-  z-index: 1;
-  max-width: 500px;
-  color: #ffffff;
-}
-
-.logoSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2.5rem;
-}
-
-.logoCircle {
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  filter: blur(90px);
+  z-index: -1;
 }
+.bgCircle1 { width: 60vh; height: 60vh; background: #1877f2; top: -20vh; left: -20vh; opacity: 0.5; }
+.bgCircle2 { width: 50vh; height: 50vh; background: #00c6ff; bottom: -10vh; right: -10vh; opacity: 0.5; }
 
-.logoCircle svg {
-  color: #ffffff;
-}
-
-.brandTitle {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin: 0;
-  letter-spacing: -0.02em;
-  text-align: center;
-}
-
-.brandTagline {
-  font-size: 1.25rem;
-  line-height: 1.6;
-  opacity: 0.95;
-  text-align: center;
-  margin-bottom: 3rem;
-  font-weight: 300;
-}
-
-.features {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.feature {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.featureIcon {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.feature h3 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem 0;
-  color: #ffffff;
-}
-
-.feature p {
-  font-size: 0.9375rem;
-  margin: 0;
-  opacity: 0.9;
-  line-height: 1.5;
-}
-
-/* Right Panel - Form */
-.rightPanel {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  background: #f8f9fa;
-}
-
-.formWrapper {
-  width: 100%;
-  max-width: 480px;
-  background: #ffffff;
+/* --- CARD (Compact & Dense) --- */
+.authCard {
+  background: rgba(255, 255, 255, 0.95);
+  width: 90%;
+  max-width: 400px;
+  /* Ensures card never exceeds screen height */
+  max-height: 95vh; 
+  padding: 25px;
   border-radius: 20px;
-  padding: 3rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  animation: slideInRight 0.5s ease;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Tab Switcher */
-.tabSwitcher {
-  display: flex;
-  gap: 0.5rem;
-  background: #f1f3f5;
-  padding: 0.5rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-}
-
-.tab {
-  flex: 1;
-  padding: 0.875rem 1.5rem;
-  border: none;
-  background: transparent;
-  color: #495057;
-  font-weight: 600;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
-
-.tab:hover {
-  color: #0056D2;
-}
-
-.activeTab {
-  background: #ffffff;
-  color: #0056D2;
-  box-shadow: 0 2px 8px rgba(0, 86, 210, 0.15);
-}
-
-/* Welcome Section */
-.welcomeSection {
-  margin-bottom: 2rem;
-}
-
-.formTitle {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.02em;
-}
-
-.formSubtitle {
-  font-size: 1rem;
-  color: #6c757d;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Alerts */
-.alertDanger,
-.alertSuccess {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: 10px;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.alertDanger {
-  background: #fff5f5;
-  border: 1px solid #feb2b2;
-  color: #c53030;
-}
-
-.alertDanger svg {
-  color: #c53030;
-  flex-shrink: 0;
-}
-
-.alertSuccess {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  color: #166534;
-}
-
-.alertSuccess svg {
-  color: #166534;
-  flex-shrink: 0;
-}
-
-/* Form */
-.form {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  /* If screen is extremely small, scroll ONLY inside the card */
+  overflow-y: auto; 
 }
 
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+/* Hide scrollbar inside card for clean look */
+.authCard::-webkit-scrollbar { display: none; }
 
-.label {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  letter-spacing: -0.01em;
+/* Header */
+.header { text-align: center; margin-bottom: 15px; }
+.logoWrapper {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 50px; height: 50px; background: #e7f3ff;
+  border-radius: 14px; color: #1877f2; margin-bottom: 10px;
 }
+.title { font-size: 1.5rem; font-weight: 800; color: #1c1e21; margin: 0 0 4px 0; }
+.subtitle { color: #65676b; font-size: 0.85rem; margin: 0; }
 
-.required {
-  color: #dc3545;
+/* Toggle */
+.toggleContainer {
+  background: #f0f2f5; padding: 3px; border-radius: 10px;
+  display: flex; margin-bottom: 15px;
 }
-
-.inputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
+.toggleBtn {
+  flex: 1; padding: 8px; border: none; border-radius: 8px;
+  font-weight: 600; font-size: 0.85rem; cursor: pointer;
+  background: transparent; color: #65676b; transition: all 0.2s;
 }
+.toggleBtn.active { background: #ffffff; color: #1877f2; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-.inputWrapper svg:first-child {
-  position: absolute;
-  left: 1rem;
-  color: #6c757d;
-  pointer-events: none;
-  z-index: 1;
-}
+/* --- FORM (Dense Layout) --- */
+.form { display: flex; flex-direction: column; gap: 10px; } 
 
+.row { display: flex; gap: 10px; } 
+.inputGroup { width: 100%; }
+
+/* --- INPUTS --- */
 .input {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
-  font-size: 1rem;
-  font-family: inherit;
-  line-height: 1.5;
-  color: #1a1a1a;
-  background: #f8f9fa;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  padding: 10px 12px; 
+  border-radius: 8px;
+  border: 1px solid #dddfe2;
+  background: #f5f7fa;
+  font-size: 0.9rem;
+  transition: all 0.2s;
   outline: none;
 }
+.input:focus { background: #ffffff; border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.1); }
 
-.input::placeholder {
-  color: #adb5bd;
-}
-
-.input:hover {
-  background: #e9ecef;
-}
-
-.input:focus {
-  background: #ffffff;
-  border-color: #0056D2;
-  box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
-}
-
-.eyeToggle {
-  position: absolute;
-  right: 1rem;
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  color: #6c757d;
+/* --- SPLIT EMAIL STYLES --- */
+.emailContainer {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-  border-radius: 6px;
+  gap: 5px;
 }
-
-.eyeToggle:hover {
-  color: #0056D2;
-  background: rgba(0, 86, 210, 0.05);
+.emailUser {
+  flex: 3; 
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
-
-.validationError {
-  font-size: 0.875rem;
-  color: #dc3545;
-  font-weight: 500;
-}
-
-/* Submit Button */
-.submitButton {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: #ffffff;
-  background: linear-gradient(135deg, #0056D2 0%, #0041A3 100%);
-  border: none;
-  border-radius: 10px;
+.emailDomain {
+  flex: 2; 
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  background-color: #eef2f6;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3);
 }
 
-.submitButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0041A3 0%, #003380 100%);
-  box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4);
-  transform: translateY(-2px);
-}
-
-.submitButton:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.submitButton:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Loading Spinner */
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Form Footer */
-.formFooter {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e9ecef;
-  text-align: center;
-}
-
-.formFooter p {
-  font-size: 0.9375rem;
-  color: #6c757d;
-  margin: 0;
-}
-
-.linkButton {
-  background: none;
-  border: none;
-  color: #0056D2;
+/* --- WARNING TEXT FOR LIMITS --- */
+.limitWarning {
+  display: block;
+  font-size: 0.65rem;
+  color: #dc3545; /* Red Warning Color */
+  margin-top: 2px;
+  margin-left: 2px;
   font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  text-decoration: none;
-  transition: color 0.2s ease;
+  animation: fadeIn 0.3s ease;
 }
 
-.linkButton:hover {
-  color: #0041A3;
-  text-decoration: underline;
+.passwordHint {
+  font-size: 0.7rem;
+  color: #65676b;
+  margin: 4px 0 0 2px;
+  font-style: italic;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .leftPanel {
-    display: none;
-  }
-  
-  .rightPanel {
-    flex: 1;
-  }
+.passwordWrapper { position: relative; width: 100%; }
+.eyeBtn {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #a0a0a0; cursor: pointer;
+  display: flex; padding: 0;
 }
 
-@media (max-width: 640px) {
-  .rightPanel {
-    padding: 2rem 1rem;
-  }
+.submitBtn {
+  margin-top: 5px;
+  background: #1877f2; color: white; border: none;
+  padding: 12px; border-radius: 10px;
+  font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  transition: transform 0.1s;
+}
+.submitBtn:active { transform: scale(0.98); }
 
-  .formWrapper {
-    padding: 2rem 1.5rem;
-  }
+/* Alerts */
+.alertError { padding: 8px; border-radius: 6px; font-size: 0.8rem; text-align: center; margin-bottom: 10px; background: #ffebe8; color: #c53030; }
+.alertSuccess { padding: 8px; border-radius: 6px; font-size: 0.8rem; text-align: center; margin-bottom: 10px; background: #eafcf1; color: #166534; }
 
-  .formTitle {
-    font-size: 1.5rem;
-  }
+/* Footer */
+.footer { text-align: center; margin-top: 15px; font-size: 0.7rem; color: #90949c; }
+.footer span { color: #1877f2; font-weight: 600; cursor: pointer; }
 
-  .brandTitle {
-    font-size: 2rem;
+/* Loader */
+.loader {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid #fff; border-bottom-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Mobile: Ensure card fits */
+@media (max-width: 480px) {
+  .authCard {
+    padding: 20px;
+    height: 100vh;
+    border-radius: 0;
+    max-width: 100%;
+    justify-content: center;
   }
 }
