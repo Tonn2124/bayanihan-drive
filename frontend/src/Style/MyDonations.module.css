@@ -1,63 +1,92 @@
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto; /* Centers content */
+}
+
+.donationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #e4e6eb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: transform 0.2s;
+}
+
+.donationItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.leftSide {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1; /* Takes up available space */
+  min-width: 0; /* Allows text truncation */
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  background-color: #fff0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0; /* Prevents icon from shrinking */
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.info h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #1c1e21;
+}
+
+.date {
+  font-size: 0.8rem;
+  color: #65676b;
+}
+
+.message {
+  font-size: 0.85rem;
+  color: #1c1e21;
+  font-style: italic;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+.amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1c1e21;
+  margin-left: 16px;
+  white-space: nowrap;
+}
+
+/* Mobile: Stack nicely */
+@media (max-width: 600px) {
   .donationItem {
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s ease;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
-  
-  .donationItem:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .leftSide {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-  }
-  
-  .icon {
-    width: 48px;
-    height: 48px;
-    background-color: #EFF6FF;
-    color: var(--color-primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-  }
-  
-  .info h4 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.1rem;
-    color: var(--color-text-main);
-  }
-  
-  .date {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-  }
-  
   .amount {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--color-success);
+    margin-left: 56px; /* Align with text */
+    color: #1877f2;
   }
-  
-  .message {
-    margin-top: 0.5rem;
-    font-style: italic;
-    color: #6B7280;
-    font-size: 0.9rem;
-  }
+}

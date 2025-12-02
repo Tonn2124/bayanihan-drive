@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import axios from 'axios'
 import styles from '../Style/CreateCampaign.module.css'
 
+// These match your backend Enum EXACTLY (all lowercase)
 const categories = [
   'community',
   'animal_welfare',
@@ -26,9 +27,18 @@ export default function CreateCampaign({ session, onNavigate }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
     
+    // 1. Basic validation
     if (!title || !description || !goalAmount || !category) {
       setError('Please fill in all required fields')
       return
+    }
+
+    // 2. Parse and Validate Goal Amount
+    // Remove commas if user typed "5,000" and ensure it's a number
+    const cleanGoalAmount = parseFloat(goalAmount.toString().replace(/,/g, ''));
+    if (isNaN(cleanGoalAmount) || cleanGoalAmount <= 0) {
+      setError('Please enter a valid fundraising goal amount.');
+      return;
     }
 
     setLoading(true)
@@ -42,14 +52,19 @@ export default function CreateCampaign({ session, onNavigate }) {
       }
       const token = session.access_token
 
+      // 3. Prepare Data
       const campaignData = {
         title,
         description,
-        goalAmount: parseFloat(goalAmount),
-        category: category,
+        goalAmount: cleanGoalAmount,
+        // CORRECTION HERE: Send category as-is (lowercase), NOT uppercase.
+        // The error log showed the backend expects: "community", "medical", etc.
+        category: category, 
         coverImageUrl: coverImageUrl || null,
         endDate: endDate ? new Date(endDate).toISOString() : null,
       }
+
+      console.log("Sending Payload:", campaignData); 
 
       const response = await axios.post(
         'http://localhost:8080/api/campaigns',
@@ -64,20 +79,41 @@ export default function CreateCampaign({ session, onNavigate }) {
 
       if (response.status === 201) {
         setSuccess('Your campaign has been created successfully!')
+        // Reset form
         setTitle('')
         setDescription('')
         setGoalAmount('')
         setCategory(categories[0])
         setEndDate('')
         setCoverImageUrl('')
+        
+        // Navigation
         setTimeout(() => {
-          onNavigate('dashboard')
+            if (typeof onNavigate === 'function') {
+                onNavigate('dashboard');
+            } else {
+                window.location.reload();
+            }
         }, 2000)
       }
 
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.title || err.message
-      setError(`Failed to create campaign: ${errorMsg}`)
+      console.error("Full Error Object:", err);
+      
+      // Extract specific error message from backend if available
+      let errorMsg = "Failed to create campaign.";
+      
+      if (err.response?.data) {
+          if (err.response.data.errors && Array.isArray(err.response.data.errors)) {
+              errorMsg = err.response.data.errors.map(e => e.defaultMessage).join(', ');
+          } else {
+              errorMsg = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+          }
+      } else {
+          errorMsg = err.message;
+      }
+      
+      setError(`Error: ${errorMsg}`)
     } finally {
       setLoading(false)
     }
@@ -86,7 +122,6 @@ export default function CreateCampaign({ session, onNavigate }) {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.contentWrapper}>
-        {/* Header Section */}
         <div className={styles.headerSection}>
           <h1 className={styles.mainTitle}>Start a Donation Drive</h1>
           <p className={styles.mainSubtitle}>
@@ -94,7 +129,6 @@ export default function CreateCampaign({ session, onNavigate }) {
           </p>
         </div>
 
-        {/* Main Form Card */}
         <div className={styles.formCard}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Drive Details</h2>
@@ -179,9 +213,6 @@ export default function CreateCampaign({ session, onNavigate }) {
                   required
                   min="1"
                 />
-                <p className={styles.helpText}>
-                  Set a realistic goal based on your actual needs
-                </p>
               </div>
 
               {/* Cover Image URL */}
@@ -197,9 +228,6 @@ export default function CreateCampaign({ session, onNavigate }) {
                   value={coverImageUrl}
                   onChange={(e) => setCoverImageUrl(e.target.value)}
                 />
-                <p className={styles.helpText}>
-                  Add a photo that represents your cause. Photos help build trust and connection.
-                </p>
               </div>
 
               {/* End Date */}
@@ -218,38 +246,14 @@ export default function CreateCampaign({ session, onNavigate }) {
 
               {/* Action Buttons */}
               <div className={styles.actionButtons}>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                  disabled={loading}
-                >
+                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={loading}>
                   {loading ? 'Creating...' : 'Create Donation Drive'}
                 </button>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnSecondary}`}
-                  onClick={() => onNavigate('dashboard')}
-                  disabled={loading}
-                >
+                <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => onNavigate('dashboard')} disabled={loading}>
                   Cancel
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-
-        {/* Tips Card */}
-        <div className={styles.tipsCard}>
-          <div className={styles.tipsContent}>
-            <h3 className={styles.tipsTitle}>Tips for a successful drive</h3>
-            <ul className={styles.tipsList}>
-              <li>Use a clear, compelling title that explains your need</li>
-              <li>Include specific details about how funds will be used</li>
-              <li>Add authentic photos that show your situation</li>
-              <li>Share regular updates with your donors</li>
-              <li>Set a realistic goal based on actual costs</li>
-              <li>Be honest and transparent throughout your campaign</li>
-            </ul>
           </div>
         </div>
       </div>

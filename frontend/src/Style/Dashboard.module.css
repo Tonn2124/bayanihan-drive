@@ -1,346 +1,219 @@
+/* --- GLOBAL LAYOUT --- */
 .dashboardRoot {
   display: flex;
-  height: 100vh;               /* full viewport; no body scroll */
-  background: #f3f4f6;
-  overflow: hidden;             /* only inner areas scroll */
+  height: 100vh;
+  width: 100vw;
+  background-color: #f0f2f5;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1c1e21;
 }
 
-/* SIDEBAR */
-
-.sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: #111827;
-  color: #e5e7eb;
+/* --- LEFT SIDEBAR (Navigation & Categories) --- */
+.leftSidebar {
+  width: 260px; /* Slightly wider to fit category names nicely */
+  background-color: #ffffff;
+  border-right: 1px solid #e4e6eb;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1.25rem;
-  position: sticky;
-  top: 0;
-  height: 100vh;                /* locked like FB left menu */
+  padding: 16px 8px; /* Tighter padding like FB */
+  flex-shrink: 0;
   overflow-y: auto;
 }
 
-.sidebarBrand {
+.brandArea {
+  margin-bottom: 20px;
+  padding-left: 12px;
+}
+
+.brandName {
+  font-size: 1.5rem;
   font-weight: 800;
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
+  color: #1877f2;
+  letter-spacing: -0.5px;
 }
 
-.sidebarUser {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.sidebarAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: #1f2937;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-
-.sidebarName {
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.sidebarEmail {
-  font-size: 0.8rem;
-  color: #9ca3af;
-}
-
-.sidebarNav {
+.navMenu {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-  margin-bottom: auto;
+  gap: 4px;
 }
 
+/* Main Nav Items */
 .navItem {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #050505;
+  transition: background 0.2s;
   text-align: left;
-  padding: 0.55rem 0.85rem;
-  border-radius: 0.6rem;
+}
+
+.navItem:hover { background-color: #f2f2f2; }
+.navItemActive { background-color: #e7f3ff; color: #1877f2; }
+.navIcon { width: 24px; text-align: center; font-size: 1.2rem; }
+
+/* Separator Line */
+.separator {
+  height: 1px;
+  background-color: #e4e6eb;
+  margin: 12px 16px;
+}
+
+/* Categories Section */
+.categoryTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #65676b;
+  padding: 0 12px;
+  margin-bottom: 6px;
+}
+
+.subItem {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #050505;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s;
   border: none;
   background: transparent;
-  color: #e5e7eb;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.navItem:hover {
-  background: #1f2937;
-}
-
-.navItemActive {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.sidebarLogout {
-  margin-top: 1.5rem;
   width: 100%;
-  padding: 0.55rem 0.85rem;
-  border-radius: 0.6rem;
-  border: 1px solid #fca5a5;
-  background: #fef2f2;
-  color: #b91c1c;
-  font-size: 0.9rem;
-  cursor: pointer;
+  text-align: left;
 }
+.subItem:hover { background-color: #f2f2f2; }
 
-/* MAIN AREA */
+/* Logout Button */
+.logoutBtn {
+  margin-top: auto;
+  padding: 12px;
+  background-color: transparent;
+  color: #65676b;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logoutBtn:hover { background-color: #e4e6eb; color: #c5221f; }
 
-.mainArea {
+
+/* --- CENTER PANEL --- */
+.centerPanel {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* HEADER (LOCKED) */
-
-.mainHeader {
+/* Header with Profile on Top Right */
+.centerHeader {
+  height: 60px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e4e6eb;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2.5rem;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  position: sticky;
-  top: 0;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   z-index: 10;
 }
 
-.welcomeTitle {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
+.headerTitle { flex: 1; }
+.headerTitle h2 { font-size: 1.1rem; margin: 0; font-weight: 700; }
+.headerTitle p { font-size: 0.8rem; color: #65676b; margin: 0; }
 
-.welcomeSubtitle {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
+/* Right side of Header: Create + Profile */
 .headerActions {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 16px;
 }
 
-.addFundsBtn,
-.newCampaignBtn {
-  border-radius: 999px;
-  padding: 0.45rem 1.2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.addFundsBtn {
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #111827;
-}
-
-.addFundsBtn:hover {
-  background: #f3f4f6;
-}
-
-.newCampaignBtn {
+.createBtn {
+  background-color: #e7f3ff;
+  color: #1877f2;
   border: none;
-  background: #2563eb;
-  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.9rem;
 }
+.createBtn:hover { background-color: #dbeafe; }
 
-.newCampaignBtn:hover {
-  background: #1d4ed8;
-}
-
-/* MAIN CONTENT AREA (SCROLLABLE CENTER) */
-
-.contentArea {
-  flex: 1;
-  padding: 1.5rem 2.5rem 2.5rem;
-  overflow-y: auto;             /* only center scrolls */
-}
-
-/* Top info blocks (wallet + profile) */
-
-.horizontalGroup {
+/* Circular Profile Avatar */
+.headerProfile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #dbeafe;
+  color: #1877f2;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  margin-bottom: 1.75rem;
-}
-
-.infoBlock {
-  flex: 1 1 260px;
-  background: #ffffff;
-  border-radius: 0.9rem;
-  border: 1px solid #e5e7eb;
-  padding: 1.25rem 1.5rem;
-  font-size: 0.9rem;
-  color: #4b5563;
-}
-
-.infoBlock h4 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-  color: #111827;
-}
-
-.walletBalance {
-  font-size: 1.4rem;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.adminBadge {
-  display: inline-block;
-  margin-top: 0.35rem;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-/* Tabs container */
-
-.tabsSection {
-  margin-top: 0.5rem;
-  background: #ffffff;
-  border-radius: 0.9rem;
-  border: 1px solid #e5e7eb;
-  padding: 1rem 1rem 1.25rem;
-}
-
-.tabs {
-  display: inline-flex;
-  padding: 0.25rem;
-  border-radius: 999px;
-  background: #f3f4f6;
-  margin-bottom: 1rem;
-}
-
-.tabButton {
-  border: none;
-  background: transparent;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
-  border-radius: 999px;
   cursor: pointer;
-  color: #4b5563;
+  border: 1px solid #e4e6eb;
+  transition: filter 0.2s;
 }
+.headerProfile:hover { filter: brightness(0.95); }
 
-.tabButton:hover {
-  background: #e5e7eb;
-}
-
-.active {
-  background: #ffffff;
-  color: #111827;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-}
-
-/* Scrollable list area (campaigns / donations) */
-
-.tabContent {
-  margin-top: 0.5rem;
-  max-height: calc(100vh - 280px); /* header + info blocks reserved */
+/* Scrollable Feed */
+.scrollableContent {
+  flex: 1;
   overflow-y: auto;
-  padding-right: 0.25rem;
+  padding: 20px;
 }
 
-/* Scrollbar styling (optional but nice) */
-.tabContent::-webkit-scrollbar {
-  width: 6px;
+
+/* --- RIGHT SIDEBAR --- */
+.rightSidebar {
+  width: 280px;
+  background-color: #ffffff;
+  border-left: 1px solid #e4e6eb;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  flex-shrink: 0;
+  overflow-y: auto;
 }
 
-.tabContent::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
-  border-radius: 999px;
+.walletCard {
+  background: linear-gradient(135deg, #1877f2 0%, #004494 100%);
+  color: white; padding: 20px; border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+  margin-bottom: 24px;
 }
+.walletLabel { font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px; }
+.walletAmount { font-size: 1.8rem; font-weight: 800; margin: 5px 0 15px 0; }
+.addFundsBtn {
+  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+  color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; width: 100%;
+}
+.addFundsBtn:hover { background: rgba(255,255,255,0.3); }
+
+.sectionTitle { font-size: 1rem; font-weight: 600; color: #65676b; margin-bottom: 12px; }
 
 /* Responsive */
-
-@media (max-width: 960px) {
-  .dashboardRoot {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .sidebar {
-    position: static;
-    height: auto;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    padding: 0.75rem 1.25rem;
-  }
-
-  .sidebarBrand {
-    margin-bottom: 0;
-    margin-right: 1rem;
-  }
-
-  .sidebarUser {
-    display: none;
-  }
-
-  .sidebarNav {
-    flex-direction: row;
-    margin-bottom: 0;
-    gap: 0.5rem;
-  }
-
-  .navItem {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.7rem;
-  }
-
-  .sidebarLogout {
-    max-width: 120px;
-    font-size: 0.8rem;
-    margin-top: 0;
-    margin-left: auto;
-  }
-
-  .mainHeader,
-  .contentArea {
-    padding-inline: 1.5rem;
-  }
-
-  .tabContent {
-    max-height: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .mainHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .headerActions {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .contentArea {
-    padding-inline: 1.25rem;
-  }
+@media (max-width: 1024px) { .rightSidebar { display: none; } }
+@media (max-width: 768px) {
+  .dashboardRoot { flex-direction: column; overflow: auto; }
+  .leftSidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #ddd; }
+  .centerPanel { overflow: visible; }
 }
