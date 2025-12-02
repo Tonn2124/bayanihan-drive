@@ -17,18 +17,31 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard') 
   const [selectedCampaignId, setSelectedCampaignId] = useState(null)
   
-  // Auth Flow State: 'landing', 'login', 'signup'
+  // Auth Flow State
   const [authMode, setAuthMode] = useState('landing') 
 
   useEffect(() => {
+    // 1. Check Session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setLoading(false)
+
+      // 2. CRITICAL FIX: Check the URL immediately when the app loads
+      // This allows "New Tab" or "Refresh" to remember the specific campaign
+      const params = new URLSearchParams(window.location.search);
+      const urlCampaignId = params.get('campaignId');
+
+      if (session && urlCampaignId) {
+        setSelectedCampaignId(urlCampaignId);
+        setCurrentPage('campaignDetails');
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      setCurrentPage('dashboard') 
+      // Only reset to dashboard if we are logging OUT. 
+      // If we are just refreshing, the logic above handles the redirection.
+      if (!session) setCurrentPage('dashboard') 
     })
 
     return () => subscription.unsubscribe()
@@ -36,18 +49,30 @@ function App() {
 
   const handleNavigate = (page, campaignId = null) => {
     setCurrentPage(page)
-    if (campaignId) setSelectedCampaignId(campaignId)
+    
+    // 3. CRITICAL FIX: Update the Browser URL Bar when clicking
+    if (page === 'campaignDetails' && campaignId) {
+      setSelectedCampaignId(campaignId)
+      // Change URL to: http://localhost:3000/?campaignId=123
+      // This ensures if they hit Refresh, it stays on this page
+      const newUrl = `${window.location.pathname}?campaignId=${campaignId}`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    } else {
+      // Clear the ID if going back to dashboard
+      // Change URL back to: http://localhost:3000/
+      window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
+    }
   }
 
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        Loading Bayanihan Drive...
+        <div className={styles.spinner}></div>
       </div>
     )
   }
 
-  // If logged in, show the main app pages
+  // --- LOGGED IN VIEWS ---
   if (session) {
     if (currentPage === 'dashboard') {
       return <Dashboard session={session} onNavigate={handleNavigate} />
@@ -63,18 +88,17 @@ function App() {
         />
       )
     }
-
     if (currentPage === 'profileSettings') {
       return <ProfileSettings onBack={() => handleNavigate('dashboard')} />
     }
-
     if (currentPage === 'admin') {
         return <AdminDashboard onNavigate={handleNavigate} />
     }
+    // Fallback
     return <Dashboard session={session} onNavigate={handleNavigate} />
   }
 
-  // If NOT logged in, manage Landing/Auth flow
+  // --- LOGGED OUT VIEWS ---
   if (authMode === 'login') {
     return <div className="container"><Auth initialMode="login" onBack={() => setAuthMode('landing')} /></div>
   }
@@ -82,7 +106,7 @@ function App() {
     return <div className="container"><Auth initialMode="signup" onBack={() => setAuthMode('landing')} /></div>
   }
 
-  // Default: Show Landing Page
+  // Default: Landing Page
   return (
     <LandingPage 
       onLogin={() => setAuthMode('login')} 
