@@ -69,7 +69,9 @@ export default function CreateCampaign({ session, onNavigate }) {
         
         {/* Header */}
         <div className={styles.header}>
-            <button className={styles.backBtn} onClick={() => onNavigate('dashboard')}>Cancel</button>
+            <button className={styles.backBtn} onClick={() => onNavigate('dashboard')}>
+               ← Cancel
+            </button>
             <h1 className={styles.pageTitle}>New Campaign</h1>
         </div>
 
@@ -126,8 +128,8 @@ export default function CreateCampaign({ session, onNavigate }) {
                                 </div>
                             </div>
 
-                            {/* Description fills remaining space */}
-                            <div className={styles.formGroup} style={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+                            {/* Description - Made to flex properly */}
+                            <div className={styles.flexFormGroup}>
                                 <label>Story <span className={styles.req}>*</span></label>
                                 <textarea 
                                     className={styles.textarea} 
@@ -161,7 +163,7 @@ export default function CreateCampaign({ session, onNavigate }) {
                     <div className={styles.previewContent}>
                         <h3 className={styles.previewTitle}>{title || 'Campaign Title'}</h3>
                         <p className={styles.previewDesc}>
-                            {description ? description.substring(0, 80) + (description.length > 80 ? '...' : '') : 'Your description preview...'}
+                            {description ? description.substring(0, 120) + (description.length > 120 ? '...' : '') : 'Your description preview...'}
                         </p>
                         
                         <div className={styles.previewStats}>
@@ -174,9 +176,9 @@ export default function CreateCampaign({ session, onNavigate }) {
                 <div className={styles.tipsBox}>
                     <h5>💡 Quick Tips</h5>
                     <ul>
-                        <li>Share your campaign on social media after launching.</li>
-                        <li>Use a high quality photo to attract more donors.</li>
-                        <li>Be transparent about how funds will be used.</li>
+                        <li>Use a catchy title.</li>
+                        <li>High-quality images attract more donors.</li>
+                        <li>Be clear about how funds will be used.</li>
                     </ul>
                 </div>
             </div>
