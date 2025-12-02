@@ -6,8 +6,9 @@ import styles from '../Style/DonateModal.module.css';
 // --- ICONS ---
 
 // Donate Icon (Hand/Heart)
+
 const DonateIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 3 3 6 5 9s5 6 5 3a5 5 0 0 0-5-5Z"></path><path d="M12 22s-4-3.5-4-9a4 4 0 0 1 8 0c0 5.5-4 9-4 9Z"></path></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>
 );
 
 // Check Icon
