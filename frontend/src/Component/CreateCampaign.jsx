@@ -3,14 +3,8 @@ import { supabase } from '../supabaseClient'
 import axios from 'axios'
 import styles from '../Style/CreateCampaign.module.css'
 
-// These match your backend Enum EXACTLY (all lowercase)
 const categories = [
-  'community',
-  'animal_welfare',
-  'medical',
-  'education',
-  'disaster_relief',
-  'other'
+  'community', 'animal_welfare', 'medical', 'education', 'disaster_relief', 'other'
 ]
 
 export default function CreateCampaign({ session, onNavigate }) {
@@ -20,241 +14,173 @@ export default function CreateCampaign({ session, onNavigate }) {
   const [category, setCategory] = useState(categories[0])
   const [endDate, setEndDate] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState('')
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
 
+  const formatCurrency = (val) => {
+    const num = parseFloat(val);
+    if (isNaN(num)) return '₱0';
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(num);
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
-    
-    // 1. Basic validation
     if (!title || !description || !goalAmount || !category) {
-      setError('Please fill in all required fields')
+      setError('Please fill required fields')
       return
     }
-
-    // 2. Parse and Validate Goal Amount
-    // Remove commas if user typed "5,000" and ensure it's a number
     const cleanGoalAmount = parseFloat(goalAmount.toString().replace(/,/g, ''));
     if (isNaN(cleanGoalAmount) || cleanGoalAmount <= 0) {
-      setError('Please enter a valid fundraising goal amount.');
+      setError('Invalid goal amount.');
       return;
     }
-
-    setLoading(true)
-    setError(null)
-    setSuccess(null)
+    setLoading(true); setError(null); setSuccess(null);
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('You must be logged in to create a campaign.')
-      }
-      const token = session.access_token
-
-      // 3. Prepare Data
+      if (!session) throw new Error('Not logged in.')
+      
       const campaignData = {
-        title,
-        description,
-        goalAmount: cleanGoalAmount,
-        // CORRECTION HERE: Send category as-is (lowercase), NOT uppercase.
-        // The error log showed the backend expects: "community", "medical", etc.
-        category: category, 
+        title, description, goalAmount: cleanGoalAmount, category, 
         coverImageUrl: coverImageUrl || null,
         endDate: endDate ? new Date(endDate).toISOString() : null,
       }
 
-      console.log("Sending Payload:", campaignData); 
-
-      const response = await axios.post(
-        'http://localhost:8080/api/campaigns',
-        campaignData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
+      const response = await axios.post('http://localhost:8080/api/campaigns', campaignData, {
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }
+      })
 
       if (response.status === 201) {
-        setSuccess('Your campaign has been created successfully!')
-        // Reset form
-        setTitle('')
-        setDescription('')
-        setGoalAmount('')
-        setCategory(categories[0])
-        setEndDate('')
-        setCoverImageUrl('')
-        
-        // Navigation
-        setTimeout(() => {
-            if (typeof onNavigate === 'function') {
-                onNavigate('dashboard');
-            } else {
-                window.location.reload();
-            }
-        }, 2000)
+        setSuccess('Created!')
+        setTimeout(() => { onNavigate ? onNavigate('dashboard') : window.location.reload() }, 1000)
       }
-
     } catch (err) {
-      console.error("Full Error Object:", err);
-      
-      // Extract specific error message from backend if available
-      let errorMsg = "Failed to create campaign.";
-      
-      if (err.response?.data) {
-          if (err.response.data.errors && Array.isArray(err.response.data.errors)) {
-              errorMsg = err.response.data.errors.map(e => e.defaultMessage).join(', ');
-          } else {
-              errorMsg = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
-          }
-      } else {
-          errorMsg = err.message;
-      }
-      
-      setError(`Error: ${errorMsg}`)
+      setError(err.response?.data?.message || "Failed.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.contentWrapper}>
-        <div className={styles.headerSection}>
-          <h1 className={styles.mainTitle}>Start a Donation Drive</h1>
-          <p className={styles.mainSubtitle}>
-            Share your story and let the community help you reach your goal
-          </p>
+    <div className={styles.pageWrapper}>
+      <div className={styles.container}>
+        
+        {/* Header */}
+        <div className={styles.header}>
+            <button className={styles.backBtn} onClick={() => onNavigate('dashboard')}>Cancel</button>
+            <h1 className={styles.pageTitle}>New Campaign</h1>
         </div>
 
-        <div className={styles.formCard}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Drive Details</h2>
-            <p className={styles.cardDescription}>
-              Fill in the information about your donation drive. Be clear and honest to build trust.
-            </p>
-          </div>
+        <div className={styles.grid}>
+            
+            {/* Left: Form */}
+            <div className={styles.formColumn}>
+                <div className={styles.card}>
+                    <div className={styles.cardBody}>
+                        {error && <div className={styles.alertError}>{error}</div>}
+                        {success && <div className={styles.alertSuccess}>{success}</div>}
 
-          <div className={styles.cardContent}>
-            {error && <div className={styles.alertDanger}>{error}</div>}
-            {success && <div className={styles.alertSuccess}>{success}</div>}
+                        <form onSubmit={handleSubmit} className={styles.form}>
+                            
+                            <div className={styles.formGroup}>
+                                <label>Title <span className={styles.req}>*</span></label>
+                                <input 
+                                    className={styles.input} 
+                                    type="text" 
+                                    placeholder="Campaign Title" 
+                                    value={title}
+                                    onChange={e => setTitle(e.target.value)}
+                                    maxLength={80}
+                                />
+                            </div>
 
-            <form onSubmit={handleSubmit} className={styles.form}>
-              {/* Title */}
-              <div className={styles.formField}>
-                <label htmlFor="title" className={styles.label}>
-                  Title <span className={styles.required}>*</span>
-                </label>
-                <input
-                  id="title"
-                  className={styles.input}
-                  type="text"
-                  placeholder="e.g., Help Juan recover from surgery"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
+                            <div className={styles.row}>
+                                <div className={styles.formGroup}>
+                                    <label>Category <span className={styles.req}>*</span></label>
+                                    <select className={styles.select} value={category} onChange={e => setCategory(e.target.value)}>
+                                        {categories.map(c => <option key={c} value={c}>{c.replace('_', ' ').toUpperCase()}</option>)}
+                                    </select>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Goal (₱) <span className={styles.req}>*</span></label>
+                                    <input 
+                                        className={styles.input} 
+                                        type="number" 
+                                        placeholder="0.00" 
+                                        value={goalAmount}
+                                        onChange={e => setGoalAmount(e.target.value)}
+                                    />
+                                </div>
+                            </div>
 
-              {/* Category */}
-              <div className={styles.formField}>
-                <label htmlFor="category" className={styles.label}>
-                  Category <span className={styles.required}>*</span>
-                </label>
-                <select
-                  id="category"
-                  className={styles.select}
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  required
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1).replace('_', ' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                            <div className={styles.row}>
+                                <div className={styles.formGroup}>
+                                    <label>End Date <span className={styles.opt}>(Opt)</span></label>
+                                    <input className={styles.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Image URL <span className={styles.opt}>(Opt)</span></label>
+                                    <input className={styles.input} type="url" placeholder="https://..." value={coverImageUrl} onChange={e => setCoverImageUrl(e.target.value)} />
+                                </div>
+                            </div>
 
-              {/* Description */}
-              <div className={styles.formField}>
-                <label htmlFor="description" className={styles.label}>
-                  Description <span className={styles.required}>*</span>
-                </label>
-                <textarea
-                  id="description"
-                  className={styles.textarea}
-                  placeholder="Tell your story. Why do you need help? How will the funds be used?"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                  minLength={20}
-                  rows={8}
-                />
-                <p className={styles.helpText}>
-                  Be specific and transparent. Share details that help people understand your situation.
-                </p>
-              </div>
+                            {/* Description fills remaining space */}
+                            <div className={styles.formGroup} style={{flexGrow: 1, display: 'flex', flexDirection: 'column'}}>
+                                <label>Story <span className={styles.req}>*</span></label>
+                                <textarea 
+                                    className={styles.textarea} 
+                                    placeholder="Describe your cause..."
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                    minLength={20}
+                                />
+                            </div>
 
-              {/* Goal Amount */}
-              <div className={styles.formField}>
-                <label htmlFor="goalAmount" className={styles.label}>
-                  Fundraising Goal (₱) <span className={styles.required}>*</span>
-                </label>
-                <input
-                  id="goalAmount"
-                  className={styles.input}
-                  type="number"
-                  placeholder="50000"
-                  value={goalAmount}
-                  onChange={(e) => setGoalAmount(e.target.value)}
-                  required
-                  min="1"
-                />
-              </div>
+                            <button type="submit" className={styles.btnPrimary} disabled={loading}>
+                                {loading ? 'Launching...' : 'Launch Campaign'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-              {/* Cover Image URL */}
-              <div className={styles.formField}>
-                <label htmlFor="coverImageUrl" className={styles.label}>
-                  Image URL
-                </label>
-                <input
-                  id="coverImageUrl"
-                  className={styles.input}
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={coverImageUrl}
-                  onChange={(e) => setCoverImageUrl(e.target.value)}
-                />
-              </div>
+            {/* Right: Preview */}
+            <div className={styles.previewColumn}>
+                <div className={styles.previewCard}>
+                    <div className={styles.previewImageWrapper}>
+                        <img 
+                            src={coverImageUrl || 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image'} 
+                            alt="Preview" 
+                            className={styles.previewImage}
+                            onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image"}}
+                        />
+                        <div className={styles.previewBadge}>{category.replace('_', ' ')}</div>
+                    </div>
+                    <div className={styles.previewContent}>
+                        <h3 className={styles.previewTitle}>{title || 'Campaign Title'}</h3>
+                        <p className={styles.previewDesc}>
+                            {description ? description.substring(0, 80) + (description.length > 80 ? '...' : '') : 'Your description preview...'}
+                        </p>
+                        
+                        <div className={styles.previewStats}>
+                            <div className={styles.previewBar}><div className={styles.previewFill} style={{width: '0%'}}></div></div>
+                            <div className={styles.previewMeta}><strong>₱0</strong> of {formatCurrency(goalAmount)}</div>
+                        </div>
+                    </div>
+                </div>
 
-              {/* End Date */}
-              <div className={styles.formField}>
-                <label htmlFor="endDate" className={styles.label}>
-                  End Date (Optional)
-                </label>
-                <input
-                  id="endDate"
-                  className={styles.input}
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
+                <div className={styles.tipsBox}>
+                    <h5>💡 Quick Tips</h5>
+                    <ul>
+                        <li>Share your campaign on social media after launching.</li>
+                        <li>Use a high quality photo to attract more donors.</li>
+                        <li>Be transparent about how funds will be used.</li>
+                    </ul>
+                </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className={styles.actionButtons}>
-                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Donation Drive'}
-                </button>
-                <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => onNavigate('dashboard')} disabled={loading}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       </div>
     </div>
