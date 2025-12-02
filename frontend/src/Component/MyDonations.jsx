@@ -20,9 +20,6 @@ export default function MyDonations() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Enhance donation data with Campaign Titles? 
-        // For MVP, we will just display ID. 
-        // In a real app, we'd do a join or fetch campaign details here.
         setDonations(response.data);
 
       } catch (err) {
@@ -52,12 +49,13 @@ export default function MyDonations() {
     return new Intl.NumberFormat('en-PH', {
       style: 'currency',
       currency: 'PHP',
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   return (
     <div className={styles.container}>
-      <h2 style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--color-text-main)'}}>
+      <h2 style={{fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem', color: '#1c1e21'}}>
         My Donation History
       </h2>
       

@@ -1,53 +1,57 @@
 import React from 'react'; 
-import styles from '../Style/CampaignList.module.css';
+// IMPORTANT: Imports the specific Card CSS
+import styles from '../Style/CampaignCard.module.css';
 
 export default function CampaignCard({ campaign, onNavigate }) {
 
+  // Logic: Calculate progress
   const progress = Math.min((campaign.currentAmount / campaign.goalAmount) * 100, 100);
+  
+  // Logic: Format Currency
   const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount);
+  
+  // Logic: Image fallback
   const imageUrl = campaign.coverImageUrl || 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Bayanihan';
 
   return (
     <div 
-      className={styles.campaignCard} 
-      style={{cursor: 'pointer'}} 
+      className={styles.card} 
       onClick={() => onNavigate('campaignDetails', campaign.id)} 
+      title={campaign.title} // Tooltip for full title
     >
-      <img 
-        src={imageUrl} 
-        alt={campaign.title} 
-        className={styles.cardImage} 
-        onError={(e) => {e.target.src = 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image+Not+Found'}} 
-      />
+      <div className={styles.imageContainer}>
+        <img 
+          src={imageUrl} 
+          alt={campaign.title} 
+          className={styles.campaignImage} 
+          onError={(e) => {e.target.src = 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image+Not+Found'}} 
+        />
+        <div className={styles.categoryBadge}>
+          {campaign.category ? campaign.category.replace('_', ' ') : 'General'}
+        </div>
+      </div>
       
-      <div className={styles.cardContent}>
-        <span className={styles.categoryBadge}>
-          {campaign.category.replace('_', ' ')}
-        </span>
+      <div className={styles.content}>
+        <h3 className={styles.title}>{campaign.title}</h3>
+        <p className={styles.description}>{campaign.description}</p>
         
-        <h3 className={styles.cardTitle}>{campaign.title}</h3>
-        <p className={styles.cardDescription}>{campaign.description}</p>
-        
-        <div className={styles.progressBarContainer}>
+        <div className={styles.progressContainer}>
           <div 
-            className={styles.progressBarFill} 
+            className={styles.progressBar} 
             style={{ width: `${progress}%` }}
           ></div>
         </div>
         
-        <div className={styles.cardStats}>
-          <span className={styles.raisedAmount}>
-            {formatCurrency(campaign.currentAmount)} raised
+        <div className={styles.statsRow}>
+          <span className={styles.amountRaised}>
+            {formatCurrency(campaign.currentAmount || 0)} raised
           </span>
-          <span>of {formatCurrency(campaign.goalAmount)}</span>
+          <span>{Math.round(progress)}%</span>
         </div>
 
-        <div className={styles.cardFooter}>
-          {}
-          <button className={`btn btn-secondary ${styles.donateButton}`}>
-            View Details
-          </button>
-        </div>
+        <button className={styles.donateBtn}>
+          View Details
+        </button>
       </div>
     </div>
   );
