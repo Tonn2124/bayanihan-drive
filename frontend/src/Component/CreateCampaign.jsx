@@ -128,7 +128,7 @@ export default function CreateCampaign({ session, onNavigate }) {
                                 </div>
                             </div>
 
-                            {/* Description - Made to flex properly */}
+                            {/* UPDATED: Description uses flexFormGroup to fill space */}
                             <div className={styles.flexFormGroup}>
                                 <label>Story <span className={styles.req}>*</span></label>
                                 <textarea 
