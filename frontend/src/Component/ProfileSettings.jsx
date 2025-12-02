@@ -9,11 +9,18 @@ export default function ProfileSettings({ onBack }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Form State
+  // Profile Data
+  const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [phone, setPhone] = useState('');
+  
+  // Upload State
+  const [uploading, setUploading] = useState(false);
+
+  // Password Update
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -24,9 +31,10 @@ export default function ProfileSettings({ onBack }) {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not logged in");
+      
       const token = session.access_token;
+      setEmail(session.user.email);
 
-      // Fetch from our new backend endpoint
       const response = await axios.get('http://localhost:8080/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -35,13 +43,49 @@ export default function ProfileSettings({ onBack }) {
       setFullName(profile.fullName || '');
       setUsername(profile.username || '');
       setAvatarUrl(profile.avatarUrl || '');
-      setPhone(profile.phone || '');
 
     } catch (err) {
       console.error("Error fetching profile:", err);
       setError("Could not load profile settings.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // --- IMAGE UPLOAD LOGIC ---
+  const handleImageUpload = async (event) => {
+    try {
+      setUploading(true);
+      setError(null);
+      
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) throw new Error("Image size must be less than 2MB");
+      if (!file.type.startsWith('image/')) throw new Error("File must be an image");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${username}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setAvatarUrl(publicUrl);
+      setSuccess("Image uploaded! Click 'Save Changes' to persist.");
+
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(err.message || "Error uploading image");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -56,107 +100,117 @@ export default function ProfileSettings({ onBack }) {
       const token = session.access_token;
 
       await axios.put('http://localhost:8080/api/profile', 
-        {
-            fullName,
-            username,
-            avatarUrl,
-            phone
-        },
+        { fullName, username, avatarUrl }, 
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
+      if (newPassword) {
+         if (newPassword !== confirmPassword) throw new Error("Passwords do not match");
+         const { error: pwdError } = await supabase.auth.updateUser({ password: newPassword });
+         if (pwdError) throw pwdError;
+      }
+
       setSuccess("Profile updated successfully!");
-      
-      // Optional: reload page or notify parent to refresh global user state
-      // setTimeout(() => window.location.reload(), 1000); 
+      setNewPassword('');
+      setConfirmPassword('');
 
     } catch (err) {
       console.error("Error updating profile:", err);
-      setError("Failed to update profile. Please try again.");
+      setError(err.message);
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className={styles.container} style={{textAlign: 'center'}}>Loading settings...</div>;
+  if (loading) return <div className={styles.loadingState}>Loading...</div>;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-            <h2 className={styles.title}>Profile Settings</h2>
-        </div>
+    <div className={styles.wrapper}>
+        <div className={styles.bgCircle1}></div>
+        <div className={styles.bgCircle2}></div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
-
-        <form className={styles.form} onSubmit={handleSave}>
-            
-            {/* Avatar Section */}
-            <div className={styles.avatarSection}>
-                <div className={styles.avatarPreview}>
+        <div className={styles.glassCard}>
+            {/* LEFT COLUMN */}
+            <div className={styles.leftCol}>
+                <div className={styles.avatarContainer}>
                     {avatarUrl ? (
-                        <img src={avatarUrl} alt="Avatar" onError={(e) => e.target.src = 'https://placehold.co/100x100?text=User'} />
+                        <img src={avatarUrl} alt="Profile" className={styles.avatarImg} onError={(e) => e.target.style.display='none'} />
                     ) : (
-                        <span>{fullName ? fullName.charAt(0).toUpperCase() : 'U'}</span>
+                        <div className={styles.avatarPlaceholder}>
+                            {fullName ? fullName.charAt(0).toUpperCase() : 'U'}
+                        </div>
                     )}
                 </div>
+                
                 <div className={styles.avatarInputGroup}>
-                    <label className={styles.label}>Avatar URL</label>
+                    <label htmlFor="avatar-upload" className={styles.uploadBtn}>
+                        {uploading ? 'Uploading...' : 'Change Photo'}
+                    </label>
                     <input 
-                        type="url" 
-                        className={styles.input} 
-                        placeholder="https://example.com/my-photo.jpg"
-                        value={avatarUrl}
-                        onChange={(e) => setAvatarUrl(e.target.value)}
+                        id="avatar-upload"
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className={styles.hiddenInput}
+                        disabled={uploading}
                     />
-                    <div className={styles.helperText}>Paste a link to an image for your profile picture.</div>
+                    <span className={styles.miniLabel}>Max 2MB</span>
+                </div>
+                
+                <div className={styles.badge}>
+                    <span>Member</span>
                 </div>
             </div>
 
-            <div className="form-group">
-                <label className={styles.label}>Full Name</label>
-                <input 
-                    type="text" 
-                    className={styles.input} 
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                />
-            </div>
+            {/* RIGHT COLUMN */}
+            <div className={styles.rightCol}>
+                
+                {/* --- HEADER WITH BACK BUTTON --- */}
+                <div className={styles.headerRow}>
+                    <button onClick={onBack} className={styles.backIconBtn} type="button" title="Back to Feed">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </button>
+                    <div>
+                        <h2 className={styles.title}>Edit Profile</h2>
+                        <p className={styles.subtitle}>Manage your public information and security</p>
+                    </div>
+                </div>
 
-            <div className="form-group">
-                <label className={styles.label}>Username</label>
-                <input 
-                    type="text" 
-                    className={styles.input} 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-            </div>
+                {error && <div className={styles.alertError}>{error}</div>}
+                {success && <div className={styles.alertSuccess}>{success}</div>}
 
-            <div className="form-group">
-                <label className={styles.label}>Phone Number</label>
-                <input 
-                    type="tel" 
-                    className={styles.input} 
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="09xxxxxxxxx"
-                />
+                <form className={styles.formGrid} onSubmit={handleSave}>
+                    <div className={styles.fieldGroup}>
+                        <label>Full Name</label>
+                        <input type="text" className={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                        <label>Username</label>
+                        <input type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} />
+                    </div>
+                    <div className={styles.fieldGroupFull}>
+                        <label>Email Address <span className={styles.readOnlyTag}>Read Only</span></label>
+                        <input type="email" className={`${styles.input} ${styles.disabled}`} value={email} disabled />
+                    </div>
+                     <div className={styles.divider}><span>Change Password (Optional)</span></div>
+                    <div className={styles.fieldGroup}>
+                        <input type="password" className={styles.input} placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                        <input type="password" className={styles.input} placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className={styles.actionRow}>
+                        <button type="button" className={styles.cancelBtn} onClick={onBack}>Cancel</button>
+                        <button type="submit" className={styles.saveBtn} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+                    </div>
+                </form>
             </div>
-
-            <div className={styles.actions}>
-                <button type="button" className={styles.cancelBtn} onClick={onBack}>
-                    Cancel
-                </button>
-                <button type="submit" className={styles.saveBtn} disabled={saving}>
-                    {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-            </div>
-        </form>
-      </div>
+        </div>
     </div>
   );
 }
