@@ -9,28 +9,29 @@
   color: #1c1e21;
 }
 
-/* --- LEFT SIDEBAR (Navigation & Categories) --- */
+/* --- LEFT SIDEBAR (Navigation) --- */
 .leftSidebar {
-  width: 260px; /* Slightly wider to fit category names nicely */
+  width: 200px; /* REDUCED from 260px -> 200px */
   background-color: #ffffff;
   border-right: 1px solid #e4e6eb;
   display: flex;
   flex-direction: column;
-  padding: 16px 8px; /* Tighter padding like FB */
+  padding: 16px 8px;
   flex-shrink: 0;
   overflow-y: auto;
 }
 
 .brandArea {
   margin-bottom: 20px;
-  padding-left: 12px;
+  padding-left: 8px; /* Less padding */
 }
 
 .brandName {
-  font-size: 1.5rem;
+  font-size: 1.3rem; /* Slightly smaller font */
   font-weight: 800;
   color: #1877f2;
   letter-spacing: -0.5px;
+  white-space: nowrap; /* Prevents wrapping */
 }
 
 .navMenu {
@@ -39,65 +40,50 @@
   gap: 4px;
 }
 
-/* Main Nav Items */
+/* Nav Items - Compact */
 .navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 10px; /* Tighter gap */
+  padding: 10px 8px; /* Tighter padding */
   border-radius: 8px;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem; /* Smaller text */
   font-weight: 600;
   color: #050505;
   transition: background 0.2s;
   text-align: left;
+  white-space: nowrap; /* Keeps text on one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .navItem:hover { background-color: #f2f2f2; }
 .navItemActive { background-color: #e7f3ff; color: #1877f2; }
-.navIcon { width: 24px; text-align: center; font-size: 1.2rem; }
+.navIcon { width: 20px; text-align: center; font-size: 1.1rem; }
 
-/* Separator Line */
+/* Separator */
 .separator {
   height: 1px;
   background-color: #e4e6eb;
-  margin: 12px 16px;
+  margin: 10px 8px;
 }
 
-/* Categories Section */
 .categoryTitle {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 0.85rem; /* Smaller section title */
+  font-weight: 700;
   color: #65676b;
-  padding: 0 12px;
+  padding: 0 8px;
   margin-bottom: 6px;
+  text-transform: uppercase; /* Styling choice for small text */
 }
 
-.subItem {
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #050505;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: background 0.2s;
-  border: none;
-  background: transparent;
-  width: 100%;
-  text-align: left;
-}
-.subItem:hover { background-color: #f2f2f2; }
-
-/* Logout Button */
+/* Logout */
 .logoutBtn {
   margin-top: auto;
-  padding: 12px;
+  padding: 12px 8px;
   background-color: transparent;
   color: #65676b;
   border: none;
@@ -107,19 +93,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.9rem;
 }
 .logoutBtn:hover { background-color: #e4e6eb; color: #c5221f; }
 
 
-/* --- CENTER PANEL --- */
+/* --- CENTER PANEL (Wide Mode) --- */
 .centerPanel {
-  flex: 1;
+  flex: 1; /* Grows to fill all the new space */
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* Header with Profile on Top Right */
 .centerHeader {
   height: 60px;
   background-color: #ffffff;
@@ -137,44 +123,22 @@
 .headerTitle h2 { font-size: 1.1rem; margin: 0; font-weight: 700; }
 .headerTitle p { font-size: 0.8rem; color: #65676b; margin: 0; }
 
-/* Right side of Header: Create + Profile */
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.headerActions { display: flex; align-items: center; gap: 16px; }
 
 .createBtn {
-  background-color: #e7f3ff;
-  color: #1877f2;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.9rem;
+  background-color: #e7f3ff; color: #1877f2; border: none;
+  padding: 8px 16px; border-radius: 20px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s; font-size: 0.9rem;
 }
 .createBtn:hover { background-color: #dbeafe; }
 
-/* Circular Profile Avatar */
 .headerProfile {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #dbeafe;
-  color: #1877f2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  cursor: pointer;
-  border: 1px solid #e4e6eb;
-  transition: filter 0.2s;
+  width: 40px; height: 40px; border-radius: 50%; background-color: #dbeafe;
+  color: #1877f2; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; cursor: pointer; border: 1px solid #e4e6eb; transition: filter 0.2s;
 }
 .headerProfile:hover { filter: brightness(0.95); }
 
-/* Scrollable Feed */
 .scrollableContent {
   flex: 1;
   overflow-y: auto;
@@ -182,33 +146,45 @@
 }
 
 
-/* --- RIGHT SIDEBAR --- */
+/* --- RIGHT SIDEBAR (Wallet) --- */
 .rightSidebar {
-  width: 280px;
+  width: 240px; /* REDUCED from 280px -> 240px */
   background-color: #ffffff;
   border-left: 1px solid #e4e6eb;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 16px;
   flex-shrink: 0;
   overflow-y: auto;
 }
 
 .walletCard {
   background: linear-gradient(135deg, #1877f2 0%, #004494 100%);
-  color: white; padding: 20px; border-radius: 12px;
+  color: white; 
+  padding: 16px; /* Tighter padding */
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
   margin-bottom: 24px;
 }
-.walletLabel { font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px; }
-.walletAmount { font-size: 1.8rem; font-weight: 800; margin: 5px 0 15px 0; }
-.addFundsBtn {
-  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
-  color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; width: 100%;
-}
-.addFundsBtn:hover { background: rgba(255,255,255,0.3); }
+.walletLabel { font-size: 0.8rem; opacity: 0.9; margin-bottom: 4px; }
+.walletAmount { font-size: 1.6rem; font-weight: 800; margin: 4px 0 16px 0; }
 
-.sectionTitle { font-size: 1rem; font-weight: 600; color: #65676b; margin-bottom: 12px; }
+.walletActions { display: flex; gap: 8px; }
+
+.walletBtnPrimary {
+  flex: 1; background: white; color: #1877f2; border: none; padding: 6px;
+  border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;
+}
+.walletBtnPrimary:hover { background: #f0f2f5; }
+
+.walletBtnSecondary {
+  flex: 1; background: rgba(255,255,255,0.2); color: white;
+  border: 1px solid rgba(255,255,255,0.4); padding: 6px; border-radius: 6px;
+  font-weight: 600; font-size: 0.85rem; cursor: pointer;
+}
+.walletBtnSecondary:hover { background: rgba(255,255,255,0.3); }
+
+.sectionTitle { font-size: 0.95rem; font-weight: 600; color: #65676b; margin-bottom: 10px; }
 
 /* Responsive */
 @media (max-width: 1024px) { .rightSidebar { display: none; } }
