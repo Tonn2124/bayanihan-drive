@@ -1,9 +1,9 @@
-/* Page Layout - FIXED HEIGHT (No Window Scroll) */
+/* Page Layout - LOCKED to Screen Height */
 .pageWrapper {
-  height: 100vh; /* Lock to screen height */
-  overflow: hidden; /* Disable window scrolling */
+  height: 100vh;
+  overflow: hidden; /* No scroll on body */
   background-color: #F9FAFB;
-  padding: 1rem; /* Reduced padding to maximize space */
+  padding: 0.75rem;
   color: #1f2937;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
@@ -11,7 +11,7 @@
 }
 
 .container {
-  max-width: 1400px; /* Increased width usage */
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   height: 100%;
@@ -19,18 +19,18 @@
   flex-direction: column;
 }
 
-/* Header - Compact */
+/* Header */
 .header {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid #E5E7EB;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
+  min-height: 40px;
 }
 
-/* Ghost Pill Back Button */
 .backBtn {
   background: none;
   border: none;
@@ -48,19 +48,19 @@
 .backBtn:hover { background-color: #f2f2f2; }
 
 .pageTitle {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #111827;
   margin: 0;
 }
 
-/* Grid System - Fills remaining height */
+/* Grid System */
 .grid {
   display: grid;
-  grid-template-columns: 1.4fr 0.8fr; /* Form wider than preview */
-  gap: 1.5rem;
-  flex: 1; /* Take up all remaining vertical space */
-  min-height: 0; /* Crucial for nested scroll */
+  grid-template-columns: 1.5fr 1fr;
+  gap: 0.75rem;
+  flex: 1; 
+  min-height: 0; /* Crucial for nested scrolling */
 }
 
 /* --- FORM COLUMN --- */
@@ -73,102 +73,106 @@
 .card {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  height: 100%; /* Fill column */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Contain scroll */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.cardBody {
-  padding: 1.5rem;
+  border-radius: 8px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Allow internal scroll only if needed */
-  /* Hide scrollbar visually */
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.cardBody {
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Internal scroll */
   -ms-overflow-style: none; scrollbar-width: none;
 }
 .cardBody::-webkit-scrollbar { display: none; }
 
-/* Form Layout - Flex Growth */
+/* Form Layout - FULL HEIGHT FLEX */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  height: 100%; /* Force form to fill card */
+  gap: 0.75rem;
+  height: 100%; /* Takes full height of card body */
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
-/* This specific class makes the Story area grow to fill empty space */
+/* Flexible Story Section */
 .flexFormGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  flex: 1; /* GROW MAGIC */
-  min-height: 150px; /* Minimum height */
+  gap: 0.25rem;
+  flex: 1; /* GROWS to fill all empty space */
+  min-height: 150px; /* Minimum usable height */
+  margin-bottom: 0.5rem;
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #374151;
+  color: #4B5563;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 .req { color: #dc2626; }
-.opt { color: #9ca3af; font-weight: 400; font-size: 0.75rem; }
+.opt { color: #9ca3af; font-weight: 400; text-transform: none; }
 
 /* Inputs */
 .input, .select {
   width: 100%;
-  padding: 0.6rem 0.8rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   background-color: #f9fafb;
   transition: all 0.2s;
+  height: 38px;
 }
 
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: #1d4ed8;
   background-color: white;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1);
 }
 
-/* Textarea - Expands automatically */
+/* TextArea - Fills the Flex Group */
 .textarea {
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   background-color: #f9fafb;
-  flex: 1; /* Fill the flexFormGroup */
-  resize: none; /* No manual resize needed */
+  flex: 1; /* Expands to fill parent */
+  resize: none; /* Disable manual resize since it auto-sizes */
 }
 
-/* Launch Button - Gradient Style */
+/* Buttons */
 .btnPrimary {
   width: 100%;
-  padding: 1rem;
+  padding: 0.85rem;
   border: none;
   border-radius: 12px;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  margin-top: 0.5rem;
+  margin-top: auto; /* Pushes to absolute bottom */
+  
   background: linear-gradient(135deg, #0056D2 0%, #0041A3 100%);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3);
@@ -181,73 +185,90 @@ label {
   transform: translateY(-2px);
 }
 .btnPrimary:active:not(:disabled) { transform: translateY(0); }
-.btnPrimary:disabled { opacity: 0.7; cursor: not-allowed; }
+.btnPrimary:disabled {
+  background: #E5E7EB; color: #9CA3AF; box-shadow: none; cursor: not-allowed; transform: none;
+}
 
 /* --- PREVIEW COLUMN --- */
 .previewColumn {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  height: 100%;
-  overflow-y: auto; /* Allow scrolling if preview gets too long */
+  gap: 0.75rem;
+  overflow-y: auto;
   -ms-overflow-style: none; scrollbar-width: none;
 }
 .previewColumn::-webkit-scrollbar { display: none; }
 
 .previewCard {
   background: white;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Fixed Image Wrapper - Prevents Stretching */
 .previewImageWrapper {
-  height: 180px; /* Slightly reduced height */
+  height: 160px; /* Fixed height */
+  width: 100%;
   background-color: #f3f4f6;
   position: relative;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0; /* Crucial: Stops it from shrinking/squashing */
 }
-.previewImage { width: 100%; height: 100%; object-fit: cover; }
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures image covers area without distortion */
+  object-position: center;
+}
 
 .previewBadge {
-  position: absolute; top: 0.75rem; left: 0.75rem;
+  position: absolute; top: 0.5rem; left: 0.5rem;
   background: rgba(0,0,0,0.7); color: white;
-  font-size: 0.7rem; padding: 0.25rem 0.75rem;
-  border-radius: 100px; text-transform: uppercase; font-weight: 600;
+  font-size: 0.6rem; padding: 0.1rem 0.4rem;
+  border-radius: 50px; text-transform: uppercase; font-weight: 600;
 }
 
-.previewContent { padding: 1.25rem; }
-.previewTitle { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #111827; }
-.previewDesc { font-size: 0.9rem; color: #6b7280; line-height: 1.5; margin-bottom: 1rem; word-break: break-word; }
+.previewContent { padding: 1rem; }
+.previewTitle { font-size: 1rem; font-weight: 700; margin: 0 0 0.2rem 0; color: #111827; }
+.previewDesc { font-size: 0.85rem; color: #6b7280; line-height: 1.4; margin-bottom: 0.75rem; word-break: break-word; }
 
 .previewStats { margin-top: auto; }
-.previewBar { height: 8px; background: #f3f4f6; border-radius: 4px; margin-bottom: 0.5rem; }
+.previewBar { height: 5px; background: #f3f4f6; border-radius: 4px; margin-bottom: 0.25rem; }
 .previewFill { background: #10b981; height: 100%; border-radius: 4px; }
-.previewMeta { font-size: 0.85rem; color: #374151; }
+.previewMeta { font-size: 0.75rem; color: #374151; }
 
 .tipsBox {
   background: #eff6ff; border: 1px solid #dbeafe;
-  border-radius: 12px; padding: 1.25rem;
-  font-size: 0.9rem;
+  border-radius: 8px; padding: 1rem;
+  font-size: 0.85rem;
 }
-.tipsBox h5 { margin: 0 0 0.5rem 0; color: #1e40af; }
-.tipsBox ul { padding-left: 1.25rem; margin: 0; }
-.tipsBox li { margin-bottom: 0.25rem; color: #1e3a8a; }
+.tipsBox h5 { margin: 0 0 0.4rem 0; color: #1e40af; font-size: 0.9rem; }
+.tipsBox ul { padding-left: 1rem; margin: 0; }
+.tipsBox li { margin-bottom: 0.15rem; color: #1e3a8a; }
 
 /* Alerts */
 .alertError, .alertSuccess {
-  padding: 0.75rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;
+  padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-bottom: 0.5rem;
 }
 .alertError { background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; }
 .alertSuccess { background: #f0fdf4; border: 1px solid #dcfce7; color: #166534; }
 
 /* Mobile */
 @media (max-width: 900px) {
-  .pageWrapper { height: auto; overflow: auto; } /* Re-enable scroll */
+  .pageWrapper { height: auto; overflow: auto; padding: 1rem; }
   .grid { grid-template-columns: 1fr; display: block; }
   .card { height: auto; margin-bottom: 1rem; }
+  .cardBody { overflow: visible; }
   .form { height: auto; }
+  .flexFormGroup { min-height: 200px; } /* Give text area fixed height on mobile */
   .previewColumn { display: none; }
 }
