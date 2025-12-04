@@ -5,211 +5,222 @@ import styles from '../Style/AddFundsModal.module.css';
 
 const PRESET_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
 
-// Wallet Icon
+// Icons
 const WalletIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>
+ <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>
 );
 
-// Check Icon
-const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-);
-
-// Close Icon
 const CloseIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-);
-
-// Lock Icon for Security Badge
-const LockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+ <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 );
 
 export default function AddFundsModal({ onClose, onSuccess }) {
-  const [amount, setAmount] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+ // Use string for input to handle formatting, but parse to number for logic
+ const [inputValue, setInputValue] = useState('');
+ const [loading, setLoading] = useState(false);
+ const [error, setError] = useState(null);
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+ // --- FORMATTING HELPERS ---
 
-  const handleAddFunds = async (e) => {
-    e.preventDefault();
-    setError(null);
+ // 1. Format for Display (e.g., 1000 -> 1,000.00)
+ const formatCurrency = (val) => {
+   if (!val) return '0.00';
+   return new Intl.NumberFormat('en-PH', {
+     style: 'decimal',
+     minimumFractionDigits: 2,
+     maximumFractionDigits: 2,
+   }).format(val);
+ };
 
-    const parsedAmount = parseFloat(amount);
-    
-    if (!amount || parsedAmount <= 0) {
-      setError('Please enter a valid amount');
-      return;
-    }
+ // 2. Format Input while typing (Allow commas, prevent invalid chars)
+ const handleInputChange = (e) => {
+   // Remove everything except numbers and dots
+   let val = e.target.value.replace(/[^\d.]/g, '');
+   
+   // Prevent multiple dots
+   const parts = val.split('.');
+   if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+   
+   // Limit to 2 decimal places if dot exists
+   if (parts.length === 2 && parts[1].length > 2) {
+       val = parts[0] + '.' + parts[1].substring(0, 2);
+   }
 
-    if (parsedAmount < 100) {
-      setError('Minimum top-up amount is ₱100');
-      return;
-    }
+   setInputValue(val);
+   setError(null);
+ };
 
-    setLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session.access_token;
+ // 3. Format Input on Blur (Add .00 and commas to the INPUT box itself)
+ const handleBlur = () => {
+   if (!inputValue) return;
+   const num = parseFloat(inputValue.replace(/,/g, ''));
+   if (!isNaN(num)) {
+       // Format with commas and decimals
+       setInputValue(formatCurrency(num)); 
+   }
+ };
 
-      await axios.post('http://localhost:8080/api/wallet/add-funds', 
-        { amount: parsedAmount },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+ // 4. Handle Preset Clicks
+ const handlePresetClick = (amount) => {
+   setInputValue(formatCurrency(amount));
+   setError(null);
+ };
 
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error("Failed to add funds:", error);
-      setError(error.response?.data?.message || "Failed to add funds. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+ // --- SUBMISSION ---
+ const handleAddFunds = async (e) => {
+   e.preventDefault();
+   setError(null);
 
-  const handlePresetClick = (preset) => {
-    setAmount(preset.toString());
-    setError(null);
-  };
+   // Clean input to get raw number
+   const rawValue = parseFloat(inputValue.replace(/,/g, ''));
+   
+   if (!rawValue || rawValue <= 0) {
+     setError('Please enter a valid amount');
+     return;
+   }
 
-  return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        {/* Close Button */}
-        <button className={styles.closeButton} onClick={onClose} disabled={loading}>
-          <CloseIcon />
-        </button>
+   if (rawValue < 100) {
+     setError('Minimum top-up is ₱100.00');
+     return;
+   }
 
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.iconWrapper}>
-            <WalletIcon />
-          </div>
-          <h2 className={styles.title}>Add Funds to Wallet</h2>
-          <p className={styles.subtitle}>
-            Choose an amount or enter a custom value to top up your wallet
-          </p>
-        </div>
+   setLoading(true);
+   try {
+     const { data: { session } } = await supabase.auth.getSession();
+     const token = session.access_token;
 
-        {/* Error Alert */}
-        {error && (
-          <div className={styles.errorAlert}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>{error}</span>
-          </div>
-        )}
+     await axios.post('http://localhost:8080/api/wallet/add-funds', 
+       { amount: rawValue },
+       {
+         headers: {
+           'Authorization': `Bearer ${token}`,
+           'Content-Type': 'application/json'
+         }
+       }
+     );
 
-        {/* Preset Amounts Grid */}
-        <div className={styles.presetSection}>
-          <label className={styles.sectionLabel}>Quick Select</label>
-          <div className={styles.amountGrid}>
-            {PRESET_AMOUNTS.map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                className={`${styles.amountButton} ${parseFloat(amount) === preset ? styles.selected : ''}`}
-                onClick={() => handlePresetClick(preset)}
-                disabled={loading}
-              >
-                <span className={styles.amountValue}>₱{preset.toLocaleString()}</span>
-                {parseFloat(amount) === preset && (
-                  <div className={styles.checkmark}>
-                    <CheckIcon />
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+     onSuccess();
+     onClose();
+   } catch (error) {
+     console.error("Failed to add funds:", error);
+     setError(error.response?.data?.message || "Failed to add funds.");
+   } finally {
+     setLoading(false);
+   }
+ };
 
-        {/* Custom Amount Input */}
-        <div className={styles.customSection}>
-          <label className={styles.sectionLabel} htmlFor="customAmount">
-            Custom Amount
-          </label>
-          <div className={styles.inputWrapper}>
-            <span className={styles.currencySymbol}>₱</span>
-            <input 
-              id="customAmount"
-              type="number" 
-              className={styles.customInput}
-              placeholder="Enter amount"
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
-                setError(null);
-              }}
-              min="100"
-              disabled={loading}
-            />
-          </div>
-          <p className={styles.inputHint}>Minimum amount: ₱100</p>
-        </div>
+ // Derived value for summary
+ const currentAmount = parseFloat(inputValue.replace(/,/g, '')) || 0;
 
-        {/* Amount Preview */}
-        {amount && parseFloat(amount) > 0 && (
-          <div className={styles.summaryCard}>
-            <div className={styles.summaryRow}>
-              <span>Amount to add</span>
-              <span className={styles.summaryAmount}>{formatCurrency(parseFloat(amount))}</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>Transaction fee</span>
-              <span className={styles.freeTag}>FREE</span>
-            </div>
-            <div className={styles.summaryDivider}></div>
-            <div className={styles.summaryRow}>
-              <span className={styles.totalLabel}>Total</span>
-              <span className={styles.totalAmount}>{formatCurrency(parseFloat(amount))}</span>
-            </div>
-          </div>
-        )}
+ return (
+   <div className={styles.overlay} onClick={onClose}>
+     <div className={styles.modal} onClick={e => e.stopPropagation()}>
+       
+       {/* Close Button */}
+       <button className={styles.closeButton} onClick={onClose} disabled={loading} type="button">
+         <CloseIcon />
+       </button>
 
-        {/* Security Badge */}
-        <div className={styles.securityBadge}>
-          <LockIcon />
-          <span>Secure transaction powered by Bayanihan Drive</span>
-        </div>
+       {/* 1. Header */}
+       <div className={styles.header}>
+         <div className={styles.iconWrapper}>
+           <WalletIcon />
+         </div>
+         <div>
+           <h2 className={styles.title}>Add Funds</h2>
+           <p className={styles.subtitle}>Securely top up your wallet</p>
+         </div>
+       </div>
 
-        {/* Action Buttons */}
-        <div className={styles.actions}>
-          <button 
-            type="button" 
-            className={styles.cancelButton} 
-            onClick={onClose} 
-            disabled={loading}
-          >
-            Cancel
-          </button>
-          <button 
-            type="button" 
-            className={styles.confirmButton} 
-            onClick={handleAddFunds}
-            disabled={loading || !amount || parseFloat(amount) <= 0}
-          >
-            {loading ? (
-              <>
-                <div className={styles.spinner}></div>
-                <span>Processing...</span>
-              </>
-            ) : (
-              <>Add {amount ? formatCurrency(parseFloat(amount)) : 'Funds'}</>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+       {/* 2. Split Body Layout */}
+       <div className={styles.modalBody}>
+           
+           {/* LEFT SIDE: Presets */}
+           <div className={styles.leftColumn}>
+               <label className={styles.sectionLabel}>Quick Select</label>
+               <div className={styles.amountGrid}>
+                   {PRESET_AMOUNTS.map((preset) => (
+                   <button
+                       key={preset}
+                       type="button"
+                       className={`${styles.amountButton} ${currentAmount === preset ? styles.selected : ''}`}
+                       onClick={() => handlePresetClick(preset)}
+                       disabled={loading}
+                   >
+                       <span>₱{formatCurrency(preset)}</span>
+                   </button>
+                   ))}
+               </div>
+           </div>
+
+           {/* RIGHT SIDE: Custom Input & Actions */}
+           <div className={styles.rightColumn}>
+               <div>
+                   <label className={styles.sectionLabel}>Custom Amount</label>
+                   <div className={styles.inputContainer}>
+                       <div className={styles.inputWrapper}>
+                           <span className={styles.currencySymbol}>₱</span>
+                           {/* Controlled Input with Formatting Logic */}
+                           <input 
+                               type="text"
+                               className={styles.customInput}
+                               placeholder="0.00"
+                               value={inputValue}
+                               onChange={handleInputChange}
+                               onBlur={handleBlur}
+                               disabled={loading}
+                           />
+                       </div>
+                   </div>
+
+                   {/* Summary is ALWAYS visible (placeholder zeroes if empty) to prevent resizing */}
+                   <div className={styles.summaryCard}>
+                       <div className={styles.summaryRow}>
+                           <span>Amount</span>
+                           <span>₱{formatCurrency(currentAmount)}</span>
+                       </div>
+                       <div className={styles.summaryRow}>
+                           <span>Fee</span>
+                           <span style={{color: '#10B981', fontWeight: 600}}>FREE</span>
+                       </div>
+                       <div className={styles.summaryDivider}></div>
+                       <div className={styles.totalRow}>
+                           <span>Total</span>
+                           <span className={styles.totalAmount}>₱{formatCurrency(currentAmount)}</span>
+                       </div>
+                   </div>
+               </div>
+
+               {/* Error displayed absolutely at bottom of inputs to not shift layout */}
+               {error && (
+                   <div className={styles.errorAlert}>
+                       <span>{error}</span>
+                   </div>
+               )}
+
+               <div className={styles.actions}>
+                   <button 
+                       type="button" 
+                       className={styles.cancelButton} 
+                       onClick={onClose} 
+                       disabled={loading}
+                   >
+                       Cancel
+                   </button>
+                   <button 
+                       type="button" 
+                       className={styles.confirmButton} 
+                       onClick={handleAddFunds}
+                       disabled={loading || currentAmount <= 0}
+                   >
+                       {loading && <span className={styles.spinner}></span>}
+                       Confirm
+                   </button>
+               </div>
+           </div>
+       </div>
+
+     </div>
+   </div>
+ );
 }
