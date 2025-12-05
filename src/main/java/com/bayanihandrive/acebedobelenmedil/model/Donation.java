@@ -33,6 +33,14 @@ public class Donation {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
+    // --- NEW: Temporary field to hold the name (Not saved to DB) ---
+    @Transient
+    private String donorName;
+
+    public String getDonorName() { return donorName; }
+    public void setDonorName(String donorName) { this.donorName = donorName; }
+    // --------------------------------------------------------------
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -42,8 +50,6 @@ public class Donation {
     public void setDonorId(UUID donorId) { this.donorId = donorId; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
     public boolean isAnonymous() { return isAnonymous; }
     public void setAnonymous(boolean anonymous) { isAnonymous = anonymous; }
     public Instant getCreatedAt() { return createdAt; }

@@ -7,7 +7,6 @@ import WithdrawalModal from './WithdrawalModal';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
-// Icons
 const ShareIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>);
 const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
@@ -219,7 +218,7 @@ export default function CampaignDetails({ campaignId, campaignData, onBack }) {
                         <div className={styles.progressContainer}><div className={styles.progressBar}><div className={styles.progressFill} style={{ width: `${progress}%` }}></div></div><div className={styles.progressLabel}>{Math.round(progress)}% funded</div></div>
                         <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>
                         {canWithdraw && (<div className={styles.organizerActions}><div className={styles.payoutInfo}>Available: <strong className={styles.payoutAmount}>{formatCurrency(availableBalance)}</strong></div><button className={styles.withdrawButton} onClick={() => setShowWithdrawModal(true)} disabled={availableBalance <= 0}>Withdraw</button></div>)}
-                        <div className={styles.donationsSection}><h4 className={styles.sectionTitle}>Recent Donations</h4><div className={styles.donationsList}>{donations.slice(0, 5).map(d => (<div key={d.id} className={styles.donationItem}><div className={styles.donorAvatar}>{d.isAnonymous ? '?' : 'D'}</div><div className={styles.donationContent}><span className={styles.donorName}>{d.isAnonymous ? 'Anonymous' : 'Supporter'}</span><span className={styles.donationAmount}>{formatCurrency(d.amount)}</span></div></div>))}{donations.length === 0 && <p className={styles.emptySmall}>No donations yet.</p>}</div></div>
+                        <div className={styles.donationsSection}><h4 className={styles.sectionTitle}>Recent Donations</h4><div className={styles.donationsList}>{donations.slice(0, 5).map(d => (<div key={d.id} className={styles.donationItem}><div className={styles.donorAvatar}>{d.isAnonymous ? '?' : (d.donorName ? d.donorName.charAt(0).toUpperCase() : 'D')}</div><div className={styles.donationContent}><span className={styles.donorName}>{d.isAnonymous ? 'Anonymous' : (d.donorName || 'Supporter')}</span><span className={styles.donationAmount}>{formatCurrency(d.amount)}</span></div></div>))}{donations.length === 0 && <p className={styles.emptySmall}>No donations yet.</p>}</div></div>
                     </div>
                 </aside>
             </div>
