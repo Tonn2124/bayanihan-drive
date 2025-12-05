@@ -33,6 +33,14 @@ public class Donation {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
+    // --- NEW: Temporary field to hold the name (Not saved to DB) ---
+    @Transient
+    private String donorName;
+
+    public String getDonorName() { return donorName; }
+    public void setDonorName(String donorName) { this.donorName = donorName; }
+    // --------------------------------------------------------------
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -171,23 +171,8 @@
 .commentAuthor { font-weight: 600; margin-right: 0.5rem; }
 .commentTime { color: #606060; }
 
-<<<<<<< Updated upstream
 /* SIDEBAR */
 .donationCard { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e5e5; }
-=======
-/* Sidebar */
-.ytSidebar {
-  position: sticky;
-  top: 50vh; /* 1. Move to vertical middle of viewport */
-  transform: translateY(-50%); /* 2. Offset by half its height */
-  height: fit-content; 
-} 
-
-.donationCard {
-  background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e5e5;
-}
-
->>>>>>> Stashed changes
 .statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
 .statValue { font-size: 1.25rem; font-weight: 700; }
 .statLabel { font-size: 0.8rem; color: #606060; }
