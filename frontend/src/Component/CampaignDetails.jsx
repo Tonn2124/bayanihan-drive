@@ -20,8 +20,8 @@ export default function CampaignDetails({ campaignId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // UI States
-  const [activeTab, setActiveTab] = useState('story');
+  // UI States - Default to 'comments' now
+  const [activeTab, setActiveTab] = useState('comments');
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
@@ -185,17 +185,29 @@ export default function CampaignDetails({ campaignId, onBack }) {
   const availableBalance = currentAmount - (campaign.withdrawnAmount || 0);
 
   return (
+    // OVERLAY
     <div className={styles.overlay} onClick={onBack}>
+      
+      {/* MODAL CONTAINER */}
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
-        <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close"><CloseIcon /></button>
+        
+        {/* Floating Close Button */}
+        <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close">
+            <CloseIcon />
+        </button>
 
         {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={fetchCampaignData} />}
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
 
         <div className={styles.pageWrapper}>
+            
+            {/* Main Content Grid */}
             <div className={styles.ytLayoutGrid}>
-                {/* LEFT COLUMN */}
+                
+                {/* LEFT COLUMN: Main Info */}
                 <div className={styles.ytMainColumn}>
+                    
+                    {/* Hero Image */}
                     <div className={styles.heroImageWrapper}>
                         <img src={campaign.coverImageUrl || 'https://placehold.co/1200x675/EFF6FF/0056D2?text=Campaign+Image'} alt={campaign.title} className={styles.headerImage} />
                         {campaign.category && <span className={styles.categoryBadge}>{campaign.category.replace('_', ' ')}</span>}
@@ -203,38 +215,44 @@ export default function CampaignDetails({ campaignId, onBack }) {
 
                     <h1 className={styles.ytTitle}>{campaign.title}</h1>
 
+                    {/* Meta & Share Row */}
                     <div className={styles.ytMetaRow}>
                         <div className={styles.ytOrganizerProfile}>
-                            <div className={styles.organizerAvatar}>{organizer?.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial}</div>
+                            <div className={styles.organizerAvatar}>
+                                {organizer?.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial}
+                            </div>
                             <div className={styles.organizerInfo}>
                                 <strong className={styles.organizerName}>{organizerName}</strong>
                                 <span className={styles.organizerUsername}>{organizerUsername} • {updates.length} updates</span>
                             </div>
                         </div>
+
                         <div className={styles.ytActionButtons}>
-                            <button className={styles.pillBtn} onClick={() => handleShare('copy')}><ShareIcon /> <span>Share</span></button>
+                            <button className={styles.pillBtn} onClick={() => handleShare('copy')}>
+                                <ShareIcon /> <span>Share</span>
+                            </button>
                         </div>
                     </div>
 
+                    {/* Description & Tabs Box */}
                     <div className={styles.ytDescriptionBox}>
                         <div className={styles.descMeta}>
                             <span className={styles.descDate}>Created {new Date(campaign.createdAt).toLocaleDateString()}</span>
                             <span className={styles.descTag}>#{campaign.category || 'fundraiser'}</span>
                         </div>
                         
-                        {activeTab === 'story' && (
-                            <div className={styles.descriptionContent}>
-                                <p className={styles.descriptionText}>{campaign.description}</p>
-                            </div>
-                        )}
+                        {/* STORY SECTION: Always Visible */}
+                        <div className={styles.descriptionContent}>
+                            <p className={styles.descriptionText}>{campaign.description}</p>
+                        </div>
                         
+                        {/* Tabs: Only Comments & Updates now */}
                         <div className={styles.tabsContainer}>
-                            <button className={`${styles.tabButton} ${activeTab === 'story' ? styles.activeTab : ''}`} onClick={() => setActiveTab('story')}>Story</button>
-                            <button className={`${styles.tabButton} ${activeTab === 'updates' ? styles.activeTab : ''}`} onClick={() => setActiveTab('updates')}>Updates ({updates.length})</button>
                             <button className={`${styles.tabButton} ${activeTab === 'comments' ? styles.activeTab : ''}`} onClick={() => setActiveTab('comments')}>Comments ({comments.length})</button>
+                            <button className={`${styles.tabButton} ${activeTab === 'updates' ? styles.activeTab : ''}`} onClick={() => setActiveTab('updates')}>Updates ({updates.length})</button>
                         </div>
 
-                        {/* UPDATES */}
+                        {/* UPDATES TAB */}
                         {activeTab === 'updates' && (
                             <div className={styles.tabContentSection}>
                                 {isOrganizer && (
@@ -261,7 +279,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
                             </div>
                         )}
 
-                        {/* COMMENTS */}
+                        {/* COMMENTS TAB */}
                         {activeTab === 'comments' && (
                             <div className={styles.tabContentSection}>
                                 <div className={styles.commentInputWrapper}>
@@ -293,7 +311,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Sidebar */}
+                {/* RIGHT COLUMN: Donation Sidebar */}
                 <aside className={styles.ytSidebar}>
                     <div className={styles.donationCard}>
                         <div className={styles.statsGrid}>
@@ -327,13 +345,11 @@ export default function CampaignDetails({ campaignId, onBack }) {
                                 {donations.slice(0, 5).map(d => (
                                     <div key={d.id} className={styles.donationItem}>
                                         <div className={styles.donorAvatar}>
-                                            {/* UPDATED: use 'd.anonymous' instead of 'd.isAnonymous' */}
-                                            {d.anonymous ? '?' : (d.donorName ? d.donorName.charAt(0).toUpperCase() : 'D')}
+                                            {d.isAnonymous ? '?' : (d.donorName ? d.donorName.charAt(0).toUpperCase() : 'D')}
                                         </div>
                                         <div className={styles.donationContent}>
                                             <span className={styles.donorName}>
-                                                {/* UPDATED: use 'd.anonymous' instead of 'd.isAnonymous' */}
-                                                {d.anonymous ? 'Anonymous' : (d.donorName || 'Supporter')}
+                                                {d.isAnonymous ? 'Anonymous' : (d.donorName || 'Supporter')}
                                             </span>
                                             <span className={styles.donationAmount}>{formatCurrency(d.amount)}</span>
                                         </div>
