@@ -25,8 +25,7 @@ function App() {
       setSession(session)
       setLoading(false)
 
-      // 2. CRITICAL FIX: Check the URL immediately when the app loads
-      // This allows "New Tab" or "Refresh" to remember the specific campaign
+      // Check URL for direct campaign links on load
       const params = new URLSearchParams(window.location.search);
       const urlCampaignId = params.get('campaignId');
 
@@ -38,8 +37,6 @@ function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      // Only reset to dashboard if we are logging OUT. 
-      // If we are just refreshing, the logic above handles the redirection.
       if (!session) setCurrentPage('dashboard') 
     })
 
@@ -49,16 +46,13 @@ function App() {
   const handleNavigate = (page, campaignId = null) => {
     setCurrentPage(page)
     
-    // 3. CRITICAL FIX: Update the Browser URL Bar when clicking
+    // Update Browser URL for sharing/refreshing
     if (page === 'campaignDetails' && campaignId) {
       setSelectedCampaignId(campaignId)
-      // Change URL to: http://localhost:3000/?campaignId=123
-      // This ensures if they hit Refresh, it stays on this page
       const newUrl = `${window.location.pathname}?campaignId=${campaignId}`;
       window.history.pushState({ path: newUrl }, '', newUrl);
     } else {
-      // Clear the ID if going back to dashboard
-      // Change URL back to: http://localhost:3000/
+      // Reset URL for other pages
       window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
     }
   }
@@ -73,28 +67,37 @@ function App() {
 
   // --- LOGGED IN VIEWS ---
   if (session) {
-    if (currentPage === 'dashboard') {
-      return <Dashboard session={session} onNavigate={handleNavigate} />
-    }
-    if (currentPage === 'createCampaign') {
-      return <CreateCampaign session={session} onNavigate={handleNavigate} />
-    }
-    if (currentPage === 'campaignDetails') {
-      return (
-        <CampaignDetails 
-          campaignId={selectedCampaignId} 
-          onBack={() => handleNavigate('dashboard')} 
-        />
-      )
-    }
-    if (currentPage === 'profileSettings') {
-      return <ProfileSettings onBack={() => handleNavigate('dashboard')} />
-    }
-    if (currentPage === 'admin') {
-        return <AdminDashboard onNavigate={handleNavigate} />
-    }
-    // Fallback
-    return <Dashboard session={session} onNavigate={handleNavigate} />
+    return (
+      <>
+        {/* 1. Base Layer: Dashboard */}
+        {/* Only show Dashboard if we are on 'dashboard' OR 'campaignDetails' (since that is a modal) */}
+        {(currentPage === 'dashboard' || currentPage === 'campaignDetails') && (
+            <Dashboard session={session} onNavigate={handleNavigate} />
+        )}
+
+        {/* 2. Full Page Layers (Replaces Dashboard) */}
+        
+        {currentPage === 'createCampaign' && (
+            <CreateCampaign session={session} onNavigate={handleNavigate} />
+        )}
+
+        {currentPage === 'profileSettings' && (
+            <ProfileSettings onBack={() => handleNavigate('dashboard')} />
+        )}
+
+        {currentPage === 'admin' && (
+            <AdminDashboard onNavigate={handleNavigate} />
+        )}
+
+        {/* 3. Modal Layer (Overlays Dashboard) */}
+        {currentPage === 'campaignDetails' && (
+            <CampaignDetails 
+              campaignId={selectedCampaignId} 
+              onBack={() => handleNavigate('dashboard')} 
+            />
+        )}
+      </>
+    );
   }
 
   // --- LOGGED OUT VIEWS ---
