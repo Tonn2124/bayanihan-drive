@@ -7,6 +7,7 @@ import CampaignDetails from './Component/CampaignDetails'
 import AdminDashboard from './Component/AdminDashboard'
 import LandingPage from './Component/LandingPage' 
 import ProfileSettings from './Component/ProfileSettings'
+import TermsAndConditions from './Component/TermsAndConditions'
 import styles from './App.module.css' 
 
 function App() {
@@ -99,10 +100,38 @@ function App() {
 
   // --- LOGGED OUT VIEWS ---
   if (authMode === 'login') {
-    return <div className="container"><Auth initialMode="login" onBack={() => setAuthMode('landing')} /></div>
+    return (
+      <div className="container">
+        <Auth 
+          initialMode="login" 
+          onBack={() => setAuthMode('landing')} 
+          onTerms={() => setAuthMode('terms')}
+        />
+      </div>
+    )
   }
   if (authMode === 'signup') {
-    return <div className="container"><Auth initialMode="signup" onBack={() => setAuthMode('landing')} /></div>
+    return (
+      <div className="container">
+        <Auth 
+          initialMode="signup" 
+          onBack={() => setAuthMode('landing')} 
+          onTerms={() => setAuthMode('terms')}
+        />
+      </div>
+    )
+  }
+  if (authMode === 'terms') {
+    // Return to the previous state (or default to landing/login)
+    // For simplicity, let's go back to 'login' or 'signup' if we tracked it, 
+    // but here we can just go back to 'landing' or provide a way to go back to where they were.
+    // However, usually "Back" from T&C goes to the previous screen.
+    // Let's assume we want to go back to 'signup' as that's where T&C is most relevant, 
+    // or just 'landing'. 
+    // A simple approach is passing a "returnTo" prop, but for now let's just go back to landing 
+    // or maybe the Auth component handles the state?
+    // Actually, let's just set it to 'landing' for now, or 'login' as a safe default.
+    return <TermsAndConditions onBack={() => setAuthMode('landing')} />
   }
 
   // Default: Landing Page
