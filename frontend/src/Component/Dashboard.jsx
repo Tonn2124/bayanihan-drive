@@ -114,7 +114,7 @@ export default function Dashboard({ session, onNavigate }) {
         <div className={styles.categoryTitle}>Menu</div>
         <nav className={styles.navMenu}>
           <button className={`${styles.navItem} ${activeTab === "all" ? styles.navItemActive : ""}`} onClick={() => setActiveTab("all")}>
-            <span className={styles.navIcon}>🏠</span> Home Feed
+            <span className={styles.navIcon}>🏠</span> All Campaigns
           </button>
           <button className={`${styles.navItem} ${activeTab === "my" ? styles.navItemActive : ""}`} onClick={() => setActiveTab("my")}>
             <span className={styles.navIcon}>📁</span> My Campaigns
