@@ -17,7 +17,7 @@ const CloseIcon = () => (
 
 export default function DonateModal({ campaign, onClose, onSuccess }) {
   const [amount, setAmount] = useState('');
-  const [message, setMessage] = useState('');
+  // REMOVED: const [message, setMessage] = useState(''); 
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -63,7 +63,7 @@ export default function DonateModal({ campaign, onClose, onSuccess }) {
         { 
           campaignId: campaign.id,
           amount: parsedAmount,
-          message: message,
+          // REMOVED: message: message, 
           isAnonymous: isAnonymous
         },
         {
@@ -112,7 +112,7 @@ export default function DonateModal({ campaign, onClose, onSuccess }) {
         {/* Body (Split Layout) */}
         <div className={styles.modalBody}>
             
-            {/* LEFT: Presets & Message */}
+            {/* LEFT: Presets & Anonymous Toggle */}
             <div className={styles.leftColumn}>
                 <label className={styles.sectionLabel}>Quick Select</label>
                 <div className={styles.amountGrid}>
@@ -129,14 +129,8 @@ export default function DonateModal({ campaign, onClose, onSuccess }) {
                 </div>
 
                 <div className={styles.messageArea}>
-                    <label className={styles.sectionLabel}>Message (Optional)</label>
-                    <textarea 
-                        className={styles.customTextarea} 
-                        placeholder="Write a message of support..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        disabled={loading}
-                    />
+                    {/* REMOVED: Message Label and Textarea */}
+                    
                     <label className={styles.anonymousToggle}>
                         <input 
                             type="checkbox" 
@@ -184,7 +178,7 @@ export default function DonateModal({ campaign, onClose, onSuccess }) {
                         </div>
                     </div>
                     
-                    {error && <p style={{color:'red', fontSize:'0.8rem', marginTop:'0.5rem', textAlign:'center', background:'#FEF2F2', padding:'0.5rem', borderRadius:'8px', border:'1px solid #FECACA'}}>{error}</p>}
+                    {error && <p style={{color:'red', fontSize:'0.85rem', marginTop:'0.5rem', textAlign:'center', background:'#FEF2F2', padding:'0.5rem', borderRadius:'8px', border:'1px solid #FECACA'}}>{error}</p>}
                 </div>
 
                 <div className={styles.actions}>

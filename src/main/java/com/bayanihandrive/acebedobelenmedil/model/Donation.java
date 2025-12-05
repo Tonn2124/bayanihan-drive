@@ -50,8 +50,6 @@ public class Donation {
     public void setDonorId(UUID donorId) { this.donorId = donorId; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
     public boolean isAnonymous() { return isAnonymous; }
     public void setAnonymous(boolean anonymous) { isAnonymous = anonymous; }
     public Instant getCreatedAt() { return createdAt; }
