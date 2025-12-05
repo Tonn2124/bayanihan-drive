@@ -12,11 +12,16 @@ const ShareIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" heig
 const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 
-export default function CampaignDetails({ campaignId, onBack }) {
-  const [campaign, setCampaign] = useState(null);
+// ADDED: Accept 'campaignData' prop here
+export default function CampaignDetails({ campaignId, campaignData, onBack }) {
+  // MODIFIED: Initialize with passed data if available
+  const [campaign, setCampaign] = useState(campaignData || null);
+  
+  // MODIFIED: Only show "Loading..." spinner if we have NO data at all
+  const [loading, setLoading] = useState(!campaignData);
+  
   const [organizer, setOrganizer] = useState(null);
   const [donations, setDonations] = useState([]); 
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('story');
   const [showDonateModal, setShowDonateModal] = useState(false);
@@ -43,11 +48,19 @@ export default function CampaignDetails({ campaignId, onBack }) {
 
   const fetchCampaignData = useCallback(async () => {
     try {
-      setError(null); if (!campaign) setLoading(true);
+      setError(null); 
+      // MODIFIED: Only set full-screen loading if we don't have partial data
+      if (!campaign) setLoading(true);
+
       const { data: { session } } = await supabase.auth.getSession();
       setCurrentUser(session?.user || null);
+
+      // We fetch the fresh data in the background
       const campaignRes = await axios.get(`${API_BASE_URL}/campaigns/${campaignId}`);
+      
+      // Update the campaign with the fresh details from server
       setCampaign(campaignRes.data);
+
       if (campaignRes.data.organizerId) {
         const { data: profileData } = await supabase.from('profiles').select('full_name, username, avatar_url').eq('id', campaignRes.data.organizerId).single();
         setOrganizer(profileData || {});
@@ -57,10 +70,18 @@ export default function CampaignDetails({ campaignId, onBack }) {
         setDonations(donationsRes.data || []);
       } catch (e) {}
       await fetchSocialData();
-    } catch (err) { setError("Could not load campaign details."); } finally { setLoading(false); }
-  }, [campaignId, campaign]);
+    } catch (err) { 
+        console.error(err);
+        // Only show error if we have nothing to show
+        if (!campaign) setError("Could not load campaign details."); 
+    } finally { 
+        setLoading(false); 
+    }
+  }, [campaignId]); // Removed 'campaign' dependency to avoid loops
 
-  useEffect(() => { if (campaignId) fetchCampaignData(); }, [campaignId, fetchCampaignData]);
+  useEffect(() => { 
+      if (campaignId) fetchCampaignData(); 
+  }, [campaignId, fetchCampaignData]);
 
   const handlePostComment = async (e) => {
     e.preventDefault(); if (!newComment.trim()) return; setPostingComment(true);
@@ -91,7 +112,10 @@ export default function CampaignDetails({ campaignId, onBack }) {
     if (platform === 'copy') navigator.clipboard.writeText(shareUrl).then(() => alert("Link copied!"), () => alert("Failed to copy"));
   };
 
-  if (loading) return <div className={styles.overlay}><div className={styles.modalContainer} style={{justifyContent:'center', alignItems:'center', height:'300px'}}><div className={styles.spinner}></div><p style={{marginTop:'1rem'}}>Loading...</p></div></div>;
+  // MODIFIED: If we are loading AND have no data, show the spinner. 
+  // If we are "loading" (fetching fresh data) but HAVE passed data, show the content immediately.
+  if (loading && !campaign) return <div className={styles.overlay}><div className={styles.modalContainer} style={{justifyContent:'center', alignItems:'center', height:'300px'}}><div className={styles.spinner}></div><p style={{marginTop:'1rem'}}>Loading...</p></div></div>;
+  
   if (error) return <div className={styles.overlay} onClick={onBack}><div className={styles.modalContainer} style={{justifyContent:'center', alignItems:'center', height:'auto', padding:'2rem'}}><div className={styles.errorCard}><p>{error}</p><button className={styles.donateButton} onClick={onBack} style={{width:'auto'}}>Close</button></div></div></div>;
   if (!campaign) return null;
 
@@ -100,7 +124,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
   const progress = Math.min((currentAmount / goalAmount) * 100, 100);
   const formatCurrency = (amt) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amt);
   
-  const organizerName = organizer?.full_name || organizer?.username || 'Unknown Organizer';
+  const organizerName = organizer?.full_name || organizer?.username || 'Loading...';
   const organizerUsername = organizer?.username ? `@${organizer.username}` : '';
   const organizerInitial = organizerName.charAt(0).toUpperCase();
 
@@ -118,8 +142,6 @@ export default function CampaignDetails({ campaignId, onBack }) {
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
 
         <div className={styles.pageWrapper}>
-            {/* Navbar REMOVED here as per request */}
-            
             <div className={styles.ytLayoutGrid}>
                 <div className={styles.ytMainColumn}>
                     <div className={styles.heroImageWrapper}>
@@ -132,7 +154,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
                             <div className={styles.organizerAvatar}>{organizer?.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial}</div>
                             <div className={styles.organizerInfo}>
                                 <strong className={styles.organizerName}>{organizerName}</strong>
-                                <span className={styles.organizerUsername}>{organizerUsername} • {updates.length} updates</span>
+                                <span className={styles.organizerUsername}>{organizerUsername ? `${organizerUsername} • ${updates.length} updates` : ''}</span>
                             </div>
                         </div>
                         <div className={styles.ytActionButtons}>
