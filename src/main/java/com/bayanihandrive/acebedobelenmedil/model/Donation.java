@@ -2,7 +2,6 @@ package com.bayanihandrive.acebedobelenmedil.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -24,7 +23,7 @@ public class Donation {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    private String message;
+    // REMOVED: private String message; 
 
     @Column(name = "is_anonymous")
     private boolean isAnonymous;
@@ -33,13 +32,13 @@ public class Donation {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
-    // --- NEW: Temporary field to hold the name (Not saved to DB) ---
-    @Transient
+    // --- NEW: Temporary field for Frontend Display ---
+    @Transient 
     private String donorName;
 
     public String getDonorName() { return donorName; }
     public void setDonorName(String donorName) { this.donorName = donorName; }
-    // --------------------------------------------------------------
+    // -------------------------------------------------
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -50,6 +49,9 @@ public class Donation {
     public void setDonorId(UUID donorId) { this.donorId = donorId; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
+    
+    // REMOVED: getMessage() and setMessage()
+
     public boolean isAnonymous() { return isAnonymous; }
     public void setAnonymous(boolean anonymous) { isAnonymous = anonymous; }
     public Instant getCreatedAt() { return createdAt; }
