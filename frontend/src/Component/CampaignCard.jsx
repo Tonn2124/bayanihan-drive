@@ -1,5 +1,4 @@
 import React from 'react'; 
-// IMPORTANT: Imports the specific Card CSS
 import styles from '../Style/CampaignCard.module.css';
 
 export default function CampaignCard({ campaign, onNavigate }) {
@@ -13,11 +12,18 @@ export default function CampaignCard({ campaign, onNavigate }) {
   // Logic: Image fallback
   const imageUrl = campaign.coverImageUrl || 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Bayanihan';
 
+  // --- HELPER FUNCTION ---
+  const handleDetailsClick = () => {
+    // Passes the full object for instant loading
+    onNavigate('campaignDetails', campaign);
+  };
+
   return (
     <div 
       className={styles.card} 
-      onClick={() => onNavigate('campaignDetails', campaign.id)} 
-      title={campaign.title} // Tooltip for full title
+      onClick={handleDetailsClick} 
+      title={campaign.title} 
+      style={{ cursor: 'pointer' }} 
     >
       <div className={styles.imageContainer}>
         <img 
@@ -49,7 +55,14 @@ export default function CampaignCard({ campaign, onNavigate }) {
           <span>{Math.round(progress)}%</span>
         </div>
 
-        <button className={styles.donateBtn}>
+        {/* FIXED: Added className={styles.donateBtn} back */}
+        <button 
+          className={styles.donateBtn} 
+          onClick={(e) => {
+            e.stopPropagation(); 
+            handleDetailsClick(); 
+          }}
+        >
           View Details
         </button>
       </div>

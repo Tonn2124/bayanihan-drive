@@ -17,6 +17,8 @@ function App() {
   // Navigation States
   const [currentPage, setCurrentPage] = useState('dashboard') 
   const [selectedCampaignId, setSelectedCampaignId] = useState(null)
+  // NEW: State to hold the full campaign object (for instant loading)
+  const [selectedCampaignData, setSelectedCampaignData] = useState(null)
   
   // Auth Flow State
   const [authMode, setAuthMode] = useState('landing') 
@@ -32,6 +34,8 @@ function App() {
 
       if (session && urlCampaignId) {
         setSelectedCampaignId(urlCampaignId);
+        // If loading from URL, we don't have the data yet, so it must fetch
+        setSelectedCampaignData(null); 
         setCurrentPage('campaignDetails');
       }
     })
@@ -44,14 +48,29 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const handleNavigate = (page, campaignId = null) => {
+  // MODIFIED: handleNavigate now accepts an object OR an ID
+  const handleNavigate = (page, data = null) => {
     setCurrentPage(page)
     
-    // Update Browser URL for sharing/refreshing
-    if (page === 'campaignDetails' && campaignId) {
-      setSelectedCampaignId(campaignId)
-      const newUrl = `${window.location.pathname}?campaignId=${campaignId}`;
-      window.history.pushState({ path: newUrl }, '', newUrl);
+    if (page === 'campaignDetails' && data) {
+      // Check if 'data' is the full object (has an id property)
+      if (typeof data === 'object' && data.id) {
+        setSelectedCampaignId(data.id);
+        setSelectedCampaignData(data); // SAVE THE DATA!
+        
+        // Update URL
+        const newUrl = `${window.location.pathname}?campaignId=${data.id}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+
+      } else {
+        // Fallback: 'data' is just an ID (string/number)
+        setSelectedCampaignId(data);
+        setSelectedCampaignData(null); // Clear data so it fetches fresh
+        
+        // Update URL
+        const newUrl = `${window.location.pathname}?campaignId=${data}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
     } else {
       // Reset URL for other pages
       window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
@@ -71,13 +90,11 @@ function App() {
     return (
       <>
         {/* 1. Base Layer: Dashboard */}
-        {/* Only show Dashboard if we are on 'dashboard' OR 'campaignDetails' (since that is a modal) */}
         {(currentPage === 'dashboard' || currentPage === 'campaignDetails') && (
             <Dashboard session={session} onNavigate={handleNavigate} />
         )}
 
         {/* 2. Full Page Layers (Replaces Dashboard) */}
-        
         {currentPage === 'createCampaign' && (
             <CreateCampaign session={session} onNavigate={handleNavigate} />
         )}
@@ -94,6 +111,7 @@ function App() {
         {currentPage === 'campaignDetails' && (
             <CampaignDetails 
               campaignId={selectedCampaignId} 
+              campaignData={selectedCampaignData} // <--- PASSING THE DATA HERE
               onBack={() => handleNavigate('dashboard')} 
             />
         )}
@@ -125,15 +143,6 @@ function App() {
     )
   }
   if (authMode === 'terms') {
-    // Return to the previous state (or default to landing/login)
-    // For simplicity, let's go back to 'login' or 'signup' if we tracked it, 
-    // but here we can just go back to 'landing' or provide a way to go back to where they were.
-    // However, usually "Back" from T&C goes to the previous screen.
-    // Let's assume we want to go back to 'signup' as that's where T&C is most relevant, 
-    // or just 'landing'. 
-    // A simple approach is passing a "returnTo" prop, but for now let's just go back to landing 
-    // or maybe the Auth component handles the state?
-    // Actually, let's just set it to 'landing' for now, or 'login' as a safe default.
     return <TermsAndConditions onBack={() => setAuthMode('landing')} />
   }
 
