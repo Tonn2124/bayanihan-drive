@@ -6,7 +6,7 @@
   right: 0;
   bottom: 0;
   /* Specific transparency settings from AddFunds */
-  background-color: rgba(0, 0, 0, 0.65); 
+  background-color: rgba(0, 0, 0, 0.65);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -86,7 +86,9 @@
   grid-template-columns: 1fr 380px;
   gap: 1.5rem;
   align-items: start;
-  margin-top: 1rem; /* Added spacing since Nav is gone */
+  margin-top: 1rem;
+  /* FIX: Added extra bottom padding to extend the sticky container's height */
+  padding-bottom: 100px;
 }
 
 .ytMainColumn { width: 100%; }
@@ -131,7 +133,7 @@
 .ytDescriptionBox { background-color: #f2f2f2; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; }
 .descMeta { font-size: 0.9rem; color: #0f0f0f; font-weight: 600; margin-bottom: 0.5rem; }
 .descTag { color: #606060; margin-left: 0.5rem; font-weight: 400; }
-.descriptionText { font-size: 0.95rem; line-height: 1.5; color: #0f0f0f; white-space: pre-wrap; }
+.descriptionText { font-size: 1.1rem; line-height: 1.6; color: #0f0f0f; white-space: pre-wrap; font-weight: 400; }
 
 .tabsContainer { margin-top: 1.5rem; border-bottom: 1px solid #e5e5e5; display: flex; gap: 1.5rem; margin-bottom: 1rem; }
 .tabButton { background: none; border: none; font-size: 1rem; font-weight: 500; color: #606060; padding-bottom: 0.5rem; cursor: pointer; border-bottom: 3px solid transparent; }
@@ -212,14 +214,23 @@
 
 .ytSidebar {
   position: sticky;
-  top: 0;
+  /* FIX: Added 1.5rem padding from the top to prevent clipping */
+  top: 1.5rem;
   height: fit-content;
+  z-index: 10;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Responsive */
 @media (max-width: 1000px) {
-  .ytLayoutGrid { grid-template-columns: 1fr; }
+  .ytLayoutGrid {
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    align-items: start;
+    margin-top: 1rem;
+  }
   .heroImageWrapper { border-radius: 0; margin-left: -2rem; margin-right: -2rem; width: calc(100% + 4rem); }
 }
