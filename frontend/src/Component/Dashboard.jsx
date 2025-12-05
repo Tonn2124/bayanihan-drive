@@ -7,6 +7,7 @@ import WithdrawalModal from "./WithdrawalModal";
 import MyCampaigns from "./MyCampaigns";
 import MyDonations from "./MyDonations";
 import ProfileSettings from "./ProfileSettings"; 
+import FAQs from "./FAQs";
 
 export default function Dashboard({ session, onNavigate }) {
   const [loading, setLoading] = useState(true);
@@ -82,17 +83,17 @@ export default function Dashboard({ session, onNavigate }) {
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(amount || 0);
 
-  if (authError) {
-    return (
-      <div className={styles.dashboardRoot} style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ background: 'white', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
-          <h2 style={{ color: '#dc3545' }}>Access Denied</h2>
-          <p>{authError}</p>
-          <button onClick={handleLogout} style={{ padding: '10px 20px', cursor: 'pointer' }}>Return to Login</button>
-        </div>
-      </div>
-    );
-  }
+  // if (authError) {
+  //   return (
+  //     <div className={styles.dashboardRoot} style={{ justifyContent: 'center', alignItems: 'center' }}>
+  //       <div style={{ background: 'white', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
+  //         <h2 style={{ color: '#dc3545' }}>Access Denied</h2>
+  //         <p>{authError}</p>
+  //         <button onClick={handleLogout} style={{ padding: '10px 20px', cursor: 'pointer' }}>Return to Login</button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
@@ -114,7 +115,7 @@ export default function Dashboard({ session, onNavigate }) {
         <div className={styles.categoryTitle}>Menu</div>
         <nav className={styles.navMenu}>
           <button className={`${styles.navItem} ${activeTab === "all" ? styles.navItemActive : ""}`} onClick={() => setActiveTab("all")}>
-            <span className={styles.navIcon}>🏠</span> All Campaigns
+            <span className={styles.navIcon}>🏠</span> Home Feed
           </button>
           <button className={`${styles.navItem} ${activeTab === "my" ? styles.navItemActive : ""}`} onClick={() => setActiveTab("my")}>
             <span className={styles.navIcon}>📁</span> My Campaigns
@@ -132,8 +133,8 @@ export default function Dashboard({ session, onNavigate }) {
             <span className={styles.navIcon}>⚙️</span> Settings
           </button>
           
-          <button className={styles.navItem}>
-             <span className={styles.navIcon}>❓</span> Help Center
+          <button className={`${styles.navItem} ${activeTab === "faqs" ? styles.navItemActive : ""}`} onClick={() => setActiveTab("faqs")}>
+             <span className={styles.navIcon}>❓</span> FAQs
           </button>
 
           {isAdmin && (
@@ -158,6 +159,8 @@ export default function Dashboard({ session, onNavigate }) {
                     setActiveTab('all');
                 }} 
             />
+        ) : activeTab === 'faqs' ? (
+            <FAQs />
         ) : (
             <>
                 <header className={styles.centerHeader}>
