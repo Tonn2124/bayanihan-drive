@@ -10,11 +10,11 @@ import ProfileSettings from "./ProfileSettings";
 import FAQs from "./FAQs";
 
 export default function Dashboard({ session, onNavigate }) {
-  const [loading, setLoading] = useState(true);
+  // We still keep loading state for specific parts (like wallet), but won't block the whole page
+  const [profileLoading, setProfileLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
-  const [authError, setAuthError] = useState(null);
   const [greeting, setGreeting] = useState("Welcome back"); 
 
   const [showAddFunds, setShowAddFunds] = useState(false);
@@ -35,24 +35,22 @@ export default function Dashboard({ session, onNavigate }) {
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
+      setProfileLoading(true);
       setError(null);
       const { user } = session;
 
+      // 1. Fetch Profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
 
-      if (profileError || !profileData) {
-        setAuthError("This account does not exist. It may have been deleted.");
-        setLoading(false);
-        return; 
+      if (!profileError && profileData) {
+        setProfile(profileData);
       }
 
-      setProfile(profileData);
-
+      // 2. Fetch Wallet
       const { data: walletData } = await supabase
         .from("wallets")
         .select("balance")
@@ -63,11 +61,11 @@ export default function Dashboard({ session, onNavigate }) {
 
     } catch (err) {
       console.error(err);
-      setError("Failed to load dashboard data.");
+      // We don't set global error here to avoid blocking the feed
     } finally {
-      if (!authError) setLoading(false); 
+      setProfileLoading(false);
     }
-  }, [session, authError]); 
+  }, [session]); 
 
   useEffect(() => {
     fetchData();
@@ -83,18 +81,6 @@ export default function Dashboard({ session, onNavigate }) {
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(amount || 0);
 
-  // if (authError) {
-  //   return (
-  //     <div className={styles.dashboardRoot} style={{ justifyContent: 'center', alignItems: 'center' }}>
-  //       <div style={{ background: 'white', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
-  //         <h2 style={{ color: '#dc3545' }}>Access Denied</h2>
-  //         <p>{authError}</p>
-  //         <button onClick={handleLogout} style={{ padding: '10px 20px', cursor: 'pointer' }}>Return to Login</button>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
   return (
@@ -102,7 +88,6 @@ export default function Dashboard({ session, onNavigate }) {
       
       {/* --- LEFT SIDEBAR --- */}
       <aside className={styles.leftSidebar}>
-        {/* MODIFIED: Clickable Brand Area */}
         <div 
             className={styles.brandArea} 
             onClick={() => setActiveTab("all")} 
@@ -166,8 +151,9 @@ export default function Dashboard({ session, onNavigate }) {
                 <header className={styles.centerHeader}>
                   <div className={styles.headerTitle}>
                     <h2>{activeTab === 'all' ? 'News Feed' : activeTab === 'my' ? 'My Projects' : 'Donation History'}</h2>
+                    {/* MODIFIED: Show '...' while loading name */}
                     <p style={{ textTransform: 'capitalize' }}>
-                      {greeting}, {profile?.full_name?.split(' ')[0] || 'User'}
+                      {greeting}, {profileLoading ? '...' : (profile?.full_name?.split(' ')[0] || 'User')}
                     </p>
                   </div>
 
@@ -181,7 +167,10 @@ export default function Dashboard({ session, onNavigate }) {
                       onClick={() => setActiveTab('settings')}
                       title="Profile & Settings"
                     >
-                      {profile?.avatar_url ? (
+                      {/* MODIFIED: Handle loading state for avatar */}
+                      {profileLoading ? (
+                        <div style={{width: '100%', height: '100%', background: '#ccc', borderRadius: '50%'}}></div>
+                      ) : profile?.avatar_url ? (
                           <img 
                             src={profile.avatar_url} 
                             alt="Me" 
@@ -195,9 +184,10 @@ export default function Dashboard({ session, onNavigate }) {
                 </header>
 
                 <div className={styles.scrollableContent}>
-                  {loading ? (
-                     <p style={{textAlign: 'center', marginTop: '20px'}}>Loading...</p>
-                  ) : error ? (
+                  {/* MODIFIED: REMOVED THE BLOCKING LOADING CHECK HERE */}
+                  {/* Now CampaignList renders instantly and shows its own Skeletons */}
+                  
+                  {error ? (
                      <div className="alert alert-danger">{error}</div>
                   ) : (
                     <>
@@ -216,7 +206,8 @@ export default function Dashboard({ session, onNavigate }) {
         <div className={styles.walletCard}>
           <div className={styles.walletLabel}>My Wallet Balance</div>
           <div className={styles.walletAmount}>
-            {formatCurrency(wallet?.balance)}
+            {/* MODIFIED: Show '...' while loading wallet */}
+            {profileLoading ? '...' : formatCurrency(wallet?.balance)}
           </div>
           <div className={styles.walletActions}>
             <button className={styles.walletBtnPrimary} onClick={() => setShowAddFunds(true)}>
