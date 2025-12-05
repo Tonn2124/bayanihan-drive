@@ -24,21 +24,34 @@ function App() {
   const [authMode, setAuthMode] = useState('landing') 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
+    const initApp = async () => {
+      // 1. Define how long you want to wait (e.g., 2000ms = 2 seconds)
+      const minLoadTime = new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // 2. Start fetching data
+      const sessionDataPromise = supabase.auth.getSession();
 
+      // 3. Wait for BOTH the timer and the data to finish
+      // The formatting here grabs the result of the session data
+      const [_, { data: { session } }] = await Promise.all([minLoadTime, sessionDataPromise]);
+
+      // 4. Now we set the data and remove loading
+      setSession(session)
+      
       // Check URL for direct campaign links on load
       const params = new URLSearchParams(window.location.search);
       const urlCampaignId = params.get('campaignId');
 
       if (session && urlCampaignId) {
         setSelectedCampaignId(urlCampaignId);
-        // If loading from URL, we don't have the data yet, so it must fetch
         setSelectedCampaignData(null); 
         setCurrentPage('campaignDetails');
       }
-    })
+
+      setLoading(false); // <--- This only happens after 2.5 seconds now
+    };
+
+    initApp();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
@@ -79,8 +92,21 @@ function App() {
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
+      <div className={styles.splashScreen}>
+        {/* Make sure logo.png is in your PUBLIC folder, or import it if it's in src */}
+        <img 
+            src="/favicon.ico" 
+            alt="Bayanihan Drive" 
+            className={styles.splashLogo} 
+            onError={(e) => e.target.style.display = 'none'} // Hides image if not found
+        />
+        <div className={styles.splashTitle}>Bayanihan Drive</div>
+        
+        {/* Optional: Facebook style footer */}
+        <div className={styles.splashFooter}>
+            <span style={{display: 'block', fontSize: '10px'}}>from</span>
+            <span style={{fontWeight: '600', letterSpacing: '1px'}}>STUDENT DEV</span>
+        </div>
       </div>
     )
   }
