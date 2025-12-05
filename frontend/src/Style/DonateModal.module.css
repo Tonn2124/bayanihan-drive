@@ -12,7 +12,7 @@
   z-index: 1000;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(8px);
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.3s ease;
   padding: 1rem;
 }
 
@@ -21,37 +21,48 @@
   to { opacity: 1; }
 }
 
-/* Modal Container - SCROLLBAR REMOVED & HEIGHT COMPRESSED */
+/* Modal Container */
 .modal {
   background: #ffffff;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 520px;
-  max-height: 95vh; /* Reduced to 80vh */
-  overflow-y: hidden; /* CRITICAL: Hides the scrollbar */
+  border-radius: 24px;
+  width: 800px;
+  /* Auto height to fit content, but max out at screen height */
+  height: auto; 
+  max-height: 90vh; 
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-/* Close Button - Reduced position */
+/* --- HIDE SCROLLBARS (The Magic Part) --- */
+/* For Chrome, Safari, Opera */
+.leftColumn::-webkit-scrollbar,
+.rightColumn::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge, Firefox */
+.leftColumn,
+.rightColumn {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Close Button */
 .closeButton {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 36px;
-  height: 36px;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 32px; /* Smaller */
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,167 +71,133 @@
   border-radius: 50%;
   color: #6c757d;
   cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 20;
 }
 
-.closeButton:hover:not(:disabled) {
+.closeButton:hover {
   background: #e9ecef;
-  color: #1a1a1a;
+  color: #111827;
   transform: rotate(90deg);
 }
 
-.closeButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Header Section - Reduced vertical padding */
+/* Header - Compacted */
 .header {
-  text-align: center;
-  padding: 1.5rem 2.5rem 1rem; 
+  padding: 1.5rem 2rem 1rem; /* Reduced padding */
   border-bottom: 1px solid #f1f3f5;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .iconWrapper {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 0.75rem;
+  width: 48px; /* Smaller icon */
+  height: 48px;
   background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-  border-radius: 50%;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #0056D2;
+  box-shadow: 0 4px 6px -1px rgba(0, 86, 210, 0.1);
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  color: #1a1a1a;
-  margin: 0 0 0.5rem;
+  color: #111827;
+  margin: 0;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 0.9375rem;
-  color: #6c757d;
-  margin: 0;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  color: #6B7280;
+  margin: 0.15rem 0 0;
 }
 
-/* Error Alert - Reduced margins/padding */
-.errorAlert {
-  margin: 1rem 2.5rem 0;
-  padding: 0.75rem 1.25rem;
-  background: #FFF5F5;
-  border: 1px solid #FEB2B2;
-  border-radius: 10px;
-  color: #C53030;
+/* --- MAIN BODY LAYOUT --- */
+.modalBody {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  flex: 1; /* Take remaining height */
+  overflow: hidden; /* Prevent body scrolling */
+}
+
+/* COLUMNS */
+.leftColumn {
+  padding: 1.5rem 2rem; /* Tighter padding */
+  border-right: 1px solid #f3f4f6;
+  background: #fcfcfc;
+  overflow-y: auto;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  animation: shake 0.3s ease;
+  flex-direction: column;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.errorAlert svg {
-  flex-shrink: 0;
-}
-
-/* Preset Section - Compressed padding */
-.presetSection {
-  padding: 1rem 2.5rem 0.5rem;
+.rightColumn {
+  padding: 1.5rem 2rem; /* Tighter padding */
+  display: flex;
+  flex-direction: column;
+  background: white;
+  position: relative;
+  overflow-y: auto;
 }
 
 .sectionLabel {
   display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  margin-bottom: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
+/* Preset Grid - Compacted */
 .amountGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .amountButton {
   position: relative;
-  background: #f8f9fa;
-  border: 2px solid #e9ecef;
-  padding: 1.25rem 0.75rem;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
+  padding: 0.85rem 0.5rem; /* Shorter buttons */
   font-weight: 700;
-  font-size: 1.125rem;
-  color: #495057;
+  font-size: 1rem;
+  color: #4B5563;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: inherit;
-  min-height: 70px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .amountButton:hover:not(:disabled) {
-  background: #e9ecef;
-  border-color: #ced4da;
-  transform: translateY(-2px);
-}
-
-.amountButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  border-color: #0056D2;
+  color: #0056D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 86, 210, 0.1);
 }
 
 .amountButton.selected {
-  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  background: #EFF6FF;
   border-color: #0056D2;
   color: #0056D2;
-  box-shadow: 0 4px 12px rgba(0, 86, 210, 0.15);
+  box-shadow: inset 0 0 0 1px #0056D2;
 }
 
-.amountValue {
-  display: block;
-}
-
-.checkmark {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 24px;
-  height: 24px;
-  background: #0056D2;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  animation: popIn 0.2s ease;
-}
-
-@keyframes popIn {
-  0% { transform: scale(0); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-/* Custom Amount Section - Compressed padding */
-.customSection {
-  padding: 0.5rem 2.5rem 0.5rem;
+/* Custom Input */
+.inputContainer {
+  margin-bottom: 1rem;
 }
 
 .inputWrapper {
@@ -231,270 +208,160 @@
 
 .currencySymbol {
   position: absolute;
-  left: 1.25rem;
+  left: 1rem;
   font-size: 1.25rem;
-  font-weight: 700;
-  color: #6c757d;
+  font-weight: 600;
+  color: #6B7280;
   pointer-events: none;
 }
 
 .customInput {
   width: 100%;
-  padding: 1rem 1.25rem 1rem 3rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: #1a1a1a;
-  background: #f8f9fa;
-  border: 2px solid #e9ecef;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  font-size: 1.25rem; /* Slightly smaller font */
+  font-weight: 700;
+  color: #111827;
+  background: #F9FAFB;
+  border: 2px solid #E5E7EB;
   border-radius: 12px;
-  transition: all 0.2s ease;
   outline: none;
-}
-
-.customInput::placeholder {
-  color: #adb5bd;
-  font-weight: 400;
-}
-
-.customInput:hover:not(:disabled) {
-  background: #e9ecef;
+  transition: all 0.2s ease;
 }
 
 .customInput:focus {
   background: #ffffff;
   border-color: #0056D2;
-  box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.1);
 }
 
-.customInput:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.inputHint {
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: #6c757d;
-  margin-bottom: 0;
-}
-
-/* Security Badge - Compressed padding */
-.securityBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0 2.5rem 0.5rem;
-  color: #6c757d;
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.securityBadge svg {
-  color: #10B981;
-}
-
-/* Action Buttons - Reduced bottom padding */
-.actions {
-  display: flex;
-  gap: 1rem;
-  padding: 0 2.5rem 1.5rem;
-}
-
-.cancelButton,
-.confirmButton {
-  flex: 1;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.cancelButton {
-  background: #f8f9fa;
-  color: #495057;
-  border: 2px solid #e9ecef;
-}
-
-.cancelButton:hover:not(:disabled) {
-  background: #e9ecef;
-  border-color: #ced4da;
-}
-
-.cancelButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.confirmButton {
-  background: linear-gradient(135deg, #0056D2 0%, #0041A3 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3);
-}
-
-.confirmButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0041A3 0%, #003380 100%);
-  box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4);
-  transform: translateY(-2px);
-}
-
-.confirmButton:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.confirmButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Loading Spinner */
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* --- Donation-Specific Sections (Compressed) --- */
-
-.messageSection {
-  padding: 0.5rem 2.5rem 0.5rem; 
+/* Message Area - Compacted */
+.messageArea {
+  margin-top: auto; /* Push to bottom if space allows */
 }
 
 .customTextarea {
   width: 100%;
-  padding: 1rem 1.25rem;
-  font-size: 1rem;
+  padding: 0.75rem;
+  font-size: 0.9rem;
   font-family: inherit;
-  color: #1a1a1a;
-  background: #f8f9fa;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  outline: none;
-  resize: vertical;
-}
-
-.customTextarea::placeholder {
-  color: #adb5bd;
-  font-weight: 400;
-}
-
-.customTextarea:focus {
+  color: #111827;
   background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  resize: none;
+  min-height: 70px; /* Shorter height */
+  transition: all 0.2s ease;
+}
+.customTextarea:focus {
   border-color: #0056D2;
-  box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
+  outline: none;
 }
 
 .anonymousToggle {
+  margin-top: 0.75rem;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #4B5563;
+  cursor: pointer;
+}
+
+/* Summary Card */
+.summaryCard {
+  background: #F3F4F6;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: auto;
+  border: 1px solid #E5E7EB;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #4B5563;
+}
+
+.summaryDivider {
+  height: 1px;
+  background: #D1D5DB;
+  margin: 0.75rem 0;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  color: #111827;
+  font-size: 1.1rem;
+}
+
+.totalAmount { color: #0056D2; }
+
+/* Actions */
+.actions {
+  display: flex;
   gap: 0.75rem;
-  margin-top: 0.5rem; /* Reduced margin */
+  margin-top: 1.25rem;
 }
 
-.checkboxInput {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #ced4da;
-  border-radius: 6px;
+.cancelButton, .confirmButton {
+  flex: 1;
+  padding: 0.85rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  display: inline-block;
-  position: relative;
+  border: none;
   transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
-.checkboxInput:checked {
-  background-color: #0056D2;
-  border-color: #0056D2;
+.cancelButton {
+  background: white;
+  color: #6B7280;
+  border: 2px solid #E5E7EB;
+}
+.cancelButton:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+  color: #374151;
 }
 
-.checkboxInput:checked::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E") no-repeat center center;
-  background-size: 100%;
+.confirmButton {
+  background: #0056D2;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 86, 210, 0.25);
+}
+.confirmButton:hover:not(:disabled) {
+  background: #0041A3;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 86, 210, 0.35);
+}
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.checkboxLabel {
-  font-size: 0.9375rem;
-  color: #495057;
-  font-weight: 500;
-  margin-bottom: 0;
-  cursor: pointer;
+/* Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 6px;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- Responsive Design (Updated and Compressed) --- */
+/* Mobile */
 @media (max-width: 640px) {
-  .modal {
-    border-radius: 20px 20px 0 0;
-    max-height: 100vh;
-    overflow-y: hidden; /* Hides scroll on mobile */
-  }
-
-  .header {
-    padding: 1rem 1.5rem 0.5rem; /* Further reduced */
-  }
-
-  .closeButton {
-    top: 0.75rem;
-    right: 0.75rem;
-  }
-  
-  .errorAlert {
-    margin: 1rem 1.5rem 0;
-  }
-
-  .presetSection,
-  .customSection,
-  .messageSection {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  .actions {
-    padding: 0 1.5rem 1rem; /* Reduced bottom padding */
-  }
-
-  .amountGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 400px) {
-  .actions {
-    flex-direction: column-reverse;
-  }
-
-  .cancelButton,
-  .confirmButton {
-    width: 100%;
-  }
+  .modal { width: 100%; height: 100%; max-height: 100vh; border-radius: 0; }
+  .modalBody { grid-template-columns: 1fr; display: block; overflow-y: auto; }
+  .leftColumn, .rightColumn { padding: 1.5rem; border-right: none; }
+  .amountGrid { grid-template-columns: repeat(3, 1fr); }
 }
