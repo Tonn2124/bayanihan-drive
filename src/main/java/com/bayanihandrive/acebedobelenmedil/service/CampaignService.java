@@ -34,6 +34,10 @@ public class CampaignService {
         campaign.setGoalAmount(request.goalAmount());
         campaign.setCategory(request.category());
         campaign.setCoverImageUrl(request.coverImageUrl());
+        if (request.images() != null) {
+            campaign.setImages(request.images());
+        }
+        campaign.setUrgency(request.urgency());
         campaign.setEndDate(request.endDate());
 
         // 2. Set server-controlled data
@@ -86,5 +90,16 @@ public class CampaignService {
         String searchQuery = (query != null) ? query : "";
         
         return campaignRepository.searchCampaigns(searchQuery, categoryFilter);
+    }
+
+    public List<Campaign> getAllCampaignsForAdmin(String status) {
+        if (status == null || status.isEmpty() || status.equalsIgnoreCase("ALL")) {
+            return campaignRepository.findAll();
+        }
+        return campaignRepository.findByStatus(CampaignStatus.valueOf(status.toUpperCase()));
+    }
+
+    public void deleteCampaign(Long id) {
+        campaignRepository.deleteById(id);
     }
 }

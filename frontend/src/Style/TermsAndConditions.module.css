@@ -27,7 +27,7 @@
   .card {
     background: rgba(255, 255, 255, 0.95);
     width: 90%;
-    max-width: 600px; /* Slightly wider than auth card for better reading */
+    max-width: 1000px; /* Made much wider from 600px */
     max-height: 85vh; 
     padding: 30px;
     border-radius: 20px;

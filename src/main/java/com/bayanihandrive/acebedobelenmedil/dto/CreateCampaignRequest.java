@@ -1,6 +1,7 @@
 package com.bayanihandrive.acebedobelenmedil.dto;
 
 import com.bayanihandrive.acebedobelenmedil.model.CampaignCategory;
+import com.bayanihandrive.acebedobelenmedil.model.CampaignUrgency;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 // This can be a 'record' for less boilerplate
 public record CreateCampaignRequest(
@@ -29,5 +31,10 @@ public record CreateCampaignRequest(
     
     String coverImageUrl,
     
+    List<String> images,
+
+    @NotNull(message = "Urgency is required")
+    CampaignUrgency urgency,
+
     Instant endDate
 ) {}

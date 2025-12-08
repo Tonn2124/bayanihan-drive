@@ -13,12 +13,14 @@ export default function ProfileSettings({ onBack }) {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   
   // Upload State
   const [uploading, setUploading] = useState(false);
 
-  // Password Update
+  // Password & Email Update
+  const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -34,6 +36,7 @@ export default function ProfileSettings({ onBack }) {
       
       const token = session.access_token;
       setEmail(session.user.email);
+      setNewEmail(session.user.email);
 
       const response = await axios.get('http://localhost:8080/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -42,6 +45,7 @@ export default function ProfileSettings({ onBack }) {
       const profile = response.data;
       setFullName(profile.fullName || '');
       setUsername(profile.username || '');
+      setBio(profile.bio || ''); // Assuming bio field exists or will exist
       setAvatarUrl(profile.avatarUrl || '');
 
     } catch (err) {
@@ -99,18 +103,35 @@ export default function ProfileSettings({ onBack }) {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session.access_token;
 
+      // Update backend profile
       await axios.put('http://localhost:8080/api/profile', 
-        { fullName, username, avatarUrl }, 
+        { fullName, username, bio, avatarUrl }, 
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
-      if (newPassword) {
-         if (newPassword !== confirmPassword) throw new Error("Passwords do not match");
-         const { error: pwdError } = await supabase.auth.updateUser({ password: newPassword });
-         if (pwdError) throw pwdError;
+      let authUpdates = {};
+
+      if (newEmail !== email) {
+          authUpdates.email = newEmail;
       }
 
-      setSuccess("Profile updated successfully!");
+      if (newPassword) {
+         if (newPassword !== confirmPassword) throw new Error("Passwords do not match");
+         authUpdates.password = newPassword;
+      }
+
+      if (Object.keys(authUpdates).length > 0) {
+          const { error: authError } = await supabase.auth.updateUser(authUpdates);
+          if (authError) throw authError;
+          if (authUpdates.email) {
+              setSuccess("Profile updated! Please check your new email for verification.");
+          } else {
+              setSuccess("Profile and password updated successfully!");
+          }
+      } else {
+          setSuccess("Profile updated successfully!");
+      }
+      
       setNewPassword('');
       setConfirmPassword('');
 
@@ -188,14 +209,20 @@ export default function ProfileSettings({ onBack }) {
                         <input type="text" className={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} />
                     </div>
                     <div className={styles.fieldGroup}>
-                        <label>Username</label>
-                        <input type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} />
+                        <label>Username (Immutable)</label>
+                        <input type="text" className={`${styles.input} ${styles.disabled}`} value={username} disabled />
                     </div>
                     <div className={styles.fieldGroupFull}>
-                        <label>Email Address <span className={styles.readOnlyTag}>Read Only</span></label>
-                        <input type="email" className={`${styles.input} ${styles.disabled}`} value={email} disabled />
+                         <label>Bio</label>
+                         <textarea className={styles.textarea} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself..." />
                     </div>
-                     <div className={styles.divider}><span>Change Password (Optional)</span></div>
+
+                    <div className={styles.divider}><span>Security Settings</span></div>
+
+                    <div className={styles.fieldGroupFull}>
+                        <label>Email Address</label>
+                        <input type="email" className={styles.input} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+                    </div>
                     <div className={styles.fieldGroup}>
                         <input type="password" className={styles.input} placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                     </div>
