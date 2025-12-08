@@ -2,19 +2,24 @@ package com.bayanihandrive.acebedobelenmedil.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
 @Entity
@@ -51,6 +56,15 @@ public class Campaign {
     @Column(name = "cover_image_url")
     private String coverImageUrl;
 
+    @ElementCollection
+    @CollectionTable(name = "campaign_images", joinColumns = @JoinColumn(name = "campaign_id"))
+    @Column(name = "image_url")
+    private List<String> images = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "urgency")
+    private CampaignUrgency urgency;
+
     @CreationTimestamp // Automatically set by Hibernate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -79,6 +93,10 @@ public class Campaign {
     public void setCategory(CampaignCategory category) { this.category = category; }
     public String getCoverImageUrl() { return coverImageUrl; }
     public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
+    public List<String> getImages() { return images; }
+    public void setImages(List<String> images) { this.images = images; }
+    public CampaignUrgency getUrgency() { return urgency; }
+    public void setUrgency(CampaignUrgency urgency) { this.urgency = urgency; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getEndDate() { return endDate; }

@@ -22,6 +22,9 @@ public class Profile {
 
     private String phone;
 
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
     // --- CONSTRUCTORS ---
     public Profile() {
         // Default constructor required by JPA
@@ -84,6 +87,14 @@ public class Profile {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
 } // <--- IMPORTANT: The class must end here

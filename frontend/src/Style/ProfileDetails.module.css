@@ -1,0 +1,206 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.header {
+  padding: 20px;
+  border-bottom: 1px solid #f0f2f5;
+  background-color: #fff;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+}
+
+.avatar, .avatarPlaceholder {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e4e6eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #65676b;
+  border: 1px solid #ddd;
+}
+
+.headerInfo {
+  flex: 1;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1c1e21;
+}
+
+.role {
+  margin: 2px 0 5px 0;
+  font-size: 0.9rem;
+  color: #65676b;
+  text-transform: capitalize;
+}
+
+.statsRow {
+  font-size: 0.85rem;
+  color: #65676b;
+}
+
+.bio {
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: #050505;
+}
+
+.editBtn {
+  margin-top: 15px;
+  width: 100%;
+  padding: 8px;
+  background-color: #e4e6eb;
+  color: #050505;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.editBtn:hover {
+  background-color: #d8dadf;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fff;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-weight: 600;
+  color: #65676b;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.activeTab {
+  color: #1877f2;
+  border-bottom: 3px solid #1877f2;
+}
+
+.listArea {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f0f2f5;
+  padding: 10px;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #bcc0c4 #f0f2f5;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: #1c1e21;
+}
+
+.cardDate {
+  font-size: 0.8rem;
+  color: #65676b;
+}
+
+.cardDesc {
+  font-size: 0.9rem;
+  color: #65676b;
+  margin: 0 0 10px 0;
+}
+
+.progressBarBg {
+  height: 6px;
+  background-color: #f0f2f5;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progressBarFill {
+  height: 100%;
+  background-color: #1877f2;
+  border-radius: 3px;
+}
+
+.cardFooter {
+  font-size: 0.85rem;
+  color: #1877f2;
+  font-weight: 600;
+}
+
+/* Donation Specific */
+.donationRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  font-size: 1.2rem;
+}
+
+.donationDetails {
+  flex: 1;
+}
+
+.donationText {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1c1e21;
+}
+
+.donationSub {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: #65676b;
+}
+
+.loadingState, .errorState, .emptyState {
+  padding: 40px;
+  text-align: center;
+  color: #65676b;
+  font-style: italic;
+}

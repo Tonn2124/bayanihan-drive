@@ -15,12 +15,14 @@ export default function Dashboard({ session, onNavigate }) {
   const [profile, setProfile] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
-  const [greeting, setGreeting] = useState("Welcome back"); 
+  const [greeting, setGreeting] = useState("Welcome"); 
 
   const [showAddFunds, setShowAddFunds] = useState(false);
   const [showWithdrawal, setShowWithdrawal] = useState(false);
   
   const [activeTab, setActiveTab] = useState("all");
+
+  const [darkMode, setDarkMode] = useState(false);
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -48,6 +50,9 @@ export default function Dashboard({ session, onNavigate }) {
 
       if (!profileError && profileData) {
         setProfile(profileData);
+        // Assuming profileData has a field 'login_count' or we use created_at comparison for first time
+        // Since we don't have login_count, we can check if updated_at is close to created_at or use localStorage hack for now as requested
+        // Or better, Supabase auth metadata.
       }
 
       // 2. Fetch Wallet
@@ -69,14 +74,31 @@ export default function Dashboard({ session, onNavigate }) {
 
   useEffect(() => {
     fetchData();
-    const isNew = localStorage.getItem('isNewUser');
-    if (isNew === 'true') {
-        setGreeting("Welcome"); 
-        localStorage.removeItem('isNewUser'); 
-    } else {
+    // Check login count from supabase auth metadata if possible, or use local storage
+    // "IF DETECTED THAT THE USER IS LOGGING FOR THE FIRST TIME, IT SHOULD DISPLAY WELCOME, IF THE USER IS LOGGING IN FOR MORE 2 OR MORE TIMES, IT MUST DISPLAY WELCOME BACK."
+    // We can simulate this by checking if there is a 'last_login' in local storage.
+    
+    const lastLogin = localStorage.getItem('last_login_' + session.user.id);
+    if (lastLogin) {
         setGreeting("Welcome back");
+    } else {
+        setGreeting("Welcome");
+        localStorage.setItem('last_login_' + session.user.id, new Date().toISOString());
     }
-  }, [fetchData]);
+
+  }, [fetchData, session.user.id]);
+
+  useEffect(() => {
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+      setDarkMode(!darkMode);
+  };
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(amount || 0);
@@ -84,7 +106,7 @@ export default function Dashboard({ session, onNavigate }) {
   const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
   return (
-    <div className={styles.dashboardRoot}>
+    <div className={`${styles.dashboardRoot} ${darkMode ? styles.darkMode : ''}`}>
       
       {/* --- LEFT SIDEBAR --- */}
       <aside className={styles.leftSidebar}>
@@ -127,6 +149,14 @@ export default function Dashboard({ session, onNavigate }) {
               <span className={styles.navIcon}>🛡️</span> Admin Panel
             </button>
           )}
+
+          <div className={styles.navItem} style={{justifyContent: 'space-between', cursor: 'default'}}>
+             <span>Dark Mode</span>
+             <label className={styles.switch}>
+                <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
+                <span className={styles.slider}></span>
+             </label>
+          </div>
         </nav>
 
         <button className={styles.logoutBtn} onClick={handleLogout}>
@@ -158,7 +188,11 @@ export default function Dashboard({ session, onNavigate }) {
                   </div>
 
                   <div className={styles.headerActions}>
-                    <button className={styles.createBtn} onClick={() => onNavigate("createCampaign")}>
+                    <button 
+                        className={styles.createBtn} 
+                        onClick={() => onNavigate("createCampaign")}
+                        style={{ padding: '12px 24px', fontSize: '1.1rem' }} // Bigger button
+                    >
                       + Create
                     </button>
                     
@@ -203,6 +237,9 @@ export default function Dashboard({ session, onNavigate }) {
 
       {/* --- RIGHT SIDEBAR --- */}
       <aside className={styles.rightSidebar}>
+        {/* Fixed position wallet simulation by CSS structure, but user asked for locked. 
+            The rightSidebar usually is sticky or fixed. I'll ensure CSS handles it. 
+        */}
         <div className={styles.walletCard}>
           <div className={styles.walletLabel}>My Wallet Balance</div>
           <div className={styles.walletAmount}>

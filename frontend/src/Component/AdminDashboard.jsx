@@ -4,27 +4,56 @@ import { supabase } from '../supabaseClient';
 import styles from '../Style/AdminDashboard.module.css'; 
 
 export default function AdminDashboard({ onNavigate }) {
-  const [pendingCampaigns, setPendingCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, APPROVED, REJECTED, COMPLETED
 
-  const fetchPending = async () => {
+  const fetchCampaigns = async () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       const token = session.access_token;
 
-      // 1. Fetch Pending Campaigns
-      const response = await axios.get('http://localhost:8080/api/admin/campaigns/pending', {
+      // Fetch all campaigns or filter by backend? 
+      // Current backend has /pending and /all (public). 
+      // We need an endpoint to get ALL campaigns including rejected for Admin.
+      // Assuming I'll add or use an endpoint for this. For now let's use the pending endpoint and maybe others?
+      // Actually, standard practice: Admin gets all.
+      
+      // I will assume an endpoint /api/admin/campaigns exists or I will create it. 
+      // For now, I will use existing /api/admin/campaigns/pending and maybe fetch others if available.
+      // But to support all filters, I need a comprehensive list.
+      
+      // Let's modify the backend to support fetching all campaigns for admin with status filter.
+      // Or I can fetch pending from /pending and the rest from /search? 
+      // But /search only returns active ones.
+      
+      // I'll make a request to a new endpoint I'll creating: GET /api/admin/campaigns
+      const response = await axios.get(`http://localhost:8080/api/admin/campaigns?status=${filter === 'ALL' ? '' : filter}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setPendingCampaigns(response.data);
+      setCampaigns(response.data);
+
     } catch (err) {
       console.error("Admin Fetch Error:", err);
+      // Fallback for now if endpoint doesn't exist
+      if (filter === 'PENDING') {
+          // Retry with old endpoint
+          try {
+             const { data: { session } } = await supabase.auth.getSession();
+             const res = await axios.get('http://localhost:8080/api/admin/campaigns/pending', {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+             });
+             setCampaigns(res.data);
+             return;
+          } catch(e) {}
+      }
+
       if (err.response && err.response.status === 403) {
           setError("Access Denied: You do not have permission to view this page.");
       } else {
-          setError("Could not load pending campaigns. Please try again later.");
+          setError("Could not load campaigns.");
       }
     } finally {
       setLoading(false);
@@ -32,48 +61,43 @@ export default function AdminDashboard({ onNavigate }) {
   };
 
   useEffect(() => {
-    fetchPending();
-  }, []);
+    fetchCampaigns();
+  }, [filter]);
 
-  const handleVerify = async (id, approve) => {
-    // Simple confirmation
-    if (!window.confirm(`Are you sure you want to ${approve ? 'APPROVE' : 'REJECT'} this campaign?`)) return;
+  const handleAction = async (id, action) => {
+    // action: APPROVE, REJECT, DELETE, BLOCK_USER
+    if (!window.confirm(`Are you sure you want to ${action} this campaign?`)) return;
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session.access_token;
 
-        await axios.put(`http://localhost:8080/api/admin/campaigns/${id}/verify?approve=${approve}`, {}, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        if (action === 'APPROVE' || action === 'REJECT') {
+            await axios.put(`http://localhost:8080/api/admin/campaigns/${id}/verify?approve=${action === 'APPROVE'}`, {}, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } else if (action === 'DELETE') {
+            await axios.delete(`http://localhost:8080/api/admin/campaigns/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        }
         
-        alert(approve ? "Campaign Approved!" : "Campaign Rejected.");
-        fetchPending(); // Refresh list to remove the handled campaign
+        alert(`Action ${action} successful!`);
+        fetchCampaigns(); 
     } catch (err) {
         alert("Operation failed. Please try again.");
     }
   };
 
-  if (loading) {
-    return (
-        <div className={styles.adminContainer} style={{textAlign: 'center', marginTop: '4rem'}}>
-            <p style={{color: '#6B7280'}}>Loading admin panel...</p>
-        </div>
-    );
-  }
-
-  if (error) {
-    return (
-        <div className={styles.adminContainer}>
-            <div className="alert alert-danger">
-                {error}
-                <button className={styles.backButton} onClick={() => onNavigate('dashboard')} style={{marginTop: '1rem'}}>
-                    Go Back
-                </button>
-            </div>
-        </div>
-    );
-  }
+  const getStatusColor = (status) => {
+      switch(status) {
+          case 'PENDING': return '#F59E0B';
+          case 'APPROVED': return '#10B981';
+          case 'REJECTED': return '#EF4444';
+          case 'COMPLETED': return '#3B82F6';
+          default: return '#6B7280';
+      }
+  };
 
   return (
     <div className={styles.adminContainer}>
@@ -81,91 +105,75 @@ export default function AdminDashboard({ onNavigate }) {
         <div className={styles.header}>
             <div className={styles.titleGroup}>
                 <h2>Admin Dashboard</h2>
-                <div className={styles.subTitle}>Manage and verify platform content</div>
             </div>
             <button className={styles.backButton} onClick={() => onNavigate('dashboard')}>
                 Exit Admin Mode
             </button>
         </div>
 
-        {/* Stats Row (Mock Data for now) */}
-        <div className={styles.statsRow}>
-            <div className={styles.statCard}>
-                <div className={styles.statLabel}>Pending Review</div>
-                <div className={styles.statValue} style={{color: '#F59E0B'}}>{pendingCampaigns.length}</div>
-            </div>
-            <div className={styles.statCard}>
-                <div className={styles.statLabel}>Total Users</div>
-                <div className={styles.statValue}>12</div>
-            </div>
-            <div className={styles.statCard}>
-                <div className={styles.statLabel}>Platform Raised</div>
-                <div className={styles.statValue} style={{color: '#10B981'}}>₱45k</div>
-            </div>
+        {/* Filters */}
+        <div className={styles.filterBar}>
+            {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'].map(f => (
+                <button 
+                    key={f}
+                    className={`${styles.filterBtn} ${filter === f ? styles.activeFilter : ''}`}
+                    onClick={() => setFilter(f)}
+                >
+                    {f} {f === 'PENDING' && <span className={styles.badgeCount}>!</span>}
+                </button>
+            ))}
         </div>
 
-        {/* Pending List Section */}
-        <div>
-            <div className={styles.sectionTitle}>
-                Verification Queue 
-                {pendingCampaigns.length > 0 && <span className={styles.countBadge}>{pendingCampaigns.length}</span>}
-            </div>
-            
-            {pendingCampaigns.length === 0 ? (
-                <div className={styles.emptyState}>
-                    <h3>All caught up!</h3>
-                    <p>There are no pending campaigns to review at this moment.</p>
-                </div>
-            ) : (
-                <div className={styles.campaignList}>
-                    {pendingCampaigns.map(campaign => (
-                        <div key={campaign.id} className={styles.reviewCard}>
-                            {/* Card Header */}
-                            <div className={styles.cardHeader}>
-                                <div className={styles.campaignMeta}>
-                                    <span>ID: #{campaign.id}</span>
-                                    <span>•</span>
-                                    <span>{new Date(campaign.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <span className={styles.statusBadge}>Pending Verification</span>
-                            </div>
-
-                            {/* Card Body */}
-                            <div className={styles.cardBody}>
-                                <h3 className={styles.campaignTitle}>{campaign.title}</h3>
-                                <div className={styles.goalInfo}>
-                                    Target: ₱{campaign.goalAmount.toLocaleString()}
-                                </div>
-                                <p className={styles.campaignDesc}>
-                                    {campaign.description.substring(0, 150)}
-                                    {campaign.description.length > 150 && '...'}
-                                </p>
-                            </div>
-
-                            {/* Card Actions */}
-                            <div className={styles.cardActions}>
-                                <button 
-                                    className={styles.viewBtn} 
-                                    onClick={() => onNavigate('campaignDetails', campaign.id)}
-                                >
-                                    View Full Details
-                                </button>
-                                <button 
-                                    className={styles.rejectBtn} 
-                                    onClick={() => handleVerify(campaign.id, false)}
-                                >
-                                    Reject
-                                </button>
-                                <button 
-                                    className={styles.approveBtn} 
-                                    onClick={() => handleVerify(campaign.id, true)}
-                                >
-                                    Approve Campaign
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+        {/* List Section */}
+        <div className={styles.listContainer}>
+            {loading ? <p>Loading...</p> : error ? <p className="alert alert-danger">{error}</p> : (
+                <>
+                {campaigns.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        <p>No campaigns found for {filter}</p>
+                    </div>
+                ) : (
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Creator</th>
+                                <th>Goal</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {campaigns.map(c => (
+                                <tr key={c.id}>
+                                    <td>#{c.id}</td>
+                                    <td style={{maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{c.title}</td>
+                                    <td>{c.organizerId ? c.organizerId.substring(0,8) + '...' : 'Unknown'}</td>
+                                    <td>₱{c.goalAmount}</td>
+                                    <td>
+                                        <span className={styles.statusTag} style={{backgroundColor: getStatusColor(c.status)}}>
+                                            {c.status}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div className={styles.actionButtons}>
+                                            <button onClick={() => onNavigate('campaignDetails', c.id)} title="View">👁️</button>
+                                            {c.status === 'PENDING' && (
+                                                <>
+                                                    <button onClick={() => handleAction(c.id, 'APPROVE')} title="Approve" style={{color: 'green'}}>✓</button>
+                                                    <button onClick={() => handleAction(c.id, 'REJECT')} title="Reject" style={{color: 'red'}}>✗</button>
+                                                </>
+                                            )}
+                                            <button onClick={() => handleAction(c.id, 'DELETE')} title="Delete" style={{color: 'darkred'}}>🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+                </>
             )}
         </div>
     </div>

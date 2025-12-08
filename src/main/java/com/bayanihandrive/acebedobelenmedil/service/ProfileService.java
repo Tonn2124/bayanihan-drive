@@ -45,6 +45,11 @@ public class ProfileService {
             profile.setUsername(request.username());
         }
 
+        // 4. Update Bio
+        if (request.bio() != null) {
+            profile.setBio(request.bio());
+        }
+
         // We removed Phone update logic to match the Frontend changes
 
         return profileRepository.save(profile);

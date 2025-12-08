@@ -16,5 +16,8 @@ public record UpdateProfileRequest(
     String username,
 
     // This field catches the Supabase URL sent from React
-    String avatarUrl
+    String avatarUrl,
+
+    @Size(max = 500, message = "Bio exceeds 500 characters")
+    String bio
 ) {}

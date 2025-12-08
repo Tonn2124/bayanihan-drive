@@ -32,6 +32,29 @@ public class AdminController {
         return ResponseEntity.ok(campaignService.getPendingCampaigns());
     }
 
+    @GetMapping("/campaigns")
+    public ResponseEntity<List<Campaign>> getAllCampaigns(
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        if (!campaignService.isAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(campaignService.getAllCampaignsForAdmin(status));
+    }
+
+    @DeleteMapping("/campaigns/{id}")
+    public ResponseEntity<Void> deleteCampaign(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        if (!campaignService.isAdmin(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        campaignService.deleteCampaign(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/campaigns/{id}/verify")
     public ResponseEntity<Campaign> verifyCampaign(
             @PathVariable Long id,
