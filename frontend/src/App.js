@@ -7,7 +7,7 @@ import CampaignDetails from './Component/CampaignDetails'
 import AdminDashboard from './Component/AdminDashboard'
 import LandingPage from './Component/LandingPage' 
 import ProfileSettings from './Component/ProfileSettings'
-import PublicProfile from './Component/PublicProfile/PublicProfile' // New Import
+import PublicProfile from './Component/PublicProfile/PublicProfile' 
 import TermsAndConditions from './Component/TermsAndConditions'
 import styles from './App.module.css' 
 
@@ -22,26 +22,20 @@ function App() {
   
   // New state for public profile
   const [selectedUserId, setSelectedUserId] = useState(null);
+  // ADDED: Track where we came from so "Back" works in the profile modal
+  const [previousCampaignId, setPreviousCampaignId] = useState(null);
   
   // Auth Flow State
   const [authMode, setAuthMode] = useState('landing') 
 
   useEffect(() => {
     const initApp = async () => {
-      // 1. Define how long you want to wait (e.g., 2000ms = 2 seconds)
       const minLoadTime = new Promise(resolve => setTimeout(resolve, 2500));
-      
-      // 2. Start fetching data
       const sessionDataPromise = supabase.auth.getSession();
-
-      // 3. Wait for BOTH the timer and the data to finish
-      // The formatting here grabs the result of the session data
       const [_, { data: { session } }] = await Promise.all([minLoadTime, sessionDataPromise]);
 
-      // 4. Now we set the data and remove loading
       setSession(session)
       
-      // Check URL for direct campaign links on load
       const params = new URLSearchParams(window.location.search);
       const urlCampaignId = params.get('campaignId');
 
@@ -51,7 +45,7 @@ function App() {
         setCurrentPage('campaignDetails');
       }
 
-      setLoading(false); // <--- This only happens after 2.5 seconds now
+      setLoading(false); 
     };
 
     initApp();
@@ -64,34 +58,41 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // MODIFIED: handleNavigate now accepts an object OR an ID
-  const handleNavigate = (page, data = null) => {
+  // MODIFIED: Accepts optional 3rd argument, and handles history tracking
+  const handleNavigate = (page, data = null, extraData = null) => {
+    
+    // --- 1. HISTORY TRACKING LOGIC ---
+    // If we are going TO PublicProfile FROM CampaignDetails, save the ID.
+    if (page === 'publicProfile' && currentPage === 'campaignDetails') {
+        // Use the explicit 3rd arg if provided, otherwise use current state
+        setPreviousCampaignId(extraData || selectedCampaignId);
+    } 
+    // If we are going anywhere else (except back to the same profile), clear history
+    else if (page !== 'publicProfile') {
+        setPreviousCampaignId(null);
+    }
+
+    // --- 2. NAVIGATION LOGIC ---
     setCurrentPage(page)
     
     if (page === 'campaignDetails' && data) {
-      // Check if 'data' is the full object (has an id property)
       if (typeof data === 'object' && data.id) {
         setSelectedCampaignId(data.id);
-        setSelectedCampaignData(data); // SAVE THE DATA!
-        
-        // Update URL
+        setSelectedCampaignData(data); 
         const newUrl = `${window.location.pathname}?campaignId=${data.id}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
 
       } else {
-        // Fallback: 'data' is just an ID (string/number)
         setSelectedCampaignId(data);
-        setSelectedCampaignData(null); // Clear data so it fetches fresh
-        
-        // Update URL
+        setSelectedCampaignData(null); 
         const newUrl = `${window.location.pathname}?campaignId=${data}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
       }
     } else if (page === 'publicProfile') {
         setSelectedUserId(data);
+        // Don't change URL for profile modal to keep it clean, or allow back button to close it
         window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
     } else {
-      // Reset URL for other pages
       window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
     }
   }
@@ -99,16 +100,13 @@ function App() {
   if (loading) {
     return (
       <div className={styles.splashScreen}>
-        {/* Make sure logo.png is in your PUBLIC folder, or import it if it's in src */}
         <img 
             src="/favicon.ico" 
             alt="Bayanihan Drive" 
             className={styles.splashLogo} 
-            onError={(e) => e.target.style.display = 'none'} // Hides image if not found
+            onError={(e) => e.target.style.display = 'none'} 
         />
         <div className={styles.splashTitle}>Bayanihan Drive</div>
-        
-        {/* Optional: Facebook style footer */}
         <div className={styles.splashFooter}>
             <span style={{display: 'block', fontSize: '10px'}}>from</span>
             <span style={{fontWeight: '600', letterSpacing: '1px'}}>STUDENT DEV</span>
@@ -126,7 +124,7 @@ function App() {
             <Dashboard session={session} onNavigate={handleNavigate} />
         )}
 
-        {/* 2. Full Page Layers (Replaces Dashboard) */}
+        {/* 2. Full Page Layers */}
         {currentPage === 'createCampaign' && (
             <CreateCampaign session={session} onNavigate={handleNavigate} />
         )}
@@ -139,21 +137,25 @@ function App() {
             <AdminDashboard onNavigate={handleNavigate} />
         )}
         
+        {/* MODIFIED: Passed 'onClose' and 'fromCampaignId' to fix error */}
         {currentPage === 'publicProfile' && (
             <PublicProfile 
                 userId={selectedUserId} 
                 onNavigate={handleNavigate}
-                onBack={() => handleNavigate('dashboard')}
+                // FIX 1: Pass onClose to handle the "X" button
+                onClose={() => handleNavigate('dashboard')} 
+                // FIX 2: Pass the history ID so the back arrow works
+                fromCampaignId={previousCampaignId}
             />
         )}
 
-        {/* 3. Modal Layer (Overlays Dashboard) */}
+        {/* 3. Modal Layer */}
         {currentPage === 'campaignDetails' && (
             <CampaignDetails 
               campaignId={selectedCampaignId} 
-              campaignData={selectedCampaignData} // <--- PASSING THE DATA HERE
+              campaignData={selectedCampaignData} 
               onBack={() => handleNavigate('dashboard')} 
-              onNavigate={handleNavigate} // Pass navigation handler
+              onNavigate={handleNavigate} 
             />
         )}
       </>
@@ -187,7 +189,6 @@ function App() {
     return <TermsAndConditions onBack={() => setAuthMode('landing')} />
   }
 
-  // Default: Landing Page
   return (
     <LandingPage 
       onLogin={() => setAuthMode('login')} 

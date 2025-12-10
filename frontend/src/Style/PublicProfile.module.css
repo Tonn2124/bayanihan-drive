@@ -1,0 +1,162 @@
+/* --- OVERLAY --- */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Slightly darker for contrast */
+    backdrop-filter: blur(4px);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- MODAL CONTAINER --- */
+/* Matches the 'Add Funds' white rounded card style */
+.modalContainer {
+    background: #FFFFFF;
+    width: 90%;
+    max-width: 850px; /* Slightly narrower for a cleaner look */
+    height: 85vh;
+    border-radius: 24px; /* Matches the rounded corners in screenshot */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleUp { 
+    from { transform: scale(0.95); opacity: 0; } 
+    to { transform: scale(1); opacity: 1; } 
+}
+
+/* --- CLOSE BUTTON --- */
+/* Top Right 'X' Button */
+.closeBtn {
+    position: absolute;
+    top: 1.5rem; 
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #E5E7EB;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #374151;
+    z-index: 50;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.closeBtn:hover {
+    background: #F3F4F6;
+    color: #111827;
+    transform: scale(1.05);
+}
+
+/* --- SCROLLABLE CONTENT --- */
+.scrollableContent {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Custom Scrollbar for sleek look */
+    scrollbar-width: thin;
+    scrollbar-color: #E5E7EB transparent;
+}
+
+/* Banner */
+.banner {
+    height: 160px;
+    width: 100%;
+    background: linear-gradient(135deg, #0F172A 0%, #334155 100%); /* Sleeker dark gradient */
+}
+
+/* Main Content Wrapper */
+.mainContent {
+    padding: 0 2rem 3rem 2rem;
+    margin-top: -60px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Profile Info Card */
+.profileCard {
+    background: white;
+    /* Removed individual card border/shadow to blend with modal */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.avatarWrapper { margin-top: -20px; margin-bottom: 1rem; position: relative; }
+
+.avatar, .avatarPlaceholder {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 4px solid #FFFFFF;
+    object-fit: cover;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.avatarPlaceholder {
+    background: #F3F4F6; color: #9CA3AF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; font-weight: 700;
+}
+
+.name { font-size: 1.75rem; font-weight: 800; color: #111827; margin: 0.5rem 0 0.25rem 0; }
+.username { color: #6B7280; font-size: 0.95rem; margin-bottom: 0.75rem; }
+.roleBadge { background-color: #EFF6FF; color: #2563EB; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-left: 6px; vertical-align: middle;}
+.bio { max-width: 500px; color: #4B5563; line-height: 1.5; margin: 0.5rem auto 0 auto; font-size: 0.95rem; }
+
+/* Stats */
+.statsRow {
+    display: flex; gap: 3rem; margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 1px solid #F3F4F6; width: 100%; justify-content: center;
+}
+.statItem { display: flex; flex-direction: column; align-items: center; }
+.statValue { font-weight: 700; font-size: 1.1rem; color: #111827; }
+.statLabel { font-size: 0.75rem; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+/* Campaigns Section */
+.campaignsSection { margin-top: 1rem; }
+.sectionTitle {
+    font-size: 1.1rem; font-weight: 700; color: #111827;
+    margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E7EB;
+    text-align: left;
+}
+
+.campaignGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
+
+/* Campaign Cards */
+.card {
+    background: white; border-radius: 12px; overflow: hidden;
+    border: 1px solid #E5E7EB; transition: all 0.2s; cursor: pointer;
+    display: flex; flex-direction: column;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #D1D5DB; }
+
+.cardImageWrapper { height: 130px; position: relative; background-color: #F3F4F6; }
+.cardImg { width: 100%; height: 100%; object-fit: cover; }
+.categoryTag {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(255,255,255,0.9); color: #111827;
+    padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cardBody { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+.cardTitle { margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 700; color: #111827; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cardMeta { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+.amountLabel { font-size: 0.75rem; color: #6B7280; }
+.amountValue { font-size: 1rem; font-weight: 700; color: #059669; }
+
+.emptyState { text-align: center; padding: 3rem; color: #9CA3AF; background: #F9FAFB; border-radius: 12px; border: 1px dashed #E5E7EB; }
+.loadingState { display: flex; align-items: center; justify-content: center; height: 100%; color: #6B7280; font-weight: 500; }

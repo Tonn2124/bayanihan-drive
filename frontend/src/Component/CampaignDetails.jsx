@@ -13,6 +13,7 @@ const API_BASE_URL = 'http://localhost:8080/api';
 const ShareIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>);
 const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
+const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>);
 
 export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [campaign, setCampaign] = useState(null);
@@ -21,7 +22,7 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // UI States - Default to 'comments' now
+  // UI States
   const [activeTab, setActiveTab] = useState('comments');
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -138,14 +139,13 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
     }
   };
 
+  const handleEditCampaign = () => {
+    alert("Edit functionality coming soon!");
+  };
+
   const handleShare = (platform) => {
     const baseUrl = window.location.origin + window.location.pathname;
     const shareUrl = `${baseUrl}?campaignId=${campaignId}`;
-    const url = encodeURIComponent(shareUrl);
-    const text = encodeURIComponent(`Check out this donation drive: ${campaign?.title}`);
-
-    if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-    if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
     if (platform === 'copy') {
       navigator.clipboard.writeText(shareUrl) 
         .then(() => alert("Link copied!"), () => alert("Failed to copy"));
@@ -193,10 +193,16 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
       {/* MODAL CONTAINER */}
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
         
-        {/* Floating Close Button */}
-        <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close">
-            <CloseIcon />
-        </button>
+        {/* --- TOP RIGHT CONTROLS (Only Close Button Now) --- */}
+        <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '1rem', zIndex: 20 }}>
+            
+            {/* --- REMOVED USER PROFILE ICON HERE --- */}
+
+            {/* CLOSE BUTTON */}
+            <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close" style={{position: 'static'}}>
+                <CloseIcon />
+            </button>
+        </div>
 
         {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={fetchCampaignData} />}
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
@@ -218,11 +224,12 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
 
                     <h1 className={styles.ytTitle}>{campaign.title}</h1>
 
-                    {/* Meta & Share Row */}
+                    {/* Meta & Action Row */}
                     <div className={styles.ytMetaRow}>
+                        {/* UPDATE: Added fromCampaignId so back button works */}
                         <div 
                             className={styles.ytOrganizerProfile} 
-                            onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id) : null}
+                            onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id, campaignId) : null}
                             style={{ cursor: 'pointer' }}
                             title="View Public Profile"
                         >
@@ -236,6 +243,12 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                         </div>
 
                         <div className={styles.ytActionButtons}>
+                            {/* Edit Button (Only visible to Organizer) */}
+                            {isOrganizer && (
+                                <button className={styles.pillBtn} onClick={handleEditCampaign}>
+                                    <EditIcon /> <span>Edit</span>
+                                </button>
+                            )}
                             <button className={styles.pillBtn} onClick={() => handleShare('copy')}>
                                 <ShareIcon /> <span>Share</span>
                             </button>
@@ -252,12 +265,10 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                             <span className={styles.descTag}>#{campaign.category || 'fundraiser'}</span>
                         </div>
                         
-                        {/* STORY SECTION: Always Visible */}
                         <div className={styles.descriptionContent}>
                             <p className={styles.descriptionText}>{campaign.description}</p>
                         </div>
                         
-                        {/* Tabs: Only Comments & Updates now */}
                         <div className={styles.tabsContainer}>
                             <button className={`${styles.tabButton} ${activeTab === 'comments' ? styles.activeTab : ''}`} onClick={() => setActiveTab('comments')}>Comments ({comments.length})</button>
                             <button className={`${styles.tabButton} ${activeTab === 'updates' ? styles.activeTab : ''}`} onClick={() => setActiveTab('updates')}>Updates ({updates.length})</button>
@@ -341,7 +352,11 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                             </div>
                             <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
                         </div>
-                        <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>
+                        
+                        {/* Hide Donate button if user is organizer */}
+                        {!isOrganizer && (
+                            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>
+                        )}
                         
                         {canWithdraw && (
                             <div className={styles.organizerActions}>

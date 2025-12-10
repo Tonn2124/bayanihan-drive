@@ -4,7 +4,7 @@ import CampaignCard from './CampaignCard';
 import styles from '../Style/CampaignList.module.css';
 import { supabase } from '../supabaseClient';
 
-export default function MyCampaigns({ onNavigate }) {
+export default function MyCampaigns({ onNavigate, isModal }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,17 +13,12 @@ export default function MyCampaigns({ onNavigate }) {
     const fetchMyCampaigns = async () => {
       try {
         setLoading(true);
-       
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            throw new Error("You must be logged in.");
-        }
+        if (!session) throw new Error("You must be logged in.");
+        
         const token = session.access_token;
-
         const response = await axios.get('http://localhost:8080/api/campaigns/my-campaigns', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         setCampaigns(response.data);
       } catch (err) {
@@ -33,32 +28,31 @@ export default function MyCampaigns({ onNavigate }) {
         setLoading(false);
       }
     };
-
     fetchMyCampaigns();
   }, []);
 
-  if (loading) {
-    return <div style={{textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)'}}>Loading your campaigns...</div>;
-  }
-
-  if (error) {
-    return <div className="alert alert-danger">{error}</div>;
-  }
+  // --- RENDERING HELPERS ---
+  if (loading) return <div style={{textAlign: 'center', padding: '2rem', color: '#666'}}>Loading campaigns...</div>;
+  if (error) return <div className="alert alert-danger">{error}</div>;
 
   if (campaigns.length === 0) {
     return (
-      <div style={{textAlign: 'center', padding: '3rem', color: 'var(--color-text-secondary)'}}>
-        <h3>You haven't created any campaigns yet.</h3>
-        <p>Start a drive to see it here!</p>
+      <div style={{textAlign: 'center', padding: '3rem', color: '#666'}}>
+        <h3>No campaigns yet.</h3>
+        <p>Start a donation drive to see it here!</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <h2 style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', color: 'var(--color-text-main)'}}>
-        My Campaigns
-      </h2>
+    <div style={isModal ? { padding: '0' } : {}}>
+      {/* Hide Header if inside Modal */}
+      {!isModal && (
+        <h2 style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', color: 'var(--color-text-main)'}}>
+            My Campaigns
+        </h2>
+      )}
+      
       <div className={styles.gridContainer}>
         {campaigns.map((campaign) => (
           <CampaignCard 
