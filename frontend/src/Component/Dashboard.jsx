@@ -15,16 +15,17 @@ export default function Dashboard({ session, onNavigate }) {
   const [profile, setProfile] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
-  const [greeting, setGreeting] = useState("Welcome"); 
+
+  // FIXED: Initialize greeting based on localStorage to avoid flash/errors
+  const [greeting, setGreeting] = useState(() => {
+    const key = 'last_login_' + session?.user?.id;
+    return localStorage.getItem(key) ? "Welcome back" : "Welcome";
+  });
 
   const [showAddFunds, setShowAddFunds] = useState(false);
   // Removed showWithdrawal state
   
   const [activeTab, setActiveTab] = useState("all");
-
-  // Removed darkMode state and logic as per previous cleanup requests
-  // If you still have it in your local file, you can keep or remove it as you wish. 
-  // I will assume you want the standard version I provided earlier.
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -72,12 +73,12 @@ export default function Dashboard({ session, onNavigate }) {
 
   useEffect(() => {
     fetchData();
-    const lastLogin = localStorage.getItem('last_login_' + session.user.id);
-    if (lastLogin) {
-        setGreeting("Welcome back");
-    } else {
-        setGreeting("Welcome");
-        localStorage.setItem('last_login_' + session.user.id, new Date().toISOString());
+    
+    // FIXED: Mark the user as having logged in for future visits
+    // We do this after the initial render so the FIRST view remains "Welcome"
+    const key = 'last_login_' + session.user.id;
+    if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, new Date().toISOString());
     }
   }, [fetchData, session.user.id]);
 
