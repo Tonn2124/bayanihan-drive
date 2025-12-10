@@ -22,8 +22,6 @@ export default function Dashboard({ session, onNavigate }) {
   
   const [activeTab, setActiveTab] = useState("all");
 
-  const [darkMode, setDarkMode] = useState(false);
-
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
     window.location.reload();
@@ -88,25 +86,14 @@ export default function Dashboard({ session, onNavigate }) {
 
   }, [fetchData, session.user.id]);
 
-  useEffect(() => {
-    if (darkMode) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-      setDarkMode(!darkMode);
-  };
-
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(amount || 0);
 
   const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
   return (
-    <div className={`${styles.dashboardRoot} ${darkMode ? styles.darkMode : ''}`}>
+    // FIXED: Removed the ternary check for 'darkMode'
+    <div className={styles.dashboardRoot}>
       
       {/* --- LEFT SIDEBAR --- */}
       <aside className={styles.leftSidebar}>
@@ -150,13 +137,6 @@ export default function Dashboard({ session, onNavigate }) {
             </button>
           )}
 
-          <div className={styles.navItem} style={{justifyContent: 'space-between', cursor: 'default'}}>
-             <span>Dark Mode</span>
-             <label className={styles.switch}>
-                <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
-                <span className={styles.slider}></span>
-             </label>
-          </div>
         </nav>
 
         <button className={styles.logoutBtn} onClick={handleLogout}>
