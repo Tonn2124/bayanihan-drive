@@ -5,7 +5,6 @@ import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
 import WithdrawalModal from './WithdrawalModal';
 import ReportModal from './ReportModal';
-import EditCampaignModal from './EditCampaignModal'; // <--- 1. IMPORT THIS
 
 // --- Configuration ---
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -14,7 +13,10 @@ const API_BASE_URL = 'http://localhost:8080/api';
 const ShareIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>);
 const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
-const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>);
+
+// New Icons for Gallery
+const ChevronLeft = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>);
+const ChevronRight = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>);
 
 export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [campaign, setCampaign] = useState(null);
@@ -28,7 +30,10 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false); // <--- 2. ADD STATE
+  
+  // --- IMAGE GALLERY STATES ---
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   // Social & Input States
   const [newComment, setNewComment] = useState('');
@@ -40,7 +45,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // --- Fetch Logic ---
   const fetchSocialData = async () => {
     try {
       const [commentsRes, updatesRes] = await Promise.all([
@@ -57,7 +61,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const fetchCampaignData = useCallback(async () => {
     try {
       setError(null);
-      // We don't set loading=true here to prevent full flicker on silent refresh
       if (!campaign) setLoading(true);
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -142,10 +145,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
     }
   };
 
-  const handleEditCampaign = () => {
-    alert("Edit functionality coming soon!");
-  };
-
   const handleShare = (platform) => {
     const baseUrl = window.location.origin + window.location.pathname;
     const shareUrl = `${baseUrl}?campaignId=${campaignId}`;
@@ -153,6 +152,23 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
       navigator.clipboard.writeText(shareUrl) 
         .then(() => alert("Link copied!"), () => alert("Failed to copy"));
     }
+  };
+
+  // --- IMAGE NAVIGATION LOGIC ---
+  const getImages = () => {
+    if (campaign?.images && campaign.images.length > 0) return campaign.images;
+    return campaign?.coverImageUrl ? [campaign.coverImageUrl] : [];
+  };
+  const images = getImages();
+
+  const handleNextPhoto = (e) => {
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const handlePrevPhoto = (e) => {
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   // --- Render Helpers ---
@@ -184,7 +200,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const organizerUsername = organizer?.username ? `@${organizer.username}` : '';
   const organizerInitial = organizerName.charAt(0).toUpperCase();
 
-  // Logic: Force string conversion for safe ID comparison
   const isOrganizer = currentUser && (String(campaign.organizerId) === String(currentUser.id));
   const isApproved = campaign.status === 'APPROVED';
   const canWithdraw = isOrganizer && isApproved;
@@ -193,15 +208,31 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   return (
     // OVERLAY
     <div className={styles.overlay} onClick={onBack}>
+
+      {/* --- LIGHTBOX MODAL (FULL SCREEN IMAGE) --- */}
+      {showLightbox && (
+        <div className={styles.lightboxOverlay} onClick={(e) => { e.stopPropagation(); setShowLightbox(false); }}>
+            <button className={styles.closeLightboxBtn} onClick={() => setShowLightbox(false)}><CloseIcon /></button>
+            
+            <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
+                <img src={images[activeImageIndex]} alt="Full View" className={styles.lightboxImage} />
+                
+                {images.length > 1 && (
+                    <>
+                        <button className={`${styles.lightboxNav} ${styles.lbPrev}`} onClick={handlePrevPhoto}><ChevronLeft/></button>
+                        <button className={`${styles.lightboxNav} ${styles.lbNext}`} onClick={handleNextPhoto}><ChevronRight/></button>
+                        <div className={styles.lightboxCounter}>{activeImageIndex + 1} / {images.length}</div>
+                    </>
+                )}
+            </div>
+        </div>
+      )}
       
-      {/* MODAL CONTAINER */}
+      {/* MAIN MODAL CONTAINER */}
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
         
-        {/* --- TOP RIGHT CONTROLS (Only Close Button Now) --- */}
+        {/* --- TOP RIGHT CONTROLS --- */}
         <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '1rem', zIndex: 20 }}>
-            
-            {/* --- REMOVED USER PROFILE ICON HERE --- */}
-
             {/* CLOSE BUTTON */}
             <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close" style={{position: 'static'}}>
                 <CloseIcon />
@@ -211,9 +242,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
         {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={fetchCampaignData} />}
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
         {showReportModal && <ReportModal campaignId={campaignId} onClose={() => setShowReportModal(false)} />}
-        
-        {/* 3. RENDER EDIT MODAL */}
-        {showEditModal && <EditCampaignModal campaign={campaign} onClose={() => setShowEditModal(false)} onSuccess={fetchCampaignData} />}
 
         <div className={styles.pageWrapper}>
             
@@ -223,17 +251,42 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                 {/* LEFT COLUMN: Scrollable Content */}
                 <div className={styles.ytMainColumn}>
                     
-                    {/* Hero Image */}
+                    {/* --- HERO IMAGE SECTION (CAROUSEL) --- */}
                     <div className={styles.heroImageWrapper}>
-                        <img src={campaign.coverImageUrl || 'https://placehold.co/1200x675/EFF6FF/0056D2?text=Campaign+Image'} alt={campaign.title} className={styles.headerImage} />
+                        {/* Display Current Image */}
+                        <img 
+                            src={images.length > 0 ? images[activeImageIndex] : 'https://placehold.co/1200x675/EFF6FF/0056D2?text=No+Image'} 
+                            alt={campaign.title} 
+                            className={styles.headerImage} 
+                            onClick={() => setShowLightbox(true)} // Click to Open Lightbox
+                            style={{ cursor: 'zoom-in' }}
+                        />
+                        
                         {campaign.category && <span className={styles.categoryBadge}>{campaign.category.replace('_', ' ')}</span>}
+
+                        {/* Navigation Buttons (Only if more than 1 image) */}
+                        {images.length > 1 && (
+                            <>
+                                <button className={styles.heroNavBtn} style={{left: '10px'}} onClick={handlePrevPhoto}>
+                                    <ChevronLeft />
+                                </button>
+                                <button className={styles.heroNavBtn} style={{right: '10px'}} onClick={handleNextPhoto}>
+                                    <ChevronRight />
+                                </button>
+                                {/* Dots Indicator */}
+                                <div className={styles.heroDots}>
+                                    {images.map((_, idx) => (
+                                        <span key={idx} className={`${styles.dot} ${idx === activeImageIndex ? styles.activeDot : ''}`} />
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <h1 className={styles.ytTitle}>{campaign.title}</h1>
 
                     {/* Meta & Action Row */}
                     <div className={styles.ytMetaRow}>
-                        {/* UPDATE: Added fromCampaignId so back button works */}
                         <div 
                             className={styles.ytOrganizerProfile} 
                             onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id, campaignId) : null}
@@ -250,23 +303,10 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                         </div>
 
                         <div className={styles.ytActionButtons}>
-                            {/* Edit Button (Only visible to Organizer) */}
-                            {isOrganizer && (
-                                <button className={styles.pillBtn} onClick={handleEditCampaign}>
-                                    <EditIcon /> <span>Edit</span>
-                                </button>
-                            )}
                             <button className={styles.pillBtn} onClick={() => handleShare('copy')}>
                                 <ShareIcon /> <span>Share</span>
                             </button>
                             
-                            {/* 4. INSERT EDIT BUTTON HERE (CONDITIONAL) */}
-                            {isOrganizer && (
-                                <button className={styles.pillBtn} onClick={() => setShowEditModal(true)}>
-                                    <EditIcon /> <span>Edit</span>
-                                </button>
-                            )}
-
                             <button className={styles.pillBtn} onClick={() => setShowReportModal(true)} style={{color:'red'}}>
                                 <span>🚩 Report</span>
                             </button>
@@ -370,9 +410,11 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                             <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
                         </div>
                         
-                        {/* Hide Donate button if user is organizer */}
+                        {/* CONDITIONAL BUTTONS */}
                         {!isOrganizer && (
-                            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>
+                            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>
+                                Donate Now
+                            </button>
                         )}
                         
                         {canWithdraw && (
