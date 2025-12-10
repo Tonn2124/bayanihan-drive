@@ -4,7 +4,6 @@ import { supabase } from '../supabaseClient';
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
 import WithdrawalModal from './WithdrawalModal';
-import ReportModal from './ReportModal';
 
 // --- Configuration ---
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -26,7 +25,10 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [activeTab, setActiveTab] = useState('comments');
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
+  
+  // --- IMAGE GALLERY STATES ---
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   // Social & Input States
   const [newComment, setNewComment] = useState('');
@@ -206,7 +208,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
 
         {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={fetchCampaignData} />}
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
-        {showReportModal && <ReportModal campaignId={campaignId} onClose={() => setShowReportModal(false)} />}
 
         <div className={styles.pageWrapper}>
             
@@ -251,9 +252,6 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                             )}
                             <button className={styles.pillBtn} onClick={() => handleShare('copy')}>
                                 <ShareIcon /> <span>Share</span>
-                            </button>
-                            <button className={styles.pillBtn} onClick={() => setShowReportModal(true)} style={{color:'red'}}>
-                                <span>🚩 Report</span>
                             </button>
                         </div>
                     </div>
