@@ -3,8 +3,8 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/MyDonations.module.css';
 
-// 1. We accept 'onNavigate' as a prop
-export default function MyDonations({ onNavigate }) {
+// FIX: Added 'isModal' to the props list with a default value of false
+export default function MyDonations({ onNavigate, isModal = false }) {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,11 +32,10 @@ export default function MyDonations({ onNavigate }) {
   }, []);
 
   const handleItemClick = (campaignId) => {
-    // 2. We use YOUR custom navigation from App.js
     if (onNavigate) {
       onNavigate('campaignDetails', campaignId);
     } else {
-      console.error("Navigation function not found. Please check Dashboard.jsx");
+      console.error("Navigation function not found.");
     }
   };
 
@@ -55,7 +54,7 @@ export default function MyDonations({ onNavigate }) {
   const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount);
 
   return (
-    // If isModal is true, we remove the default container class to avoid double padding
+    // Now 'isModal' is defined, so this check will work
     <div className={!isModal ? styles.container : ''}>
       {!isModal && (
         <h2 style={{fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem', color: '#1c1e21'}}>
@@ -67,7 +66,6 @@ export default function MyDonations({ onNavigate }) {
         <div 
             key={donation.id} 
             className={styles.donationItem}
-            // 3. Trigger the click handler here
             onClick={() => handleItemClick(donation.campaignId)} 
         >
           <div className={styles.leftSide}>

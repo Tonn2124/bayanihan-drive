@@ -12,6 +12,14 @@ export default function ProfileDetails({ profile, onClose, onEdit, onNavigate })
 
   if (!profile) return null;
 
+  // --- FIX: Create a wrapper function that closes the modal THEN navigates ---
+  const handleCampaignClick = (page, id) => {
+      onClose(); // 1. Close this modal immediately
+      if (onNavigate) {
+          onNavigate(page, id); // 2. Navigate to the campaign details
+      }
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
@@ -51,13 +59,20 @@ export default function ProfileDetails({ profile, onClose, onEdit, onNavigate })
             <button className={`${styles.tab} ${activeTab === 'donations' ? styles.activeTab : ''}`} onClick={() => setActiveTab('donations')}>My Donation History</button>
         </div>
 
-        {/* Content Area - REUSING COMPONENTS HERE */}
+        {/* Content Area */}
         <div className={styles.contentArea}>
             {activeTab === 'campaigns' ? (
-                // Pass isModal={true} to hide headers and adjust styles
-                <MyCampaigns onNavigate={onNavigate} isModal={true} />
+                // FIX: Pass our new handler instead of the raw onNavigate
+                <MyCampaigns 
+                    onNavigate={handleCampaignClick} 
+                    isModal={true} 
+                />
             ) : (
-                <MyDonations isModal={true} />
+                // FIX: Do the same for donations if you want clicking a donation to close the modal too
+                <MyDonations 
+                    onNavigate={handleCampaignClick}
+                    isModal={true} 
+                />
             )}
         </div>
       </div>
