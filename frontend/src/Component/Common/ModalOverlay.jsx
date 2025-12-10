@@ -1,0 +1,1 @@
+export default function ModalOverlay({children, onClose}) { return <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:999, display:'flex', alignItems:'center', justifyContent:'center'}} onClick={onClose}>{children}</div> }

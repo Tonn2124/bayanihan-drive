@@ -39,35 +39,42 @@ export default function LandingPage({ onLogin, onSignUp }) {
                 Browse Campaigns
               </button>
             </div>
+            
+            <div className={styles.statsRow}>
+                <div className={styles.statItem}>
+                    <strong>Verified</strong>
+                    <span>Campaigns</span>
+                </div>
+                <div className={styles.statItem}>
+                    <strong>Secure</strong>
+                    <span>Payments</span>
+                </div>
+                <div className={styles.statItem}>
+                    <strong>Transparent</strong>
+                    <span>Tracking</span>
+                </div>
+            </div>
           </div>
 
-          {/* Neutral, non‑data visual block – safe for defense */}
           <div className={styles.heroRight}>
-            <div className={styles.heroPreview}>
-              <div className={styles.previewHeader}>
-                <span className={styles.previewTag}>Platform overview</span>
-                <span className={styles.previewBrand}>Bayanihan Hub</span>
-              </div>
-              <div className={styles.previewBody}>
-                <div className={styles.previewRow}>
-                  <span>Campaigns</span>
-                  <span>Created and managed via Supabase + Spring Boot</span>
-                </div>
-                <div className={styles.previewRow}>
-                  <span>Wallet</span>
-                  <span>Top‑ups, donations, and withdrawals with audit trail</span>
-                </div>
-                <div className={styles.previewRow}>
-                  <span>Transparency</span>
-                  <span>Organizer updates, comments, and recent donors</span>
-                </div>
-              </div>
-            </div>
+             {/* Using a nice abstract shape or illustration if available, else a CSS card */}
+             <div className={styles.heroImagePlaceholder}>
+                 <div className={styles.floatingCard1}>
+                    <span>❤️ Donation Received</span>
+                    <strong>₱ 1,000.00</strong>
+                 </div>
+                 <div className={styles.floatingCard2}>
+                    <span>🚀 Campaign Goal Met</span>
+                    <strong>100%</strong>
+                 </div>
+             </div>
           </div>
         </div>
       </main>
-
-      {/* Keep your existing features + footer (unchanged) */}
+      
+      <footer className={styles.footer}>
+         <p>© 2025 Bayanihan Drive. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

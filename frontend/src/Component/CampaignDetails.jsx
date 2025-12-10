@@ -14,7 +14,7 @@ const ShareIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" heig
 const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 
-export default function CampaignDetails({ campaignId, onBack }) {
+export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [campaign, setCampaign] = useState(null);
   const [organizer, setOrganizer] = useState(null);
   const [donations, setDonations] = useState([]); 
@@ -69,7 +69,7 @@ export default function CampaignDetails({ campaignId, onBack }) {
       if (campaignData.organizerId) {
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('full_name, username, avatar_url')
+          .select('full_name, username, avatar_url, id')
           .eq('id', campaignData.organizerId)
           .single();
         setOrganizer(profileData || {});
@@ -220,7 +220,12 @@ export default function CampaignDetails({ campaignId, onBack }) {
 
                     {/* Meta & Share Row */}
                     <div className={styles.ytMetaRow}>
-                        <div className={styles.ytOrganizerProfile}>
+                        <div 
+                            className={styles.ytOrganizerProfile} 
+                            onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id) : null}
+                            style={{ cursor: 'pointer' }}
+                            title="View Public Profile"
+                        >
                             <div className={styles.organizerAvatar}>
                                 {organizer?.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial}
                             </div>

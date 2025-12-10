@@ -1,5 +1,6 @@
 /* Global Styles & Variables */
 :root {
+  /* Light Mode (Default) */
   --bg-color: #f0f2f5;
   --card-bg: #ffffff;
   --text-primary: #050505;
@@ -7,6 +8,25 @@
   --border-color: #ddd;
   --header-bg: #ffffff;
   --nav-hover: #e4e6eb;
+  --nav-active-bg: #e7f3ff;
+  --nav-active-text: #1877f2;
+  --brand-color: #1877f2;
+  --separator: #e4e6eb;
+  
+  --input-bg: #ffffff;
+  --input-border: #ddd;
+
+  --btn-primary-bg: #1877f2;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #166fe5;
+
+  --btn-secondary-bg: #e7f3ff;
+  --btn-secondary-text: #1877f2;
+  --btn-secondary-hover: #dbeafe;
+
+  --shadow-color: rgba(0,0,0,0.05);
+
+  --skeleton-bg: #E5E7EB;
 }
 
 body {
@@ -30,6 +50,25 @@ body.dark-mode {
   --border-color: #3e4042;
   --header-bg: #242526;
   --nav-hover: #3a3b3c;
+  --nav-active-bg: #2d3b4e;
+  --nav-active-text: #4599ff;
+  --brand-color: #4599ff;
+  --separator: #3e4042;
+
+  --input-bg: #3a3b3c;
+  --input-border: #3e4042;
+
+  --btn-primary-bg: #4599ff;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #357abd;
+
+  --btn-secondary-bg: #3a3b3c;
+  --btn-secondary-text: #e4e6eb;
+  --btn-secondary-hover: #4e4f50;
+
+  --shadow-color: rgba(0,0,0,0.2);
+  
+  --skeleton-bg: #3a3b3c;
 }
 
 /* Common Classes for Dark Mode Transition */
@@ -40,9 +79,9 @@ body.dark-mode {
 }
 
 input, textarea, select {
-    background-color: var(--card-bg);
+    background-color: var(--input-bg);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    border: 1px solid --input-border;
 }
 
 button {
@@ -51,8 +90,8 @@ button {
 
 /* Helper to make modals dark mode aware */
 body.dark-mode .modal-content {
-    background-color: #242526;
-    color: #e4e6eb;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
 }
 
 /* Scrollbar styling for dark mode */
@@ -60,10 +99,10 @@ body.dark-mode ::-webkit-scrollbar {
   width: 8px;
 }
 body.dark-mode ::-webkit-scrollbar-track {
-  background: #18191a;
+  background: var(--bg-color);
 }
 body.dark-mode ::-webkit-scrollbar-thumb {
-  background: #3e4042;
+  background: var(--border-color);
   border-radius: 4px;
 }
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
