@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import styles from "../Style/Dashboard.module.css"; 
 import CampaignList from "./CampaignList";
 import AddFundsModal from "./AddFundsModal";
-import WithdrawalModal from "./WithdrawalModal"; 
+// Removed WithdrawalModal import
 import MyCampaigns from "./MyCampaigns";
 import MyDonations from "./MyDonations";
 import ProfileSettings from "./ProfileSettings"; 
@@ -18,9 +18,13 @@ export default function Dashboard({ session, onNavigate }) {
   const [greeting, setGreeting] = useState("Welcome"); 
 
   const [showAddFunds, setShowAddFunds] = useState(false);
-  const [showWithdrawal, setShowWithdrawal] = useState(false);
+  // Removed showWithdrawal state
   
   const [activeTab, setActiveTab] = useState("all");
+
+  // Removed darkMode state and logic as per previous cleanup requests
+  // If you still have it in your local file, you can keep or remove it as you wish. 
+  // I will assume you want the standard version I provided earlier.
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -48,9 +52,6 @@ export default function Dashboard({ session, onNavigate }) {
 
       if (!profileError && profileData) {
         setProfile(profileData);
-        // Assuming profileData has a field 'login_count' or we use created_at comparison for first time
-        // Since we don't have login_count, we can check if updated_at is close to created_at or use localStorage hack for now as requested
-        // Or better, Supabase auth metadata.
       }
 
       // 2. Fetch Wallet
@@ -64,7 +65,6 @@ export default function Dashboard({ session, onNavigate }) {
 
     } catch (err) {
       console.error(err);
-      // We don't set global error here to avoid blocking the feed
     } finally {
       setProfileLoading(false);
     }
@@ -72,10 +72,6 @@ export default function Dashboard({ session, onNavigate }) {
 
   useEffect(() => {
     fetchData();
-    // Check login count from supabase auth metadata if possible, or use local storage
-    // "IF DETECTED THAT THE USER IS LOGGING FOR THE FIRST TIME, IT SHOULD DISPLAY WELCOME, IF THE USER IS LOGGING IN FOR MORE 2 OR MORE TIMES, IT MUST DISPLAY WELCOME BACK."
-    // We can simulate this by checking if there is a 'last_login' in local storage.
-    
     const lastLogin = localStorage.getItem('last_login_' + session.user.id);
     if (lastLogin) {
         setGreeting("Welcome back");
@@ -83,7 +79,6 @@ export default function Dashboard({ session, onNavigate }) {
         setGreeting("Welcome");
         localStorage.setItem('last_login_' + session.user.id, new Date().toISOString());
     }
-
   }, [fetchData, session.user.id]);
 
   const formatCurrency = (amount) =>
@@ -92,7 +87,6 @@ export default function Dashboard({ session, onNavigate }) {
   const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
   return (
-    // FIXED: Removed the ternary check for 'darkMode'
     <div className={styles.dashboardRoot}>
       
       {/* --- LEFT SIDEBAR --- */}
@@ -136,7 +130,6 @@ export default function Dashboard({ session, onNavigate }) {
               <span className={styles.navIcon}>🛡️</span> Admin Panel
             </button>
           )}
-
         </nav>
 
         <button className={styles.logoutBtn} onClick={handleLogout}>
@@ -161,7 +154,6 @@ export default function Dashboard({ session, onNavigate }) {
                 <header className={styles.centerHeader}>
                   <div className={styles.headerTitle}>
                     <h2>{activeTab === 'all' ? 'News Feed' : activeTab === 'my' ? 'My Projects' : 'Donation History'}</h2>
-                    {/* MODIFIED: Show '...' while loading name */}
                     <p style={{ textTransform: 'capitalize' }}>
                       {greeting}, {profileLoading ? '...' : (profile?.full_name?.split(' ')[0] || 'User')}
                     </p>
@@ -171,7 +163,7 @@ export default function Dashboard({ session, onNavigate }) {
                     <button 
                         className={styles.createBtn} 
                         onClick={() => onNavigate("createCampaign")}
-                        style={{ padding: '12px 24px', fontSize: '1.1rem' }} // Bigger button
+                        style={{ padding: '12px 24px', fontSize: '1.1rem' }}
                     >
                       + Create
                     </button>
@@ -181,7 +173,6 @@ export default function Dashboard({ session, onNavigate }) {
                       onClick={() => setActiveTab('settings')}
                       title="Profile & Settings"
                     >
-                      {/* MODIFIED: Handle loading state for avatar */}
                       {profileLoading ? (
                         <div style={{width: '100%', height: '100%', background: '#ccc', borderRadius: '50%'}}></div>
                       ) : profile?.avatar_url ? (
@@ -198,9 +189,6 @@ export default function Dashboard({ session, onNavigate }) {
                 </header>
 
                 <div className={styles.scrollableContent}>
-                  {/* MODIFIED: REMOVED THE BLOCKING LOADING CHECK HERE */}
-                  {/* Now CampaignList renders instantly and shows its own Skeletons */}
-                  
                   {error ? (
                      <div className="alert alert-danger">{error}</div>
                   ) : (
@@ -217,22 +205,16 @@ export default function Dashboard({ session, onNavigate }) {
 
       {/* --- RIGHT SIDEBAR --- */}
       <aside className={styles.rightSidebar}>
-        {/* Fixed position wallet simulation by CSS structure, but user asked for locked. 
-            The rightSidebar usually is sticky or fixed. I'll ensure CSS handles it. 
-        */}
         <div className={styles.walletCard}>
           <div className={styles.walletLabel}>My Wallet Balance</div>
           <div className={styles.walletAmount}>
-            {/* MODIFIED: Show '...' while loading wallet */}
             {profileLoading ? '...' : formatCurrency(wallet?.balance)}
           </div>
           <div className={styles.walletActions}>
             <button className={styles.walletBtnPrimary} onClick={() => setShowAddFunds(true)}>
               + Add
             </button>
-            <button className={styles.walletBtnSecondary} onClick={() => setShowWithdrawal(true)}>
-              Withdraw
-            </button>
+            {/* REMOVED: Withdraw button */}
           </div>
         </div>
 
@@ -244,14 +226,8 @@ export default function Dashboard({ session, onNavigate }) {
 
       {/* MODALS */}
       {showAddFunds && <AddFundsModal onClose={() => setShowAddFunds(false)} onSuccess={fetchData} />}
-      {showWithdrawal && (
-          <WithdrawalModal 
-            campaign={{id: null}} 
-            availableBalance={wallet?.balance || 0}
-            onClose={() => setShowWithdrawal(false)} 
-            onSuccess={fetchData} 
-          />
-      )}
+      
+      {/* REMOVED: WithdrawalModal logic */}
     </div>
   );
 }
