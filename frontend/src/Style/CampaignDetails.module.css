@@ -1,10 +1,11 @@
-/* --- MODAL OVERLAY --- */
+/* --- MODAL OVERLAY (Matches AddFundsModal) --- */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  /* Specific transparency settings from AddFunds */
   background-color: rgba(0, 0, 0, 0.65);
   display: flex;
   justify-content: center;
@@ -21,19 +22,17 @@
   to { opacity: 1; }
 }
 
-/* --- MODAL CONTAINER (Fixed Height, Locked Scroll) --- */
+/* --- MODAL CONTAINER --- */
 .modalContainer {
   background: #F9FAFB;
   width: 100%;
   max-width: 1280px;
-  height: 90vh; /* Fixed height for split view */
-  border-radius: 20px;
+  height: 90vh;
+  border-radius: 20px; /* Matching rounded corners */
+  overflow-y: auto;
   position: relative;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  
-  /* Lock the outer container so it doesn't scroll */
-  overflow: hidden; 
   display: flex;
   flex-direction: column;
 }
@@ -43,116 +42,12 @@
   to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* --- PAGE WRAPPER --- */
-.pageWrapper {
-  flex: 1;
-  height: 100%;
-  overflow: hidden; /* Prevent double scrollbars */
-}
+/* Scrollbar Styling */
+.modalContainer::-webkit-scrollbar { width: 8px; }
+.modalContainer::-webkit-scrollbar-track { background: transparent; }
+.modalContainer::-webkit-scrollbar-thumb { background-color: #D1D5DB; border-radius: 4px; }
 
-/* --- GRID LAYOUT (The Split) --- */
-.ytLayoutGrid {
-  padding: 1.5rem 2rem;
-  height: 100%;
-  display: grid;
-  grid-template-columns: 1fr 380px; /* Content | Sidebar */
-  gap: 1.5rem;
-  align-items: start;
-}
-
-/* --- LEFT COLUMN (Scrollable) --- */
-.ytMainColumn {
-  width: 100%;
-  height: 100%; /* Fill the modal height */
-  overflow-y: auto; /* Independent Scrollbar */
-  padding-right: 1rem; /* Space for scrollbar */
-  padding-bottom: 2rem;
-}
-
-/* Clean Scrollbar for Left Column */
-.ytMainColumn::-webkit-scrollbar { width: 8px; }
-.ytMainColumn::-webkit-scrollbar-track { background: transparent; }
-.ytMainColumn::-webkit-scrollbar-thumb { background-color: #D1D5DB; border-radius: 4px; }
-.ytMainColumn::-webkit-scrollbar-thumb:hover { background-color: #9CA3AF; }
-
-/* --- RIGHT COLUMN (Fixed) --- */
-.ytSidebar {
-  height: 100%; /* Fill the modal height */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* No outer scroll here */
-}
-
-/* --- DONATION CARD (Flex Container) --- */
-.donationCard { 
-    background: white; 
-    padding: 1.5rem; 
-    border-radius: 12px; 
-    border: 1px solid #e5e5e5;
-    
-    height: 100%; /* Fill Sidebar */
-    display: flex;
-    flex-direction: column;
-}
-
-/* Fixed Elements in Sidebar */
-.statsGrid, .progressContainer, .donateButton, .organizerActions {
-    flex-shrink: 0; /* These won't shrink */
-}
-
-.statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-.statValue { font-size: 1.25rem; font-weight: 700; }
-.statLabel { font-size: 0.8rem; color: #606060; }
-.progressContainer { margin-bottom: 1.5rem; }
-.progressBar { height: 8px; background: #e5e5e5; border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
-.progressFill { height: 100%; background: #1D4ED8; border-radius: 4px; }
-.progressLabel { font-size: 0.8rem; color: #606060; text-align: right; }
-
-.donateButton { width: 100%; padding: 1rem; border-radius: 12px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 1rem; background: linear-gradient(135deg, #0056D2 0%, #0041A3 100%); color: #ffffff; box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3); transition: all 0.2s ease; }
-.donateButton:hover { background: linear-gradient(135deg, #0041A3 0%, #003380 100%); box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4); transform: translateY(-2px); }
-.donateButton:active { transform: translateY(0); }
-
-.organizerActions { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5e5; background-color: #f8fafc; padding: 1rem; border-radius: 8px; }
-.payoutInfo { margin-bottom: 0.5rem; font-size: 0.9rem; }
-.payoutAmount { color: #059669; }
-.withdrawButton { width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid #d1d5db; background: white; cursor: pointer; font-weight: 600; }
-.withdrawButton:hover { background: #f9f9f9; }
-
-/* --- RECENT DONATIONS (Bottom Scroll) --- */
-.donationsSection { 
-    margin-top: 1.5rem; 
-    padding-top: 1.5rem; 
-    border-top: 1px solid #e5e5e5;
-    
-    flex: 1; /* Grow to fill remaining space */
-    min-height: 0; /* Allow shrinking properly */
-    display: flex;
-    flex-direction: column;
-}
-.sectionTitle { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; flex-shrink: 0; }
-
-.donationsList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  
-  overflow-y: auto; /* Internal Scrollbar */
-  flex: 1; /* Fill the section */
-  padding-right: 4px;
-}
-
-.donationsList::-webkit-scrollbar { width: 6px; }
-.donationsList::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-.donationsList::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-.donationsList::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-
-.donationItem { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 8px; flex-shrink: 0; }
-.donationItem:hover { background-color: #f9f9f9; }
-.donorAvatar { width: 32px; height: 32px; background: #dbeafe; color: #1e40af; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
-.donorName { font-size: 0.9rem; font-weight: 500; }
-.donationAmount { font-size: 0.9rem; font-weight: 600; color: #059669; }
-
-/* --- CLOSE BUTTON --- */
+/* --- CLOSE BUTTON (Floating X) --- */
 .closeModalBtn {
   position: absolute;
   top: 1.5rem;
@@ -170,18 +65,43 @@
   color: #6c757d;
   transition: all 0.2s ease;
 }
-.closeModalBtn:hover { background: #e9ecef; color: #1a1a1a; transform: rotate(90deg); }
+.closeModalBtn:hover {
+  background: #e9ecef;
+  color: #1a1a1a;
+  transform: rotate(90deg);
+}
 
-/* --- GENERAL STYLES (Image, etc) --- */
+/* --- CONTENT LAYOUT --- */
+.pageWrapper {
+  min-height: auto;
+  padding-bottom: 2rem;
+  color: #0f0f0f;
+  font-family: Roboto, Arial, sans-serif;
+}
+
+/* Grid Layout */
+.ytLayoutGrid {
+  padding: 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 1rem;
+  /* FIX: Added extra bottom padding to extend the sticky container's height */
+  padding-bottom: 100px;
+}
+
+.ytMainColumn { width: 100%; }
+
+/* Hero Image */
 .heroImageWrapper {
   width: 100%;
-  height: 350px; 
+  aspect-ratio: 16 / 9;
   background-color: #000;
   border-radius: 12px;
   position: relative;
   overflow: hidden;
   margin-bottom: 1rem;
-  flex-shrink: 0;
 }
 .headerImage { width: 100%; height: 100%; object-fit: cover; }
 
@@ -221,7 +141,7 @@
 .activeTab { color: #0f0f0f; border-bottom-color: #0f0f0f; }
 .tabContentSection { padding-top: 1rem; }
 
-/* Updates & Comments (Styling Only) */
+/* UPDATES */
 .timelineFeed { position: relative; padding-left: 2rem; }
 .timelineFeed::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0.75rem; width: 2px; background-color: #E5E7EB; }
 .updateItem { position: relative; margin-bottom: 2.5rem; background: white; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -235,6 +155,8 @@
 .formInput, .formTextarea { width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem; background-color: #F9FAFB; transition: all 0.2s; }
 .formInput:focus, .formTextarea:focus { outline: none; border-color: #0056D2; background-color: white; box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.1); }
 .formTextarea { min-height: 120px; resize: vertical; }
+
+/* COMMENTS */
 .commentInputWrapper { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
 .commentAvatarSmall { width: 40px; height: 40px; border-radius: 50%; background: #1D4ED8; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0; }
 .commentForm { flex: 1; }
@@ -250,185 +172,65 @@
 .commentHeader { font-size: 0.85rem; margin-bottom: 0.25rem; }
 .commentAuthor { font-weight: 600; margin-right: 0.5rem; }
 .commentTime { color: #606060; }
-.errorCard { background: white; padding: 2rem; border-radius: 12px; text-align: center; }
-.spinner { width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #0056D2; border-radius: 50%; animation: spin 1s linear infinite; }
+
+/* SIDEBAR */
+.donationCard { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e5e5; }
+.statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.statValue { font-size: 1.25rem; font-weight: 700; }
+.statLabel { font-size: 0.8rem; color: #606060; }
+.progressContainer { margin-bottom: 1.5rem; }
+.progressBar { height: 8px; background: #e5e5e5; border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
+.progressFill { height: 100%; background: #1D4ED8; border-radius: 4px; }
+.progressLabel { font-size: 0.8rem; color: #606060; text-align: right; }
+
+.donateButton { width: 100%; padding: 1rem; border-radius: 12px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 1rem; background: linear-gradient(135deg, #0056D2 0%, #0041A3 100%); color: #ffffff; box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3); transition: all 0.2s ease; }
+.donateButton:hover { background: linear-gradient(135deg, #0041A3 0%, #003380 100%); box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4); transform: translateY(-2px); }
+.donateButton:active { transform: translateY(0); }
+
+.organizerActions { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e5e5; }
+.payoutInfo { margin-bottom: 0.5rem; font-size: 0.9rem; }
+.payoutAmount { color: #059669; }
+.withdrawButton { width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid #d1d5db; background: white; cursor: pointer; font-weight: 600; }
+.withdrawButton:hover { background: #f9f9f9; }
+
+.donationsSection { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e5e5; }
+.sectionTitle { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+.donationsList { display: flex; flex-direction: column; gap: 0.75rem; }
+.donationItem { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 8px; }
+.donationItem:hover { background-color: #f9f9f9; }
+.donorAvatar { width: 32px; height: 32px; background: #dbeafe; color: #1e40af; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
+.donorName { font-size: 0.9rem; font-weight: 500; }
+.donationAmount { font-size: 0.9rem; font-weight: 600; color: #059669; }
+
+.errorCard {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+}
+.spinner {
+    width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #0056D2; border-radius: 50%; animation: spin 1s linear infinite;
+}
+
+.ytSidebar {
+  position: sticky;
+  /* FIX: Added 1.5rem padding from the top to prevent clipping */
+  top: 1.5rem;
+  height: fit-content;
+  z-index: 10;
+}
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Responsive: Fallback to stack */
+/* Responsive */
 @media (max-width: 1000px) {
-  .modalContainer { overflow-y: auto; } /* Allow full scroll on mobile */
   .ytLayoutGrid {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    overflow: visible;
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    align-items: start;
+    margin-top: 1rem;
   }
-  .ytMainColumn { height: auto; overflow: visible; padding-right: 0; }
-  .ytSidebar { height: auto; overflow: visible; }
-  .donationCard { height: auto; }
-  .donationsList { max-height: 300px; } /* Fixed height limit for list on mobile */
-}
-/* --- HERO IMAGE CAROUSEL STYLES --- */
-.heroImageWrapper {
-  width: 100%;
-  height: 350px; 
-  background-color: #000;
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 1rem;
-  flex-shrink: 0;
-  /* Ensure controls sit on top */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.headerImage { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-  transition: transform 0.2s;
-}
-
-/* Hover effect to hint it's clickable */
-.headerImage:hover {
-  opacity: 0.95;
-}
-
-.heroNavBtn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.4);
-  color: white;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  z-index: 10;
-}
-
-.heroNavBtn:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.heroDots {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-  z-index: 10;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-.activeDot {
-  background: white;
-  transform: scale(1.2);
-}
-
-/* --- LIGHTBOX (FULL SCREEN) STYLES --- */
-.lightboxOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.95);
-  z-index: 2000; /* Must be higher than normal overlay (1000) */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s ease;
-}
-
-.lightboxContent {
-  position: relative;
-  width: 90%;
-  height: 90%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lightboxImage {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 4px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-
-.closeLightboxBtn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255,255,255,0.2);
-  border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  cursor: pointer;
-  z-index: 2005;
-  transition: background 0.2s;
-}
-
-.closeLightboxBtn:hover {
-  background: rgba(255,255,255,0.4);
-}
-
-.lightboxNav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  color: rgba(255,255,255,0.7);
-  border: none;
-  cursor: pointer;
-  padding: 20px;
-  transition: color 0.2s;
-  z-index: 2005;
-}
-
-.lightboxNav:hover {
-  color: white;
-  background: rgba(255,255,255,0.1);
-  border-radius: 8px;
-}
-
-.lbPrev { left: -60px; }
-.lbNext { right: -60px; }
-
-.lightboxCounter {
-  position: absolute;
-  bottom: -40px;
-  color: white;
-  font-size: 1rem;
-  letter-spacing: 1px;
-}
-
-/* Responsive adjustment for Lightbox buttons */
-@media (max-width: 768px) {
-  .lbPrev { left: 0; background: rgba(0,0,0,0.5); }
-  .lbNext { right: 0; background: rgba(0,0,0,0.5); }
+  .heroImageWrapper { border-radius: 0; margin-left: -2rem; margin-right: -2rem; width: calc(100% + 4rem); }
 }
