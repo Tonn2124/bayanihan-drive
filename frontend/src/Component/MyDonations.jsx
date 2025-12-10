@@ -3,8 +3,7 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/MyDonations.module.css';
 
-// FIX: Added 'isModal' to the props list with a default value of false
-export default function MyDonations({ onNavigate, isModal = false }) {
+export default function MyDonations({ isModal }) {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,14 +30,6 @@ export default function MyDonations({ onNavigate, isModal = false }) {
     fetchDonations();
   }, []);
 
-  const handleItemClick = (campaignId) => {
-    if (onNavigate) {
-      onNavigate('campaignDetails', campaignId);
-    } else {
-      console.error("Navigation function not found.");
-    }
-  };
-
   if (loading) return <div style={{textAlign: 'center', padding: '2rem'}}>Loading history...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
@@ -54,7 +45,7 @@ export default function MyDonations({ onNavigate, isModal = false }) {
   const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount);
 
   return (
-    // Now 'isModal' is defined, so this check will work
+    // If isModal is true, we remove the default container class to avoid double padding
     <div className={!isModal ? styles.container : ''}>
       {!isModal && (
         <h2 style={{fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem', color: '#1c1e21'}}>
@@ -63,11 +54,7 @@ export default function MyDonations({ onNavigate, isModal = false }) {
       )}
       
       {donations.map((donation) => (
-        <div 
-            key={donation.id} 
-            className={styles.donationItem}
-            onClick={() => handleItemClick(donation.campaignId)} 
-        >
+        <div key={donation.id} className={styles.donationItem}>
           <div className={styles.leftSide}>
             <div className={styles.icon}>❤️</div>
             <div className={styles.info}>
