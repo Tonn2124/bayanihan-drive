@@ -2,15 +2,14 @@
 .wrapper {
   position: relative;
   width: 100%;
-  height: 100%; /* Ensures full height of parent/screen */
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* Prevents global scroll */
+  overflow: hidden;
   padding: 2rem;
 }
 
-/* Background Blobs for Visual Interest */
 .bgCircle1, .bgCircle2 {
   position: absolute;
   border-radius: 50%;
@@ -21,7 +20,7 @@
 .bgCircle1 {
   width: 300px;
   height: 300px;
-  background: rgba(59, 130, 246, 0.2); /* Blue */
+  background: rgba(59, 130, 246, 0.2);
   top: -50px;
   left: -50px;
 }
@@ -29,7 +28,7 @@
 .bgCircle2 {
   width: 250px;
   height: 250px;
-  background: rgba(236, 72, 153, 0.2); /* Pink */
+  background: rgba(236, 72, 153, 0.2);
   bottom: -50px;
   right: -50px;
 }
@@ -39,7 +38,7 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 900px; /* Wider Layout */
+  max-width: 900px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -91,7 +90,6 @@
   font-weight: 700;
 }
 
-/* --- UPLOAD SECTION (UPDATED) --- */
 .avatarInputGroup {
   width: 100%;
   text-align: center;
@@ -100,12 +98,8 @@
   align-items: center;
 }
 
-/* Hides the default ugly file input */
-.hiddenInput {
-  display: none;
-}
+.hiddenInput { display: none; }
 
-/* Styles the Label to look like a button */
 .uploadBtn {
   display: inline-block;
   background: white;
@@ -125,10 +119,6 @@
   border-color: #9CA3AF;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-}
-
-.uploadBtn:active {
-  transform: translateY(0);
 }
 
 .miniLabel {
@@ -155,6 +145,30 @@
   flex-direction: column;
 }
 
+/* NEW: Absolute Back Button for Top Left */
+.backBtnAbsolute {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  transition: all 0.2s;
+  z-index: 20;
+}
+.backBtnAbsolute:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111827;
+  transform: scale(1.05);
+}
+
 .header h2 {
   font-size: 1.5rem;
   color: #111827;
@@ -171,28 +185,14 @@
 .formGrid {
   margin-top: 1.5rem;
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 Column Layout */
+  grid-template-columns: 1fr 1fr; 
   gap: 1.25rem;
 }
 
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
+.fieldGroup { display: flex; flex-direction: column; gap: 0.4rem; }
+.fieldGroupFull { grid-column: span 2; display: flex; flex-direction: column; gap: 0.4rem; }
 
-.fieldGroupFull {
-  grid-column: span 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.fieldGroup label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
+.fieldGroup label { font-size: 0.85rem; font-weight: 600; color: #374151; }
 
 .input {
   padding: 0.75rem;
@@ -203,47 +203,28 @@
   transition: all 0.2s;
 }
 
-.input:focus {
+.textarea {
+    padding: 0.75rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: #F9FAFB;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    min-height: 100px;
+    font-family: inherit;
+    /* FIX: Prevent resizing */
+    resize: none; 
+}
+
+.input:focus, .textarea:focus {
   background: white;
   border-color: #3B82F6;
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.inputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+.disabled { background: #F3F4F6; color: #9CA3AF; cursor: not-allowed; }
 
-.prefix {
-  position: absolute;
-  left: 10px;
-  color: #9CA3AF;
-  font-weight: 600;
-}
-
-.inputWrapper input {
-  padding-left: 28px;
-  width: 100%;
-}
-
-.disabled {
-  background: #F3F4F6;
-  color: #9CA3AF;
-  cursor: not-allowed;
-}
-
-.readOnlyTag {
-  font-size: 0.7rem;
-  background: #E5E7EB;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 8px;
-  font-weight: normal;
-}
-
-/* --- PASSWORD SECTION --- */
 .divider {
   grid-column: span 2;
   margin-top: 0.5rem;
@@ -253,37 +234,14 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
+.divider::after { content: ''; flex: 1; height: 1px; background: #E5E7EB; margin-left: 10px; }
 
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #E5E7EB;
-  margin-left: 10px;
-}
-
-/* --- ALERTS --- */
 .alertError, .alertSuccess {
-  padding: 0.75rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  width: 100%;
+  padding: 0.75rem; border-radius: 8px; font-size: 0.9rem; margin-top: 1rem; width: 100%;
 }
+.alertError { background: #FEE2E2; color: #B91C1C; border: 1px solid #FECACA; }
+.alertSuccess { background: #D1FAE5; color: #047857; border: 1px solid #A7F3D0; }
 
-.alertError {
-  background: #FEE2E2;
-  color: #B91C1C;
-  border: 1px solid #FECACA;
-}
-
-.alertSuccess {
-  background: #D1FAE5;
-  color: #047857;
-  border: 1px solid #A7F3D0;
-}
-
-/* --- ACTIONS --- */
 .actionRow {
   grid-column: span 2;
   display: flex;
@@ -294,38 +252,12 @@
   border-top: 1px solid #E5E7EB;
 }
 
-.cancelBtn {
-  padding: 0.6rem 1.5rem;
-  border: none;
-  background: transparent;
-  color: #6B7280;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.cancelBtn:hover {
-  color: #111827;
-}
+.cancelBtn { padding: 0.6rem 1.5rem; border: none; background: transparent; color: #6B7280; font-weight: 600; cursor: pointer; }
+.cancelBtn:hover { color: #111827; }
 
 .saveBtn {
-  padding: 0.6rem 2rem;
-  border: none;
-  border-radius: 8px;
-  background: #2563EB; /* Primary Blue */
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-  transition: all 0.2s;
+  padding: 0.6rem 2rem; border: none; border-radius: 8px; background: #2563EB; color: white; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); transition: all 0.2s;
 }
-
-.saveBtn:hover {
-  background: #1D4ED8;
-  transform: translateY(-1px);
-}
-
-.saveBtn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
+.saveBtn:hover { background: #1D4ED8; transform: translateY(-1px); }
+.saveBtn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }

@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { supabase } from '../../supabaseClient';
-import styles from '../../Style/Dashboard.module.css'; // Reuse dashboard styles
-import CampaignList from '../CampaignList';
+import styles from '../../Style/PublicProfile.module.css';
 
-export default function PublicProfile({ userId, onNavigate, onBack }) {
+// SVG Icons
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+export default function PublicProfile({ userId, onClose, onNavigate, fromCampaignId }) {
   const [profile, setProfile] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!userId) return;
       try {
         setLoading(true);
         // 1. Fetch Profile
@@ -22,16 +30,9 @@ export default function PublicProfile({ userId, onNavigate, onBack }) {
         
         setProfile(profileData);
 
-        // 2. Fetch User's Campaigns (Public ones)
-        // We can reuse the search endpoint or create a specific one.
-        // Or simpler: Use Supabase directly if policies allow, but better via API.
-        // Let's use the CampaignController endpoint we might have or create.
-        // Actually, CampaignController has `getCampaignsByOrganizer` but it uses `@AuthenticationPrincipal`.
-        // We need a public endpoint for "get campaigns by user ID".
-        
-        // I'll create a new endpoint in CampaignController: GET /api/campaigns/user/{userId}
+        // 2. Fetch User's Campaigns
         const res = await axios.get(`http://localhost:8080/api/campaigns/user/${userId}`);
-        setCampaigns(res.data);
+        setCampaigns(res.data || []);
 
       } catch (err) {
         console.error(err);
@@ -39,73 +40,144 @@ export default function PublicProfile({ userId, onNavigate, onBack }) {
         setLoading(false);
       }
     };
-    if (userId) fetchData();
+    fetchData();
   }, [userId]);
 
-  if (loading) return <div className={styles.loadingContainer}>Loading Profile...</div>;
-  if (!profile) return <div className={styles.loadingContainer}>User not found.</div>;
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(amount || 0);
+
+  // --- HANDLER: Smart Close ---
+  // If we came from a campaign, navigate back to it. Otherwise just close.
+  const handleClose = () => {
+    // 1. If we have history to go back to, navigate there
+    if (fromCampaignId && onNavigate) {
+        onNavigate('campaignDetails', fromCampaignId);
+    } 
+    // 2. Otherwise, check if onClose is a valid function before calling it
+    else if (typeof onClose === 'function') {
+        onClose();
+    } 
+    // 3. Fallback if the prop was forgotten (prevents crash)
+    else {
+        console.warn("PublicProfile: 'onClose' prop is missing!");
+    }
+  };
+
+  // Loading State
+  if (loading) return (
+    <div className={styles.overlay} onClick={handleClose}>
+        <div className={styles.modalContainer}>
+            <div className={styles.loadingState}>Loading Profile...</div>
+        </div>
+    </div>
+  );
+
+  if (!profile) return null;
 
   return (
-    <div className={styles.dashboardRoot}> 
-      {/* We reuse dashboard layout but simplified */}
-      <div className={styles.centerPanel} style={{width:'100%'}}>
-         <header className={styles.centerHeader}>
-             <button onClick={onBack} style={{background:'none', border:'none', fontSize:'1.2rem', cursor:'pointer', marginRight:'1rem'}}>← Back</button>
-             <h2>Profile</h2>
-         </header>
-         
-         <div className={styles.scrollableContent}>
-             <div style={{
-                 background: 'var(--card-bg)', 
-                 padding: '2rem', 
-                 borderRadius: '12px', 
-                 marginBottom: '2rem',
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: '2rem',
-                 border: '1px solid var(--border-color)'
-             }}>
-                 <img 
-                    src={profile.avatar_url || `https://ui-avatars.com/api/?name=${profile.full_name}&background=random`} 
-                    alt={profile.full_name} 
-                    style={{width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover'}}
-                 />
-                 <div>
-                     <h1 style={{margin: '0 0 0.5rem 0', fontSize: '1.8rem'}}>{profile.full_name}</h1>
-                     <p style={{margin: '0 0 1rem 0', color: 'var(--text-secondary)'}}>@{profile.username}</p>
-                     <p style={{margin: 0}}>{profile.bio || "No bio yet."}</p>
-                 </div>
-             </div>
+    <div className={styles.overlay} onClick={handleClose}>
+      {/* Centered Modal Card */}
+      <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
+        
+        {/* Close Button (Top Right X) */}
+        <button onClick={handleClose} className={styles.closeBtn} title="Close">
+           <XIcon />
+        </button>
 
-             <h3 style={{margin: '0 0 1rem 0'}}>Campaigns by {profile.full_name}</h3>
-             {campaigns.length === 0 ? (
-                 <p>No active campaigns.</p>
-             ) : (
-                 <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px'}}>
-                     {/* We can't reuse CampaignList easily as it fetches its own data. 
-                         We should probably refactor CampaignList to accept 'campaigns' prop or duplicate the card rendering.
-                         I'll duplicate card rendering for simplicity and to avoid breaking CampaignList.
-                     */}
-                     {campaigns.map(c => (
-                         <div key={c.id} className="card" onClick={() => onNavigate('campaignDetails', c.id)} style={{
-                             background: 'var(--card-bg)', 
-                             border: '1px solid var(--border-color)', 
-                             borderRadius: '8px', 
-                             overflow: 'hidden', 
-                             cursor: 'pointer'
-                         }}>
-                             <div style={{height: '140px', background: '#ccc'}}>
-                                 <img src={c.coverImageUrl} style={{width:'100%', height:'100%', objectFit:'cover'}} />
-                             </div>
-                             <div style={{padding: '12px'}}>
-                                 <h4 style={{margin: '0 0 4px 0'}}>{c.title}</h4>
-                                 <p style={{fontSize: '0.8rem', color: '#666'}}>Raised: ₱{c.currentAmount}</p>
-                             </div>
-                         </div>
-                     ))}
-                 </div>
-             )}
-         </div>
+        <div className={styles.scrollableContent}>
+            {/* Banner */}
+            <div className={styles.banner}></div>
+
+            {/* Main Content */}
+            <div className={styles.mainContent}>
+                
+                {/* Profile Card */}
+                <div className={styles.profileCard}>
+                    <div className={styles.avatarWrapper}>
+                        {profile.avatar_url ? (
+                            <img 
+                                src={profile.avatar_url} 
+                                alt={profile.full_name} 
+                                className={styles.avatar}
+                            />
+                        ) : (
+                            <div className={styles.avatarPlaceholder}>
+                                {profile.full_name?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                        )}
+                    </div>
+                    
+                    <h1 className={styles.name}>{profile.full_name}</h1>
+                    <p className={styles.username}>
+                        @{profile.username} 
+                        <span className={styles.roleBadge}>{profile.role || 'Member'}</span>
+                    </p>
+                    
+                    <p className={styles.bio}>
+                        {profile.bio || "This user hasn't written a bio yet."}
+                    </p>
+
+                    <div className={styles.statsRow}>
+                        <div className={styles.statItem}>
+                            <span className={styles.statValue}>{campaigns.length}</span>
+                            <span className={styles.statLabel}>Campaigns</span>
+                        </div>
+                        <div className={styles.statItem}>
+                            <span className={styles.statValue}>{new Date(profile.created_at || Date.now()).getFullYear()}</span>
+                            <span className={styles.statLabel}>Joined</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Campaigns Grid */}
+                <div className={styles.campaignsSection}>
+                    <div className={styles.sectionTitle}>
+                        <span>Public Campaigns</span>
+                    </div>
+
+                    {campaigns.length === 0 ? (
+                        <div className={styles.emptyState}>
+                            <h3>No active campaigns</h3>
+                            <p>{profile.full_name} hasn't started any fundraisers yet.</p>
+                        </div>
+                    ) : (
+                        <div className={styles.campaignGrid}>
+                            {campaigns.map(c => (
+                                <div 
+                                    key={c.id} 
+                                    className={styles.card} 
+                                    onClick={() => {
+                                        // When clicking a campaign here, we assume standard behavior
+                                        // (Close profile, open new campaign)
+                                        if(onNavigate) onNavigate('campaignDetails', c.id);
+                                        else onClose();
+                                    }}
+                                >
+                                    <div className={styles.cardImageWrapper}>
+                                        <img 
+                                            src={c.coverImageUrl || 'https://placehold.co/600x400?text=Campaign'} 
+                                            alt={c.title} 
+                                            className={styles.cardImg} 
+                                        />
+                                        {c.category && <span className={styles.categoryTag}>{c.category}</span>}
+                                    </div>
+                                    
+                                    <div className={styles.cardBody}>
+                                        <h4 className={styles.cardTitle}>{c.title}</h4>
+                                        <div className={styles.cardMeta}>
+                                            <div>
+                                                <div className={styles.amountLabel}>Raised</div>
+                                                <div className={styles.amountValue}>{formatCurrency(c.currentAmount)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
       </div>
     </div>
   );

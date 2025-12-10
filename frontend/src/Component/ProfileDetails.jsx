@@ -1,191 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import axios from 'axios';
+import React, { useState } from 'react';
+import MyCampaigns from './MyCampaigns';
+import MyDonations from './MyDonations';
 import styles from '../Style/ProfileDetails.module.css';
 
-export default function ProfileDetails({ targetUserId, session, onNavigate }) {
-  const [userProfile, setUserProfile] = useState(null);
-  const [items, setItems] = useState([]); 
-  const [loading, setLoading] = useState(true);
-  
-  // Tab State: 'campaigns' or 'donations'
-  const [activeTab, setActiveTab] = useState('campaigns'); 
+// Icons
+const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
+const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>);
 
-  const currentUser = session?.user;
-  const isOwner = currentUser?.id === targetUserId;
+export default function ProfileDetails({ profile, onClose, onEdit, onNavigate }) {
+  const [activeTab, setActiveTab] = useState('campaigns');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const idToFetch = targetUserId || session?.user?.id;
-      if (!idToFetch) return;
-      
-      try {
-        setLoading(true);
-
-        // 1. Fetch Basic Profile Info (Always from Supabase)
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', idToFetch)
-          .single();
-
-        if (profileError) throw profileError;
-        setUserProfile(profileData);
-
-        // 2. Fetch Lists (Campaigns/Donations)
-        let campaignsData = [];
-        let donationsData = [];
-
-        if (isOwner) {
-            // --- OWNER: Use your AXIOS endpoints ---
-            const token = session.access_token;
-            const config = { headers: { 'Authorization': `Bearer ${token}` } };
-
-            try {
-                // Fetch My Campaigns
-                const campRes = await axios.get('http://localhost:8080/api/campaigns/my-campaigns', config);
-                campaignsData = campRes.data || [];
-            } catch (err) {
-                console.error("Axios Campaigns Error:", err);
-            }
-
-            try {
-                // Fetch My Donations
-                const donRes = await axios.get('http://localhost:8080/api/donations/my-donations', config);
-                donationsData = donRes.data || [];
-            } catch (err) {
-                console.error("Axios Donations Error:", err);
-            }
-
-        } else {
-            // --- VISITOR: Use Supabase (Public Data) ---
-            const { data: cData } = await supabase
-                .from('campaigns')
-                .select('*')
-                .eq('userId', idToFetch); // Check if your column is 'userId' or 'user_id'
-            campaignsData = cData || [];
-
-            const { data: dData } = await supabase
-                .from('donations')
-                .select('*, campaigns(title)')
-                .eq('userId', idToFetch);
-            donationsData = dData || [];
-        }
-
-        // 3. Process items based on active tab
-        if (activeTab === 'campaigns') {
-            setItems(campaignsData.map(c => ({ ...c, type: 'campaign' })));
-        } else {
-            setItems(donationsData.map(d => ({ ...d, type: 'donation' })));
-        }
-
-      } catch (error) {
-        console.error("Error loading profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [targetUserId, session, isOwner, activeTab]);
-
-  if (loading) return <div className={styles.loadingState}>Loading...</div>;
-  if (!userProfile) return <div className={styles.errorState}>User not found.</div>;
+  if (!profile) return null;
 
   return (
-    <div className={styles.container}>
-      {/* HEADER (Compact, No Cover) */}
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-            <div className={styles.avatarWrapper}>
-                {userProfile.avatar_url ? (
-                    <img src={userProfile.avatar_url} alt="Profile" className={styles.avatar} />
-                ) : (
-                    <div className={styles.avatarPlaceholder}>{userProfile.full_name?.charAt(0)}</div>
-                )}
-            </div>
-            
-            <div className={styles.headerInfo}>
-                <h2 className={styles.name}>{userProfile.full_name}</h2>
-                <p className={styles.role}>{userProfile.role || 'Member'}</p>
-                <div className={styles.statsRow}>
-                     <span>📍 {userProfile.location || 'Philippines'}</span>
-                </div>
-            </div>
-        </div>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
         
-        {userProfile.bio && <p className={styles.bio}>{userProfile.bio}</p>}
+        <button className={styles.closeBtn} onClick={onClose}><CloseIcon /></button>
 
-        {isOwner && (
-            <button className={styles.editBtn} onClick={() => onNavigate('profileSettings')}>
-                Edit Profile
-            </button>
-        )}
-      </div>
-
-      {/* TABS */}
-      <div className={styles.tabs}>
-        <button 
-            className={`${styles.tab} ${activeTab === 'campaigns' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('campaigns')}
-        >
-            Campaigns
-        </button>
-        <button 
-            className={`${styles.tab} ${activeTab === 'donations' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('donations')}
-        >
-            Donations
-        </button>
-      </div>
-
-      {/* SCROLLABLE LIST */}
-      <div className={styles.listArea}>
-        {items.length === 0 ? (
-            <div className={styles.emptyState}>No {activeTab} found.</div>
-        ) : (
-            items.map((item, index) => (
-                <div key={index} className={styles.card}>
-                    {item.type === 'campaign' ? (
-                        // Campaign Card
-                        <div onClick={() => onNavigate('campaignDetails', {id: item.id})} className={styles.clickable}>
-                            <div className={styles.cardHeader}>
-                                <span className={styles.cardTitle}>{item.title}</span>
-                                <span className={styles.cardDate}>
-                                    {new Date(item.created_at || Date.now()).toLocaleDateString()}
-                                </span>
-                            </div>
-                            <p className={styles.cardDesc}>{item.description?.substring(0, 80)}...</p>
-                            <div className={styles.progressBarBg}>
-                                <div 
-                                    className={styles.progressBarFill} 
-                                    style={{width: `${Math.min((item.raised / item.goal) * 100, 100)}%`}}
-                                ></div>
-                            </div>
-                            <div className={styles.cardFooter}>
-                                <span>Raised: ₱{item.raised?.toLocaleString()}</span>
-                            </div>
-                        </div>
+        {/* Header */}
+        <div className={styles.header}>
+            <div className={styles.profileInfoWrapper}>
+                <div className={styles.avatarWrapper}>
+                    {profile.avatar_url ? (
+                        <img src={profile.avatar_url} alt="User" className={styles.avatar} />
                     ) : (
-                        // Donation Card
-                        <div className={styles.donationRow}>
-                            <div className={styles.icon}>❤️</div>
-                            <div className={styles.donationDetails}>
-                                <p className={styles.donationText}>
-                                    Donated <strong>₱{item.amount?.toLocaleString()}</strong>
-                                </p>
-                                <p className={styles.donationSub}>
-                                    to {item.campaigns?.title || `Campaign #${item.campaignId}`}
-                                </p>
-                            </div>
-                            <span className={styles.cardDate}>
-                                {new Date(item.createdAt || Date.now()).toLocaleDateString()}
-                            </span>
+                        <div className={styles.avatarPlaceholder}>
+                            {profile.full_name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                     )}
                 </div>
-            ))
-        )}
+                <div className={styles.details}>
+                    <h2 className={styles.name}>{profile.full_name}</h2>
+                    <div className={styles.metaRow}>
+                        <span className={styles.username}>@{profile.username}</span>
+                        <span className={styles.roleBadge}>{profile.role || 'MEMBER'}</span>
+                    </div>
+                    <p className={styles.bio}>{profile.bio || "No bio yet."}</p>
+                </div>
+            </div>
+            
+            <button className={styles.editBtn} onClick={onEdit}>
+                <EditIcon /> Edit
+            </button>
+        </div>
+
+        {/* Tabs */}
+        <div className={styles.tabs}>
+            <button className={`${styles.tab} ${activeTab === 'campaigns' ? styles.activeTab : ''}`} onClick={() => setActiveTab('campaigns')}>My Campaigns</button>
+            <button className={`${styles.tab} ${activeTab === 'donations' ? styles.activeTab : ''}`} onClick={() => setActiveTab('donations')}>My Donation History</button>
+        </div>
+
+        {/* Content Area - REUSING COMPONENTS HERE */}
+        <div className={styles.contentArea}>
+            {activeTab === 'campaigns' ? (
+                // Pass isModal={true} to hide headers and adjust styles
+                <MyCampaigns onNavigate={onNavigate} isModal={true} />
+            ) : (
+                <MyDonations isModal={true} />
+            )}
+        </div>
       </div>
     </div>
   );

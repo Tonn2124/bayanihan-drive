@@ -142,14 +142,13 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
     }
   };
 
+  const handleEditCampaign = () => {
+    alert("Edit functionality coming soon!");
+  };
+
   const handleShare = (platform) => {
     const baseUrl = window.location.origin + window.location.pathname;
     const shareUrl = `${baseUrl}?campaignId=${campaignId}`;
-    const url = encodeURIComponent(shareUrl);
-    const text = encodeURIComponent(`Check out this donation drive: ${campaign?.title}`);
-
-    if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-    if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
     if (platform === 'copy') {
       navigator.clipboard.writeText(shareUrl) 
         .then(() => alert("Link copied!"), () => alert("Failed to copy"));
@@ -198,10 +197,16 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
       {/* MODAL CONTAINER */}
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
         
-        {/* Floating Close Button */}
-        <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close">
-            <CloseIcon />
-        </button>
+        {/* --- TOP RIGHT CONTROLS (Only Close Button Now) --- */}
+        <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '1rem', zIndex: 20 }}>
+            
+            {/* --- REMOVED USER PROFILE ICON HERE --- */}
+
+            {/* CLOSE BUTTON */}
+            <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close" style={{position: 'static'}}>
+                <CloseIcon />
+            </button>
+        </div>
 
         {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={fetchCampaignData} />}
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
@@ -226,11 +231,12 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
 
                     <h1 className={styles.ytTitle}>{campaign.title}</h1>
 
-                    {/* Meta & Share Row */}
+                    {/* Meta & Action Row */}
                     <div className={styles.ytMetaRow}>
+                        {/* UPDATE: Added fromCampaignId so back button works */}
                         <div 
                             className={styles.ytOrganizerProfile} 
-                            onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id) : null}
+                            onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id, campaignId) : null}
                             style={{ cursor: 'pointer' }}
                             title="View Public Profile"
                         >
@@ -244,6 +250,12 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                         </div>
 
                         <div className={styles.ytActionButtons}>
+                            {/* Edit Button (Only visible to Organizer) */}
+                            {isOrganizer && (
+                                <button className={styles.pillBtn} onClick={handleEditCampaign}>
+                                    <EditIcon /> <span>Edit</span>
+                                </button>
+                            )}
                             <button className={styles.pillBtn} onClick={() => handleShare('copy')}>
                                 <ShareIcon /> <span>Share</span>
                             </button>
@@ -358,11 +370,9 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                             <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
                         </div>
                         
-                        {/* CONDITIONAL BUTTONS */}
+                        {/* Hide Donate button if user is organizer */}
                         {!isOrganizer && (
-                            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>
-                                Donate Now
-                            </button>
+                            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>
                         )}
                         
                         {canWithdraw && (

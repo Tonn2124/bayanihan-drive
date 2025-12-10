@@ -45,7 +45,7 @@ export default function ProfileSettings({ onBack }) {
       const profile = response.data;
       setFullName(profile.fullName || '');
       setUsername(profile.username || '');
-      setBio(profile.bio || ''); // Assuming bio field exists or will exist
+      setBio(profile.bio || ''); 
       setAvatarUrl(profile.avatarUrl || '');
 
     } catch (err) {
@@ -56,7 +56,6 @@ export default function ProfileSettings({ onBack }) {
     }
   };
 
-  // --- IMAGE UPLOAD LOGIC ---
   const handleImageUpload = async (event) => {
     try {
       setUploading(true);
@@ -103,18 +102,13 @@ export default function ProfileSettings({ onBack }) {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session.access_token;
 
-      // Update backend profile
       await axios.put('http://localhost:8080/api/profile', 
         { fullName, username, bio, avatarUrl }, 
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
       let authUpdates = {};
-
-      if (newEmail !== email) {
-          authUpdates.email = newEmail;
-      }
-
+      if (newEmail !== email) authUpdates.email = newEmail;
       if (newPassword) {
          if (newPassword !== confirmPassword) throw new Error("Passwords do not match");
          authUpdates.password = newPassword;
@@ -123,11 +117,7 @@ export default function ProfileSettings({ onBack }) {
       if (Object.keys(authUpdates).length > 0) {
           const { error: authError } = await supabase.auth.updateUser(authUpdates);
           if (authError) throw authError;
-          if (authUpdates.email) {
-              setSuccess("Profile updated! Please check your new email for verification.");
-          } else {
-              setSuccess("Profile and password updated successfully!");
-          }
+          setSuccess("Profile updated! Security settings changed.");
       } else {
           setSuccess("Profile updated successfully!");
       }
@@ -143,7 +133,7 @@ export default function ProfileSettings({ onBack }) {
     }
   };
 
-  if (loading) return <div className={styles.loadingState}>Loading...</div>;
+  if (loading) return <div className={styles.wrapper}>Loading...</div>;
 
   return (
     <div className={styles.wrapper}>
@@ -151,6 +141,15 @@ export default function ProfileSettings({ onBack }) {
         <div className={styles.bgCircle2}></div>
 
         <div className={styles.glassCard}>
+            
+            {/* NEW: Back Button Absolute Top Left of Card */}
+            <button onClick={onBack} className={styles.backBtnAbsolute} type="button" title="Back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+
             {/* LEFT COLUMN */}
             <div className={styles.leftCol}>
                 <div className={styles.avatarContainer}>
@@ -185,19 +184,9 @@ export default function ProfileSettings({ onBack }) {
 
             {/* RIGHT COLUMN */}
             <div className={styles.rightCol}>
-                
-                {/* --- HEADER WITH BACK BUTTON --- */}
-                <div className={styles.headerRow}>
-                    <button onClick={onBack} className={styles.backIconBtn} type="button" title="Back to Feed">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
-                    </button>
-                    <div>
-                        <h2 className={styles.title}>Edit Profile</h2>
-                        <p className={styles.subtitle}>Manage your public information and security</p>
-                    </div>
+                <div className={styles.header}>
+                    <h2>Edit Profile</h2>
+                    <p>Manage your public information and security</p>
                 </div>
 
                 {error && <div className={styles.alertError}>{error}</div>}
@@ -214,6 +203,7 @@ export default function ProfileSettings({ onBack }) {
                     </div>
                     <div className={styles.fieldGroupFull}>
                          <label>Bio</label>
+                         {/* UPDATED: Uses .textarea with resize:none */}
                          <textarea className={styles.textarea} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself..." />
                     </div>
 
@@ -227,10 +217,9 @@ export default function ProfileSettings({ onBack }) {
                         <input type="password" className={styles.input} placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                     </div>
                     <div className={styles.fieldGroup}>
-                        <input type="password" className={styles.input} placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                        <input type="password" className={styles.input} placeholder="Confirm" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                     </div>
                     
-                    {/* Action Buttons */}
                     <div className={styles.actionRow}>
                         <button type="button" className={styles.cancelBtn} onClick={onBack}>Cancel</button>
                         <button type="submit" className={styles.saveBtn} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>

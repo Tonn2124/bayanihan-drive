@@ -1,206 +1,159 @@
-.container {
+/* --- OVERLAY --- */
+.overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 2000; /* High z-index to sit on top of everything */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- MODAL CARD --- */
+.modalContainer {
+  background: white;
+  width: 100%;
+  max-width: 750px; /* Specific width for the card look */
+  height: auto;
+  min-height: 500px;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background-color: #fff;
-  border-radius: 8px;
+  position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* --- HEADER SECTION --- */
 .header {
-  padding: 20px;
-  border-bottom: 1px solid #f0f2f5;
-  background-color: #fff;
-}
-
-.headerTop {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.avatarWrapper {
-  flex-shrink: 0;
-}
-
-.avatar, .avatarPlaceholder {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #e4e6eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: #65676b;
-  border: 1px solid #ddd;
-}
-
-.headerInfo {
-  flex: 1;
-}
-
-.name {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1c1e21;
-}
-
-.role {
-  margin: 2px 0 5px 0;
-  font-size: 0.9rem;
-  color: #65676b;
-  text-transform: capitalize;
-}
-
-.statsRow {
-  font-size: 0.85rem;
-  color: #65676b;
-}
-
-.bio {
-  margin-top: 12px;
-  font-size: 0.95rem;
-  color: #050505;
-}
-
-.editBtn {
-  margin-top: 15px;
-  width: 100%;
-  padding: 8px;
-  background-color: #e4e6eb;
-  color: #050505;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-.editBtn:hover {
-  background-color: #d8dadf;
-}
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #f0f2f5;
-  background: #fff;
-}
-
-.tab {
-  flex: 1;
-  padding: 12px;
-  background: none;
-  border: none;
-  font-weight: 600;
-  color: #65676b;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-
-.activeTab {
-  color: #1877f2;
-  border-bottom: 3px solid #1877f2;
-}
-
-.listArea {
-  flex: 1;
-  overflow-y: auto;
-  background-color: #f0f2f5;
-  padding: 10px;
-  /* Custom scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: #bcc0c4 #f0f2f5;
-}
-
-.card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.clickable {
-  cursor: pointer;
-}
-
-.cardHeader {
+  padding: 2rem 2.5rem;
+  background: white;
+  position: relative;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  align-items: flex-start;
 }
 
-.cardTitle {
-  font-weight: 700;
-  color: #1c1e21;
+.closeBtn {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
 }
+.closeBtn:hover { background: #e5e7eb; color: #111827; }
 
-.cardDate {
-  font-size: 0.8rem;
-  color: #65676b;
-}
-
-.cardDesc {
-  font-size: 0.9rem;
-  color: #65676b;
-  margin: 0 0 10px 0;
-}
-
-.progressBarBg {
-  height: 6px;
-  background-color: #f0f2f5;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.progressBarFill {
-  height: 100%;
-  background-color: #1877f2;
-  border-radius: 3px;
-}
-
-.cardFooter {
-  font-size: 0.85rem;
-  color: #1877f2;
-  font-weight: 600;
-}
-
-/* Donation Specific */
-.donationRow {
+.profileInfoWrapper {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  gap: 1.5rem;
+  align-items: flex-start;
+  width: 100%;
 }
 
-.icon {
-  font-size: 1.2rem;
+.avatarWrapper { flex-shrink: 0; }
+.avatar, .avatarPlaceholder {
+  width: 85px; height: 85px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+}
+.avatarPlaceholder {
+  background: #EFF6FF; color: #3B82F6;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; font-weight: 700;
 }
 
-.donationDetails {
+.details { flex: 1; padding-top: 0.5rem; }
+.name { margin: 0; font-size: 1.6rem; font-weight: 800; color: #111827; }
+
+.metaRow { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.username { color: #6B7280; font-size: 0.95rem; }
+.roleBadge { 
+  background: #DBEAFE; color: #1E40AF; 
+  padding: 2px 8px; border-radius: 6px; 
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
+}
+
+.bio { margin: 0.75rem 0 0 0; font-size: 0.95rem; color: #4B5563; }
+
+/* Edit Button Top Right */
+.editBtn {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white; 
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  font-size: 0.9rem; font-weight: 600; color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: fit-content;
+  margin-top: 0.5rem; /* Align with name */
+}
+.editBtn:hover { background: #f9fafb; border-color: #9ca3af; }
+
+/* --- TABS --- */
+.tabs {
+  display: flex;
+  padding: 0 2.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+.tab {
+  padding: 1rem 0;
+  margin-right: 2rem;
+  background: none; border: none;
+  font-size: 0.95rem; font-weight: 600; color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.activeTab { color: #0056D2; border-bottom-color: #0056D2; }
+.tab:hover:not(.activeTab) { color: #374151; }
+
+/* --- CONTENT AREA --- */
+.contentArea {
   flex: 1;
+  overflow-y: auto;
+  padding: 2rem 2.5rem;
+  background: #F9FAFB;
 }
 
-.donationText {
-  margin: 0;
-  font-size: 0.95rem;
-  color: #1c1e21;
-}
+.loading, .emptyState { color: #9ca3af; font-style: italic; margin-top: 1rem; }
 
-.donationSub {
-  margin: 2px 0 0 0;
-  font-size: 0.85rem;
-  color: #65676b;
+/* Campaigns Grid */
+.campaignGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+.campaignCard {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;
+  transition: transform 0.2s; cursor: pointer;
 }
+.campaignCard:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.campaignImg { height: 130px; background-size: cover; background-position: center; background-color: #e5e5e5; }
+.campaignMeta { padding: 1rem; }
+.campaignTitle { margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 700; color: #111827; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.campaignAmount { font-size: 0.9rem; font-weight: 600; color: #059669; }
+.campaignStatus { float: right; font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; margin-top: 2px; }
 
-.loadingState, .errorState, .emptyState {
-  padding: 40px;
-  text-align: center;
-  color: #65676b;
-  font-style: italic;
+/* Donations List */
+.donationList { display: flex; flex-direction: column; gap: 0.75rem; }
+.donationItem {
+  display: flex; align-items: center; justify-content: space-between;
+  background: white; padding: 1rem; border-radius: 10px; border: 1px solid #e5e7eb;
 }
+.donationLeft { display: flex; align-items: center; gap: 1rem; }
+.donationIcon { width: 36px; height: 36px; background: #DBEAFE; color: #1E40AF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
+.donationInfo { display: flex; flex-direction: column; }
+.donationTarget { font-size: 0.95rem; font-weight: 600; color: #374151; }
+.donationDate { font-size: 0.8rem; color: #9ca3af; }
+.donationRight { font-weight: 700; color: #059669; }
