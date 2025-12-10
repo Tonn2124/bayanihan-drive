@@ -7,6 +7,7 @@ import CampaignDetails from './Component/CampaignDetails'
 import AdminDashboard from './Component/AdminDashboard'
 import LandingPage from './Component/LandingPage' 
 import ProfileSettings from './Component/ProfileSettings'
+import PublicProfile from './Component/PublicProfile/PublicProfile' // New Import
 import TermsAndConditions from './Component/TermsAndConditions'
 import styles from './App.module.css' 
 
@@ -17,8 +18,10 @@ function App() {
   // Navigation States
   const [currentPage, setCurrentPage] = useState('dashboard') 
   const [selectedCampaignId, setSelectedCampaignId] = useState(null)
-  // NEW: State to hold the full campaign object (for instant loading)
   const [selectedCampaignData, setSelectedCampaignData] = useState(null)
+  
+  // New state for public profile
+  const [selectedUserId, setSelectedUserId] = useState(null);
   
   // Auth Flow State
   const [authMode, setAuthMode] = useState('landing') 
@@ -84,6 +87,9 @@ function App() {
         const newUrl = `${window.location.pathname}?campaignId=${data}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
       }
+    } else if (page === 'publicProfile') {
+        setSelectedUserId(data);
+        window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
     } else {
       // Reset URL for other pages
       window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
@@ -132,6 +138,14 @@ function App() {
         {currentPage === 'admin' && (
             <AdminDashboard onNavigate={handleNavigate} />
         )}
+        
+        {currentPage === 'publicProfile' && (
+            <PublicProfile 
+                userId={selectedUserId} 
+                onNavigate={handleNavigate}
+                onBack={() => handleNavigate('dashboard')}
+            />
+        )}
 
         {/* 3. Modal Layer (Overlays Dashboard) */}
         {currentPage === 'campaignDetails' && (
@@ -139,6 +153,7 @@ function App() {
               campaignId={selectedCampaignId} 
               campaignData={selectedCampaignData} // <--- PASSING THE DATA HERE
               onBack={() => handleNavigate('dashboard')} 
+              onNavigate={handleNavigate} // Pass navigation handler
             />
         )}
       </>

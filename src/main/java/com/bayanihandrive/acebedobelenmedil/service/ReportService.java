@@ -6,6 +6,8 @@ import com.bayanihandrive.acebedobelenmedil.repository.ReportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,16 +24,11 @@ public class ReportService {
     public void createReport(CreateReportRequest request, String reporterId) {
         UUID reporterUUID = UUID.fromString(reporterId);
         
-        // Check if already reported this campaign (simplification of "once in 24 hrs" to "once ever" or "once per status" for now,
-        // or we can implement 24h check)
-        // User requested: "AN ACCOUNT CAN ONLY SUBMIT A REPORT TO A SAME CAMPAIGN ONLY ONCE IN 24 HRS"
-        // I'll stick to simple exists check for now to prevent spam, or check the latest one.
+        // 24 Hour Check
+        Instant twentyFourHoursAgo = Instant.now().minus(24, ChronoUnit.HOURS);
         
-        // Simple 24h check logic could be implemented here if needed using a custom query, 
-        // but for MVP/prototype "once per campaign" or just "throttled" is often enough. 
-        // Let's implement strict duplicate check for now.
-        if (reportRepository.existsByCampaignIdAndReporterId(request.campaignId(), reporterUUID)) {
-             throw new RuntimeException("You have already reported this campaign.");
+        if (reportRepository.existsRecentReport(request.campaignId(), reporterUUID, twentyFourHoursAgo)) {
+             throw new RuntimeException("You can only report a campaign once every 24 hours.");
         }
 
         Report report = new Report();

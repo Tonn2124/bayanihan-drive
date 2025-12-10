@@ -16,7 +16,11 @@ export default function CreateCampaign({ session, onNavigate }) {
   const [category, setCategory] = useState(categories[0])
   const [urgency, setUrgency] = useState(urgencies[0])
   const [endDate, setEndDate] = useState('')
-  const [imageUrls, setImageUrls] = useState(['']) // Start with 1 empty slot
+  
+  // Replaced manual URL input with File Upload state
+  const [selectedFiles, setSelectedFiles] = useState([])
+  const [imageUrls, setImageUrls] = useState([]) 
+  const [uploading, setUploading] = useState(false)
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -57,22 +61,55 @@ export default function CreateCampaign({ session, onNavigate }) {
     return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(num);
   }
 
-  const handleImageChange = (index, value) => {
-    const newImages = [...imageUrls];
-    newImages[index] = value;
-    setImageUrls(newImages);
-  }
-
-  const addImageField = () => {
-    if (imageUrls.length < 5) {
-      setImageUrls([...imageUrls, ''])
+  // --- FILE UPLOAD LOGIC ---
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + selectedFiles.length > 5) {
+      setError('Maximum 5 images allowed.');
+      return;
     }
-  }
+    setSelectedFiles([...selectedFiles, ...files]);
+    setError(null);
+  };
 
-  const removeImageField = (index) => {
-    const newImages = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(newImages);
-  }
+  const removeFile = (index) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+  };
+
+  const uploadImages = async () => {
+    if (selectedFiles.length === 0) return [];
+
+    setUploading(true);
+    const urls = [];
+
+    for (const file of selectedFiles) {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `${session.user.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('campaign-images')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage
+                .from('campaign-images')
+                .getPublicUrl(filePath);
+
+            urls.push(data.publicUrl);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setError('Failed to upload one or more images. Please try again.');
+            setUploading(false);
+            return null; // Signal failure
+        }
+    }
+    setUploading(false);
+    return urls;
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -85,11 +122,20 @@ export default function CreateCampaign({ session, onNavigate }) {
       setError('Invalid goal amount.');
       return;
     }
-    
-    // Filter out empty image URLs
-    const validImages = imageUrls.filter(url => url && url.trim() !== '');
+
+    if (selectedFiles.length === 0) {
+        setError('Please upload at least one image.');
+        return;
+    }
 
     setLoading(true); setError(null); setSuccess(null);
+
+    // 1. Upload Images First
+    const uploadedUrls = await uploadImages();
+    if (!uploadedUrls) {
+        setLoading(false);
+        return; // Stopped due to upload error
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -101,8 +147,8 @@ export default function CreateCampaign({ session, onNavigate }) {
         goalAmount: cleanGoalAmount, 
         category, 
         urgency,
-        coverImageUrl: validImages.length > 0 ? validImages[0] : null,
-        images: validImages,
+        coverImageUrl: uploadedUrls[0], // First image is cover
+        images: uploadedUrls,
         endDate: new Date(endDate).toISOString(),
       }
 
@@ -202,26 +248,38 @@ export default function CreateCampaign({ session, onNavigate }) {
                                 </div>
                             </div>
 
-                            {/* Images Section */}
+                            {/* Images Section (File Upload) */}
                             <div className={styles.formGroup}>
-                                <label>Image URLs (Max 5) <span className={styles.opt}>(First is cover)</span></label>
-                                {imageUrls.map((url, index) => (
-                                    <div key={index} className={styles.imageInputRow} style={{marginBottom: '8px', display: 'flex', gap: '8px'}}>
-                                        <input 
-                                            className={styles.input} 
-                                            type="url" 
-                                            placeholder={`Image URL ${index + 1}`} 
-                                            value={url} 
-                                            onChange={e => handleImageChange(index, e.target.value)} 
-                                        />
-                                        {imageUrls.length > 1 && (
-                                            <button type="button" onClick={() => removeImageField(index)} className={styles.removeBtn} style={{background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', padding: '0 8px'}}>X</button>
-                                        )}
-                                    </div>
-                                ))}
-                                {imageUrls.length < 5 && (
-                                    <button type="button" onClick={addImageField} className={styles.btnAdd} style={{fontSize: '0.9rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer'}}>+ Add another image</button>
-                                )}
+                                <label>Campaign Images (Max 5) <span className={styles.opt}>(First is cover)</span></label>
+                                <div className={styles.fileUploadBox}>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        multiple 
+                                        onChange={handleFileSelect}
+                                        className={styles.fileInput}
+                                        id="fileInput"
+                                    />
+                                    <label htmlFor="fileInput" className={styles.fileLabel}>
+                                        <span>Click to upload images</span>
+                                    </label>
+                                </div>
+
+                                {/* Preview List */}
+                                <div className={styles.previewList}>
+                                    {selectedFiles.map((file, index) => (
+                                        <div key={index} className={styles.previewItem}>
+                                            <span className={styles.fileName}>{file.name}</span>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => removeFile(index)}
+                                                className={styles.removeBtn}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Expanded Story Section */}
@@ -236,8 +294,8 @@ export default function CreateCampaign({ session, onNavigate }) {
                                 />
                             </div>
 
-                            <button type="submit" className={styles.btnPrimary} disabled={loading}>
-                                {loading ? 'Launching...' : 'Launch Campaign'}
+                            <button type="submit" className={styles.btnPrimary} disabled={loading || uploading}>
+                                {loading || uploading ? 'Processing...' : 'Launch Campaign'}
                             </button>
                         </form>
                     </div>
@@ -249,10 +307,9 @@ export default function CreateCampaign({ session, onNavigate }) {
                 <div className={styles.previewCard}>
                     <div className={styles.previewImageWrapper}>
                         <img 
-                            src={(imageUrls[0] && imageUrls[0].trim() !== '') ? imageUrls[0] : 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image'} 
+                            src={selectedFiles.length > 0 ? URL.createObjectURL(selectedFiles[0]) : 'https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image'} 
                             alt="Preview" 
                             className={styles.previewImage}
-                            onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/600x400/F3F4F6/9CA3AF?text=Image"}}
                         />
                         <div className={styles.previewBadge}>{category.replace('_', ' ')}</div>
                     </div>

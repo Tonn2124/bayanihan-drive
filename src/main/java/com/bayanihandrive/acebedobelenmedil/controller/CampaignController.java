@@ -58,6 +58,13 @@ public class CampaignController {
         List<Campaign> campaigns = campaignService.getCampaignsByOrganizer(organizerId);
         return ResponseEntity.ok(campaigns);
     }
+
+    // --- USER CAMPAIGNS (PUBLIC) ---
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Campaign>> getUserCampaigns(@PathVariable String userId) {
+        List<Campaign> campaigns = campaignService.getCampaignsByOrganizer(userId);
+        return ResponseEntity.ok(campaigns);
+    }
     
     // --- GET SINGLE CAMPAIGN (PUBLIC) ---
     @GetMapping("/{id}")
@@ -65,4 +72,5 @@ public class CampaignController {
         Campaign campaign = campaignService.getCampaignById(id);
         return ResponseEntity.ok(campaign);
     }
-}
+
+} // <--- This is the FINAL closing brace for the class.

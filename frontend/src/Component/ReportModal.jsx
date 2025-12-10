@@ -1,17 +1,35 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-import styles from '../Style/Dashboard.module.css'; // Reuse dashboard styles for modal or create new
+// We'll use inline styles for the overlay to ensure it works regardless of module css issues
+// But we'll try to use CSS variables for colors
 
 export default function ReportModal({ campaignId, onClose }) {
   const [reason, setReason] = useState('');
-  const [proofUrl, setProofUrl] = useState('');
+  
+  // File Upload State
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleFileSelect = (e) => {
+      if (e.target.files && e.target.files[0]) {
+          setSelectedFile(e.target.files[0]);
+      }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!reason || !proofUrl) {
-        alert("Please provide a reason and proof URL.");
+    setError(null);
+
+    if (!reason) {
+        setError("Please provide a reason.");
+        return;
+    }
+    if (!selectedFile) {
+        setError("Please attach proof (screenshot or document).");
         return;
     }
 
@@ -19,6 +37,25 @@ export default function ReportModal({ campaignId, onClose }) {
         setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
+        // 1. Upload Proof
+        setUploading(true);
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `proofs/${campaignId}/${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+            .from('campaign-images') // Reusing bucket for now, or use separate 'reports' bucket
+            .upload(fileName, selectedFile);
+            
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+            .from('campaign-images')
+            .getPublicUrl(fileName);
+            
+        const proofUrl = publicUrlData.publicUrl;
+        setUploading(false);
+
+        // 2. Submit Report
         await axios.post('http://localhost:8080/api/reports', {
             campaignId,
             reason,
@@ -30,42 +67,109 @@ export default function ReportModal({ campaignId, onClose }) {
         alert("Report submitted successfully.");
         onClose();
     } catch (err) {
-        alert(err.response?.data?.message || "Failed to submit report.");
+        console.error(err);
+        setError(err.response?.data?.message || err.message || "Failed to submit report.");
+        setUploading(false);
     } finally {
         setLoading(false);
     }
   };
 
   return (
-    <div className={styles.modalOverlay}>
-        <div className={styles.modalContent}>
-            <h3>Report Campaign</h3>
-            <p>Please describe why you are reporting this campaign and provide a link to proof.</p>
+    <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999, // Ensure it's on top
+    }} onClick={onClose}>
+        <div style={{
+            backgroundColor: 'var(--card-bg, #fff)',
+            color: 'var(--text-primary, #000)',
+            padding: '24px',
+            borderRadius: '12px',
+            width: '90%',
+            maxWidth: '500px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            position: 'relative',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+        }} onClick={e => e.stopPropagation()}>
+            
+            <h3 style={{marginTop: 0, color: '#ef4444'}}>Report Campaign</h3>
+            <p style={{fontSize: '0.9rem', color: 'var(--text-secondary, #666)'}}>
+                If you believe this campaign is fraudulent or violates our terms, please let us know.
+                Note: You can only report a campaign once every 24 hours.
+            </p>
+
+            {error && <div style={{padding: '10px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '6px', marginBottom: '10px', fontSize: '0.9rem'}}>{error}</div>}
+
             <form onSubmit={handleSubmit}>
                 <div style={{marginBottom: '1rem'}}>
-                    <label>Reason</label>
+                    <label style={{display: 'block', marginBottom: '4px', fontWeight: '600', fontSize: '0.9rem'}}>Reason for Reporting</label>
                     <textarea 
-                        className="form-control" 
                         value={reason} 
                         onChange={e => setReason(e.target.value)}
-                        style={{width: '100%', height: '80px', padding: '8px'}}
+                        style={{
+                            width: '100%', 
+                            height: '100px', 
+                            padding: '10px', 
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-color, #ccc)',
+                            backgroundColor: 'var(--input-bg, #fff)',
+                            color: 'var(--text-primary, #000)',
+                            fontFamily: 'inherit'
+                        }}
+                        placeholder="Explain why this campaign is suspicious..."
                     />
                 </div>
-                <div style={{marginBottom: '1rem'}}>
-                    <label>Proof URL (Image/Doc)</label>
+
+                <div style={{marginBottom: '1.5rem'}}>
+                    <label style={{display: 'block', marginBottom: '4px', fontWeight: '600', fontSize: '0.9rem'}}>Proof (Required)</label>
                     <input 
-                        type="url" 
-                        className="form-control" 
-                        value={proofUrl} 
-                        onChange={e => setProofUrl(e.target.value)}
-                        style={{width: '100%', padding: '8px'}}
-                        placeholder="https://..."
+                        type="file" 
+                        onChange={handleFileSelect}
+                        style={{width: '100%'}}
                     />
+                    <small style={{display: 'block', marginTop: '4px', color: '#666'}}>
+                        Please attach a screenshot or document supporting your claim.
+                    </small>
                 </div>
-                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px'}}>
-                    <button type="button" onClick={onClose} style={{padding: '8px 16px', background: '#ccc', border: 'none', borderRadius: '4px'}}>Cancel</button>
-                    <button type="submit" disabled={loading} style={{padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px'}}>
-                        {loading ? 'Submitting...' : 'Submit Report'}
+
+                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '12px'}}>
+                    <button 
+                        type="button" 
+                        onClick={onClose} 
+                        style={{
+                            padding: '10px 20px', 
+                            background: 'transparent', 
+                            border: '1px solid var(--border-color, #ccc)', 
+                            borderRadius: '8px',
+                            color: 'var(--text-secondary, #666)',
+                            fontWeight: '600'
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        disabled={loading || uploading} 
+                        style={{
+                            padding: '10px 20px', 
+                            background: '#ef4444', 
+                            color: 'white', 
+                            border: 'none', 
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            opacity: (loading || uploading) ? 0.7 : 1
+                        }}
+                    >
+                        {(loading || uploading) ? 'Submitting...' : 'Submit Report'}
                     </button>
                 </div>
             </form>
