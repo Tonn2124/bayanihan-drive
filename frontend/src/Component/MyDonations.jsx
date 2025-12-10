@@ -3,7 +3,8 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/MyDonations.module.css';
 
-export default function MyDonations({ isModal }) {
+// 1. We accept 'onNavigate' as a prop
+export default function MyDonations({ onNavigate }) {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,6 +31,15 @@ export default function MyDonations({ isModal }) {
     fetchDonations();
   }, []);
 
+  const handleItemClick = (campaignId) => {
+    // 2. We use YOUR custom navigation from App.js
+    if (onNavigate) {
+      onNavigate('campaignDetails', campaignId);
+    } else {
+      console.error("Navigation function not found. Please check Dashboard.jsx");
+    }
+  };
+
   if (loading) return <div style={{textAlign: 'center', padding: '2rem'}}>Loading history...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
@@ -54,7 +64,12 @@ export default function MyDonations({ isModal }) {
       )}
       
       {donations.map((donation) => (
-        <div key={donation.id} className={styles.donationItem}>
+        <div 
+            key={donation.id} 
+            className={styles.donationItem}
+            // 3. Trigger the click handler here
+            onClick={() => handleItemClick(donation.campaignId)} 
+        >
           <div className={styles.leftSide}>
             <div className={styles.icon}>❤️</div>
             <div className={styles.info}>
