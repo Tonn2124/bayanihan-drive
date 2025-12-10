@@ -227,7 +227,7 @@ export default function Dashboard({ session, onNavigate }) {
                     <>
                       {activeTab === "all" && <CampaignList onNavigate={onNavigate} />}
                       {activeTab === "my" && <MyCampaigns onNavigate={onNavigate} />}
-                      {activeTab === "donations" && <MyDonations />}
+                      {activeTab === "donations" && <MyDonations onNavigate={onNavigate} />}
                     </>
                   )}
                 </div>
