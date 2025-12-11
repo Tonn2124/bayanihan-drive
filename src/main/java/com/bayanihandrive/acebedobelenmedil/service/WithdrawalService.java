@@ -32,7 +32,7 @@ public class WithdrawalService {
         withdrawal.setAmount(request.amount());
         withdrawal.setPaymentMethod(request.paymentMethod());
         withdrawal.setAccountDetails(request.accountDetails());
-        withdrawal.setStatus(WithdrawalStatus.PENDING); // Default status
+        withdrawal.setStatus(WithdrawalStatus.COMPLETED); // Default status
 
         return withdrawalRepository.save(withdrawal);
     }

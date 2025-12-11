@@ -52,7 +52,7 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
         }
       );
 
-      alert("Withdrawal request submitted successfully!");
+      alert("Withdrawal successfully!");
       onSuccess(); 
       onClose(); 
     } catch (error) {
