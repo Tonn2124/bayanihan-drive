@@ -2,20 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/MyDonations.module.css';
-
-// FIX: Added 'isModal' to the props list with a default value of false
-export default function MyDonations({ onNavigate, isModal = false }) {
+ 
+export default function MyDonations({ isModal }) {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+ 
   useEffect(() => {
     const fetchDonations = async () => {
       try {
         setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("Please log in.");
-        
+       
         const token = session.access_token;
         const response = await axios.get('http://localhost:8080/api/donations/my-donations', {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -30,18 +29,10 @@ export default function MyDonations({ onNavigate, isModal = false }) {
     };
     fetchDonations();
   }, []);
-
-  const handleItemClick = (campaignId) => {
-    if (onNavigate) {
-      onNavigate('campaignDetails', campaignId);
-    } else {
-      console.error("Navigation function not found.");
-    }
-  };
-
+ 
   if (loading) return <div style={{textAlign: 'center', padding: '2rem'}}>Loading history...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
-
+ 
   if (donations.length === 0) {
     return (
       <div style={{textAlign: 'center', padding: '3rem', color: '#666'}}>
@@ -50,24 +41,20 @@ export default function MyDonations({ onNavigate, isModal = false }) {
       </div>
     );
   }
-
+ 
   const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(amount);
-
+ 
   return (
-    // Now 'isModal' is defined, so this check will work
+    // If isModal is true, we remove the default container class to avoid double padding
     <div className={!isModal ? styles.container : ''}>
       {!isModal && (
         <h2 style={{fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem', color: '#1c1e21'}}>
             My Donation History
         </h2>
       )}
-      
+     
       {donations.map((donation) => (
-        <div 
-            key={donation.id} 
-            className={styles.donationItem}
-            onClick={() => handleItemClick(donation.campaignId)} 
-        >
+        <div key={donation.id} className={styles.donationItem}>
           <div className={styles.leftSide}>
             <div className={styles.icon}>❤️</div>
             <div className={styles.info}>
@@ -85,3 +72,4 @@ export default function MyDonations({ onNavigate, isModal = false }) {
     </div>
   );
 }
+ 
