@@ -3,32 +3,36 @@ import { supabase } from "../supabaseClient";
 import styles from "../Style/Dashboard.module.css"; 
 import CampaignList from "./CampaignList";
 import AddFundsModal from "./AddFundsModal";
-import WithdrawalModal from "./WithdrawalModal"; 
+// Removed WithdrawalModal import
 import ProfileSettings from "./ProfileSettings"; 
 import ProfileDetails from "./ProfileDetails"; 
-import PublicProfile from "./PublicProfile/PublicProfile"; // 1. Import PublicProfile
+import PublicProfile from "./PublicProfile/PublicProfile"; 
 import FAQs from "./FAQs";
-import MyCampaigns from "./MyCampaigns"; // Ensure this is imported
-import MyDonations from "./MyDonations"; // Ensure this is imported
+import MyCampaigns from "./MyCampaigns"; 
+import MyDonations from "./MyDonations"; 
 
 export default function Dashboard({ session, onNavigate }) {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [error, setError] = useState(null);
-  const [greeting, setGreeting] = useState("Welcome");
   
-  // 2. State to track which Public Profile to show (Modal)
+  // Initialize greeting based on localStorage
+  const [greeting, setGreeting] = useState(() => {
+    const key = 'last_login_' + session?.user?.id;
+    return localStorage.getItem(key) ? "Welcome back" : "Welcome";
+  });
+  
+  // State to track which Public Profile to show (Modal)
   const [viewPublicProfileId, setViewPublicProfileId] = useState(null);
 
   const [showAddFunds, setShowAddFunds] = useState(false);
-  const [showWithdrawal, setShowWithdrawal] = useState(false);
+  // Removed showWithdrawal state
   
   // Modal State
   const [showProfileModal, setShowProfileModal] = useState(false);
   
   const [activeTab, setActiveTab] = useState("all");
-  const [darkMode, setDarkMode] = useState(false);
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -62,26 +66,20 @@ export default function Dashboard({ session, onNavigate }) {
 
   useEffect(() => {
     fetchData();
-    const lastLogin = localStorage.getItem('last_login_' + session.user.id);
-    if (lastLogin) { setGreeting("Welcome back"); } 
-    else { setGreeting("Welcome"); localStorage.setItem('last_login_' + session.user.id, new Date().toISOString()); }
+    const key = 'last_login_' + session.user.id;
+    
+    // Logic for "Welcome" vs "Welcome Back"
+    if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, new Date().toISOString());
+    }
   }, [fetchData, session.user.id]);
-
-  useEffect(() => {
-    if (darkMode) { document.body.classList.add('dark-mode'); } 
-    else { document.body.classList.remove('dark-mode'); }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => setDarkMode(!darkMode);
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(amount || 0);
 
   const isAdmin = profile?.role?.toUpperCase() === "ADMIN";
 
-  // 3. Navigation Wrapper
-  // This intercepts 'publicProfile' clicks to open the modal locally.
-  // Other navigations (like 'campaignDetails') are sent up to App.jsx via onNavigate.
+  // Navigation Wrapper
   const handleDashboardNavigate = (destination, id) => {
     if (destination === 'publicProfile') {
       setViewPublicProfileId(id); // Open the Modal
@@ -91,9 +89,9 @@ export default function Dashboard({ session, onNavigate }) {
   };
 
   return (
-    <div className={`${styles.dashboardRoot} ${darkMode ? styles.darkMode : ''}`}>
+    <div className={styles.dashboardRoot}>
       
-      {/* --- LEFT SIDEBAR (CLEANED UP) --- */}
+      {/* --- LEFT SIDEBAR --- */}
       <aside className={styles.leftSidebar}>
         <div className={styles.brandArea} onClick={() => setActiveTab("all")} style={{ cursor: 'pointer' }}>
           <div className={styles.brandName}>Bayanihan Drive</div>
@@ -101,7 +99,6 @@ export default function Dashboard({ session, onNavigate }) {
 
         <div className={styles.categoryTitle}>Menu</div>
         <nav className={styles.navMenu}>
-          {/* ONLY HOME FEED REMAINS */}
           <button className={`${styles.navItem} ${activeTab === "all" ? styles.navItemActive : ""}`} onClick={() => setActiveTab("all")}>
             <span className={styles.navIcon}>🏠</span> Home Feed
           </button>
@@ -124,14 +121,6 @@ export default function Dashboard({ session, onNavigate }) {
               <span className={styles.navIcon}>🛡️</span> Admin Panel
             </button>
           )}
-
-          <div className={styles.navItem} style={{justifyContent: 'space-between', cursor: 'default'}}>
-             <span>Dark Mode</span>
-             <label className={styles.switch}>
-                <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
-                <span className={styles.slider}></span>
-             </label>
-          </div>
         </nav>
 
         <button className={styles.logoutBtn} onClick={handleLogout}>
@@ -180,10 +169,7 @@ export default function Dashboard({ session, onNavigate }) {
                      <div className="alert alert-danger">{error}</div>
                   ) : (
                     <>
-                      {/* 4. Pass handleDashboardNavigate to lists */}
                       {activeTab === "all" && <CampaignList onNavigate={handleDashboardNavigate} />}
-                      
-                      {/* These tabs are hidden from sidebar but logic remains just in case */}
                       {activeTab === "my" && <MyCampaigns onNavigate={handleDashboardNavigate} />}
                       {activeTab === "donations" && <MyDonations />}
                     </>
@@ -200,7 +186,7 @@ export default function Dashboard({ session, onNavigate }) {
           <div className={styles.walletAmount}>{profileLoading ? '...' : formatCurrency(wallet?.balance)}</div>
           <div className={styles.walletActions}>
             <button className={styles.walletBtnPrimary} onClick={() => setShowAddFunds(true)}>+ Add</button>
-            <button className={styles.walletBtnSecondary} onClick={() => setShowWithdrawal(true)}>Withdraw</button>
+            {/* Removed Withdraw button */}
           </div>
         </div>
         <h4 className={styles.sectionTitle}>Recent Activity</h4>
@@ -211,13 +197,11 @@ export default function Dashboard({ session, onNavigate }) {
 
       {/* --- MODALS --- */}
       
-      {/* 5. Render Public Profile Modal */}
       {viewPublicProfileId && (
         <PublicProfile 
             userId={viewPublicProfileId} 
             onClose={() => setViewPublicProfileId(null)}
             onNavigate={handleDashboardNavigate} 
-            // Note: onBack is handled by onClose in the modal component now
         />
       )}
 
@@ -231,7 +215,7 @@ export default function Dashboard({ session, onNavigate }) {
       )}
 
       {showAddFunds && <AddFundsModal onClose={() => setShowAddFunds(false)} onSuccess={fetchData} />}
-      {showWithdrawal && <WithdrawalModal campaign={{id: null}} availableBalance={wallet?.balance || 0} onClose={() => setShowWithdrawal(false)} onSuccess={fetchData} />}
+      {/* Removed WithdrawalModal rendering */}
     </div>
   );
 }
