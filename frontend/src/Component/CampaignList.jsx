@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import CampaignCard from './CampaignCard';
 import styles from '../Style/CampaignList.module.css';
-import Skeleton from './Skeleton';
+import Skeleton from './Skeleton'; // <-- Import
 
 const categories = ['All', 'Community', 'Animal Welfare', 'Medical', 'Education', 'Disaster Relief', 'Other'];
 
@@ -14,13 +14,9 @@ export default function CampaignList({ onNavigate }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // 1. MODIFIED: Accept a 'silent' parameter
-  // silent = true means "update data in background without showing loading spinner"
-  const fetchCampaigns = async (silent = false) => {
+  const fetchCampaigns = async () => {
     try {
-      // Only show the spinner if it's a full reload (not silent)
-      if (!silent) setLoading(true); 
-      
+      setLoading(true);
       const params = {};
       if (searchQuery) params.query = searchQuery;
       if (selectedCategory !== 'All') params.category = selectedCategory.toUpperCase().replace(' ', '_');
@@ -29,30 +25,17 @@ export default function CampaignList({ onNavigate }) {
       setCampaigns(response.data);
     } catch (err) {
       console.error("Error fetching campaigns:", err);
-      // Only show error alert if it's a user-initiated load
-      if (!silent) setError("Could not load campaigns. Please try again later.");
+      setError("Could not load campaigns. Please try again later.");
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   };
 
-  // 2. EXISTING: Handle Search & Category changes
   useEffect(() => {
     const timer = setTimeout(() => {
-        fetchCampaigns(false); // Normal load with spinner
+        fetchCampaigns();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory]);
-
-  // 3. NEW: Auto-Refresh (Polling)
-  // This runs every 3 seconds to keep data "fresh"
-  useEffect(() => {
-    const interval = setInterval(() => {
-        fetchCampaigns(true); // Silent load (Background update)
-    }, 1000); 
-
-    // Cleanup interval when component unmounts or search changes
-    return () => clearInterval(interval);
   }, [searchQuery, selectedCategory]);
 
   // --- SKELETON LOADING UI ---

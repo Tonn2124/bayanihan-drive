@@ -246,22 +246,3 @@
   .modalBody { grid-template-columns: 1fr; display: block; overflow-y: auto; }
   .leftColumn, .rightColumn { padding: 1.5rem; border-right: none; }
 }
-
-.donationItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: white;
-  border: 1px solid #e4e6eb;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  transition: transform 0.2s, background-color 0.2s; /* Added background-color transition */
-  cursor: pointer; /* Added cursor pointer */
-}
-
-.donationItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Slightly stronger shadow */
-  background-color: #f7f8fa; /* Light grey background on hover */
-}

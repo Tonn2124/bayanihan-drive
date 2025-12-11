@@ -25,6 +25,9 @@ export default function Dashboard({ session, onNavigate }) {
     const key = 'last_login_' + session?.user?.id;
     return localStorage.getItem(key) ? "Welcome back" : "Welcome";
   });
+  
+  // State to track which Public Profile to show (Modal)
+  const [viewPublicProfileId, setViewPublicProfileId] = useState(null);
 
   // Navigation & View State
   const [activeTab, setActiveTab] = useState("all");
@@ -72,6 +75,8 @@ export default function Dashboard({ session, onNavigate }) {
     fetchData();
     // Update local storage for greeting logic
     const key = 'last_login_' + session.user.id;
+    
+    // Logic for "Welcome" vs "Welcome Back"
     if (!localStorage.getItem(key)) {
       localStorage.setItem(key, new Date().toISOString());
     }
@@ -217,9 +222,7 @@ export default function Dashboard({ session, onNavigate }) {
       <aside className={styles.rightSidebar}>
         <div className={styles.walletCard}>
           <div className={styles.walletLabel}>My Wallet Balance</div>
-          <div className={styles.walletAmount}>
-            {profileLoading ? '...' : formatCurrency(wallet?.balance)}
-          </div>
+          <div className={styles.walletAmount}>{profileLoading ? '...' : formatCurrency(wallet?.balance)}</div>
           <div className={styles.walletActions}>
             <button className={styles.walletBtnPrimary} onClick={() => setShowAddFunds(true)}>+ Add</button>
             <button className={styles.walletBtnSecondary} onClick={() => setShowWithdrawal(true)}>Withdraw</button>
