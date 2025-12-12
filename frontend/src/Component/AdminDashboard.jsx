@@ -7,53 +7,36 @@ export default function AdminDashboard({ onNavigate }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, APPROVED, REJECTED, COMPLETED
+  const [filter, setFilter] = useState('PENDING'); // Default to PENDING to see action items first
 
+  // 1. Fetch ALL campaigns regardless of status
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       const token = session.access_token;
 
-      // Fetch all campaigns or filter by backend? 
-      // Current backend has /pending and /all (public). 
-      // We need an endpoint to get ALL campaigns including rejected for Admin.
-      // Assuming I'll add or use an endpoint for this. For now let's use the pending endpoint and maybe others?
-      // Actually, standard practice: Admin gets all.
-      
-      // I will assume an endpoint /api/admin/campaigns exists or I will create it. 
-      // For now, I will use existing /api/admin/campaigns/pending and maybe fetch others if available.
-      // But to support all filters, I need a comprehensive list.
-      
-      // Let's modify the backend to support fetching all campaigns for admin with status filter.
-      // Or I can fetch pending from /pending and the rest from /search? 
-      // But /search only returns active ones.
-      
-      // I'll make a request to a new endpoint I'll creating: GET /api/admin/campaigns
-      const response = await axios.get(`http://localhost:8080/api/admin/campaigns?status=${filter === 'ALL' ? '' : filter}`, {
+      // We request ALL data and filter it in the browser. 
+      // This is safer if the backend filter is buggy.
+      const response = await axios.get('http://localhost:8080/api/admin/campaigns', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
+      // If the backend returns an object wrapper, adjust here (e.g., response.data.data)
+      // Assuming response.data is the array:
       setCampaigns(response.data);
 
     } catch (err) {
       console.error("Admin Fetch Error:", err);
-      // Fallback for now if endpoint doesn't exist
-      if (filter === 'PENDING') {
-          // Retry with old endpoint
-          try {
-             const { data: { session } } = await supabase.auth.getSession();
-             const res = await axios.get('http://localhost:8080/api/admin/campaigns/pending', {
-                headers: { 'Authorization': `Bearer ${session.access_token}` }
-             });
-             setCampaigns(res.data);
-             return;
-          } catch(e) {}
-      }
-
-      if (err.response && err.response.status === 403) {
-          setError("Access Denied: You do not have permission to view this page.");
-      } else {
-          setError("Could not load campaigns.");
+      // Fallback: Try pending endpoint if the main one fails
+      try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const res = await axios.get('http://localhost:8080/api/admin/campaigns/pending', {
+            headers: { 'Authorization': `Bearer ${session.access_token}` }
+          });
+          setCampaigns(res.data);
+      } catch(e) {
+          setError("Could not load campaigns. Please try again later.");
       }
     } finally {
       setLoading(false);
@@ -62,119 +45,153 @@ export default function AdminDashboard({ onNavigate }) {
 
   useEffect(() => {
     fetchCampaigns();
-  }, [filter]);
+  }, []); // Empty dependency array = only fetch once on mount
 
   const handleAction = async (id, action) => {
-    // action: APPROVE, REJECT, DELETE, BLOCK_USER
-    if (!window.confirm(`Are you sure you want to ${action} this campaign?`)) return;
+    if (!window.confirm(`Confirm ${action} for campaign #${id}?`)) return;
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session.access_token;
 
-        if (action === 'APPROVE' || action === 'REJECT') {
-            await axios.put(`http://localhost:8080/api/admin/campaigns/${id}/verify?approve=${action === 'APPROVE'}`, {}, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        } else if (action === 'DELETE') {
-            await axios.delete(`http://localhost:8080/api/admin/campaigns/${id}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        }
+        await axios.put(`http://localhost:8080/api/admin/campaigns/${id}/verify?approve=${action === 'APPROVE'}`, {}, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         
-        alert(`Action ${action} successful!`);
+        // Refresh data to update the UI immediately
         fetchCampaigns(); 
     } catch (err) {
-        alert("Operation failed. Please try again.");
+        alert(`Failed to ${action.toLowerCase()}.`);
     }
   };
 
-  const getStatusColor = (status) => {
+  // 2. Client-Side Filtering Logic
+  const filteredCampaigns = campaigns.filter(c => {
+      if (filter === 'ALL') return true;
+      return c.status === filter;
+  });
+
+  const getStatusStyle = (status) => {
       switch(status) {
-          case 'PENDING': return '#F59E0B';
-          case 'APPROVED': return '#10B981';
-          case 'REJECTED': return '#EF4444';
-          case 'COMPLETED': return '#3B82F6';
-          default: return '#6B7280';
+          case 'PENDING': return { background: '#FFF7ED', color: '#C2410C', border: '1px solid #FFEDD5' };
+          case 'APPROVED': return { background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0' };
+          case 'REJECTED': return { background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' };
+          default: return { background: '#F3F4F6', color: '#6B7280', border: '1px solid #E5E7EB' };
       }
   };
 
   return (
     <div className={styles.adminContainer}>
-        {/* Header */}
         <div className={styles.header}>
             <div className={styles.titleGroup}>
                 <h2>Admin Dashboard</h2>
+                <p>Manage and verify fundraising campaigns</p>
             </div>
             <button className={styles.backButton} onClick={() => onNavigate('dashboard')}>
                 Exit Admin Mode
             </button>
         </div>
 
-        {/* Filters */}
-        <div className={styles.filterBar}>
-            {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'].map(f => (
-                <button 
-                    key={f}
-                    className={`${styles.filterBtn} ${filter === f ? styles.activeFilter : ''}`}
-                    onClick={() => setFilter(f)}
-                >
-                    {f} {f === 'PENDING' && <span className={styles.badgeCount}>!</span>}
-                </button>
-            ))}
-        </div>
+        <div className={styles.contentWrapper}>
+            {/* Filter Tabs */}
+            <div className={styles.filterBar}>
+                {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(f => (
+                    <button 
+                        key={f}
+                        className={`${styles.filterBtn} ${filter === f ? styles.activeFilter : ''}`}
+                        onClick={() => setFilter(f)}
+                    >
+                        {f} {f === 'PENDING' && <span className={styles.badgeCount}>!</span>}
+                    </button>
+                ))}
+            </div>
 
-        {/* List Section */}
-        <div className={styles.listContainer}>
-            {loading ? <p>Loading...</p> : error ? <p className="alert alert-danger">{error}</p> : (
-                <>
-                {campaigns.length === 0 ? (
-                    <div className={styles.emptyState}>
-                        <p>No campaigns found for {filter}</p>
-                    </div>
-                ) : (
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Creator</th>
-                                <th>Goal</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {campaigns.map(c => (
-                                <tr key={c.id}>
-                                    <td>#{c.id}</td>
-                                    <td style={{maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{c.title}</td>
-                                    <td>{c.organizerId ? c.organizerId.substring(0,8) + '...' : 'Unknown'}</td>
-                                    <td>₱{c.goalAmount}</td>
-                                    <td>
-                                        <span className={styles.statusTag} style={{backgroundColor: getStatusColor(c.status)}}>
-                                            {c.status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className={styles.actionButtons}>
-                                            <button onClick={() => onNavigate('campaignDetails', c.id)} title="View">👁️</button>
-                                            {c.status === 'PENDING' && (
-                                                <>
-                                                    <button onClick={() => handleAction(c.id, 'APPROVE')} title="Approve" style={{color: 'green'}}>✓</button>
-                                                    <button onClick={() => handleAction(c.id, 'REJECT')} title="Reject" style={{color: 'red'}}>✗</button>
-                                                </>
-                                            )}
-                                            <button onClick={() => handleAction(c.id, 'DELETE')} title="Delete" style={{color: 'darkred'}}>🗑️</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-                </>
-            )}
+            <div className={styles.tableCard}>
+                <div className={styles.tableContainer}>
+                    {loading ? (
+                        <div className={styles.emptyState}>
+                            <div className={styles.spinner}></div>
+                            <p>Loading campaigns...</p>
+                        </div>
+                    ) : error ? (
+                        <div className={styles.emptyState} style={{color: '#DC2626'}}>{error}</div>
+                    ) : (
+                        <>
+                        {/* 3. Render filteredCampaigns instead of raw campaigns */}
+                        {filteredCampaigns.length === 0 ? (
+                            <div className={styles.emptyState}>
+                                <p>No {filter.toLowerCase()} campaigns found.</p>
+                            </div>
+                        ) : (
+                            <table className={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th style={{width: '60px'}}>ID</th>
+                                        <th>Title</th>
+                                        <th>Creator</th>
+                                        <th>Goal</th>
+                                        <th>Status</th>
+                                        <th style={{textAlign: 'right'}}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredCampaigns.map(c => (
+                                        <tr key={c.id}>
+                                            <td className={styles.idCell}>#{c.id}</td>
+                                            <td className={styles.titleCell}>
+                                                {c.title.length > 35 ? c.title.substring(0, 35) + '...' : c.title}
+                                            </td>
+                                            <td className={styles.creatorCell}>
+                                                {c.organizerId ? c.organizerId.substring(0,6) + '...' : 'Unknown'}
+                                            </td>
+                                            <td className={styles.goalCell}>₱{c.goalAmount.toLocaleString()}</td>
+                                            <td>
+                                                <span className={styles.statusTag} style={getStatusStyle(c.status)}>
+                                                    {c.status}
+                                                </span>
+                                            </td>
+                                            <td style={{textAlign: 'right'}}>
+                                                <div className={styles.actionButtons}>
+                                                    <button 
+                                                        className={styles.viewBtn} 
+                                                        onClick={() => onNavigate('campaignDetails', c.id, 'ADMIN')} 
+                                                        title="View Details"
+                                                    >
+                                                        {/* Eye Icon */}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                    </button>
+
+                                                    {c.status === 'PENDING' && (
+                                                        <>
+                                                            <button 
+                                                                className={styles.approveBtn} 
+                                                                onClick={() => handleAction(c.id, 'APPROVE')} 
+                                                                title="Approve"
+                                                            >
+                                                                {/* Check Icon */}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                            </button>
+                                                            <button 
+                                                                className={styles.rejectBtn} 
+                                                                onClick={() => handleAction(c.id, 'REJECT')} 
+                                                                title="Reject"
+                                                            >
+                                                                {/* X Icon */}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        </>
+                    )}
+                </div>
+            </div>
         </div>
     </div>
   );
