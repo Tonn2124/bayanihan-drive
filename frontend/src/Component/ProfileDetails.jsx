@@ -12,6 +12,18 @@ export default function ProfileDetails({ profile, onClose, onEdit, onNavigate })
 
   if (!profile) return null;
 
+  //Profile Details Navigation
+  const handleNavigation = (page, data) => {
+    
+    onClose();
+    
+    
+    if (onNavigate) {
+        onNavigate(page, data);
+    }
+  };
+  
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
@@ -54,10 +66,17 @@ export default function ProfileDetails({ profile, onClose, onEdit, onNavigate })
         {/* Content Area - REUSING COMPONENTS HERE */}
         <div className={styles.contentArea}>
             {activeTab === 'campaigns' ? (
-                // Pass isModal={true} to hide headers and adjust styles
-                <MyCampaigns onNavigate={onNavigate} isModal={true} />
+                
+                <MyCampaigns 
+                    onNavigate={handleNavigation} 
+                    isModal={true} 
+                />
             ) : (
-                <MyDonations isModal={true} />
+                
+                <MyDonations 
+                    onNavigate={handleNavigation} 
+                    isModal={true} 
+                />
             )}
         </div>
       </div>
