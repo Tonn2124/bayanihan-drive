@@ -30,7 +30,7 @@ public class Campaign {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // This is the link to the auth.users table (and public.profiles)
+    // link to the auth.users table (and public.profiles)
     @Column(name = "organizer_id", nullable = false)
     private UUID organizerId;
 

@@ -23,8 +23,6 @@ public class WithdrawalService {
 
     @Transactional
     public Withdrawal createRequest(WithdrawalRequest request, String organizerId) {
-        // Logic for checking balance is handled by Database Trigger for safety,
-        // but we could also add a check here if we injected CampaignService.
         
         Withdrawal withdrawal = new Withdrawal();
         withdrawal.setOrganizerId(UUID.fromString(organizerId));
