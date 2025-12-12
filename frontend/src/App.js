@@ -22,8 +22,12 @@ function App() {
   
   // New state for public profile
   const [selectedUserId, setSelectedUserId] = useState(null);
-  // ADDED: Track where we came from so "Back" works in the profile modal
+  
+  // Track where we came from for Public Profile back button
   const [previousCampaignId, setPreviousCampaignId] = useState(null);
+
+  // --- NEW: View Context (Keeps track if we are in 'dashboard' or 'admin' mode) ---
+  const [viewContext, setViewContext] = useState('dashboard'); 
   
   // Auth Flow State
   const [authMode, setAuthMode] = useState('landing') 
@@ -58,39 +62,56 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // MODIFIED: Accepts optional 3rd argument, and handles history tracking
+  // MODIFIED: Handles Context Switching
   const handleNavigate = (page, data = null, extraData = null) => {
     
-    // --- 1. HISTORY TRACKING LOGIC ---
-    // If we are going TO PublicProfile FROM CampaignDetails, save the ID.
+    // --- 1. CONTEXT LOGIC ---
+    // If going to Admin, switch context
+    if (page === 'admin') {
+        setViewContext('admin');
+    } 
+    // If explicitly going to Dashboard, switch context
+    else if (page === 'dashboard') {
+        setViewContext('dashboard');
+    }
+    // If we are opening details FROM Admin (passed via extraData), ensure context stays Admin
+    else if (page === 'campaignDetails' && extraData === 'ADMIN') {
+        setViewContext('admin');
+    }
+
+    // --- 2. HISTORY TRACKING LOGIC ---
     if (page === 'publicProfile' && currentPage === 'campaignDetails') {
-        // Use the explicit 3rd arg if provided, otherwise use current state
         setPreviousCampaignId(extraData || selectedCampaignId);
     } 
-    // If we are going anywhere else (except back to the same profile), clear history
     else if (page !== 'publicProfile') {
         setPreviousCampaignId(null);
     }
 
-    // --- 2. NAVIGATION LOGIC ---
+    // --- 3. STANDARD NAVIGATION ---
     setCurrentPage(page)
     
     if (page === 'campaignDetails' && data) {
       if (typeof data === 'object' && data.id) {
         setSelectedCampaignId(data.id);
         setSelectedCampaignData(data); 
-        const newUrl = `${window.location.pathname}?campaignId=${data.id}`;
-        window.history.pushState({ path: newUrl }, '', newUrl);
+        
+        // Only update URL if we are in normal dashboard mode (keep Admin URLs clean)
+        if (viewContext !== 'admin') {
+            const newUrl = `${window.location.pathname}?campaignId=${data.id}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        }
 
       } else {
         setSelectedCampaignId(data);
         setSelectedCampaignData(null); 
-        const newUrl = `${window.location.pathname}?campaignId=${data}`;
-        window.history.pushState({ path: newUrl }, '', newUrl);
+        
+        if (viewContext !== 'admin') {
+            const newUrl = `${window.location.pathname}?campaignId=${data}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        }
       }
     } else if (page === 'publicProfile') {
         setSelectedUserId(data);
-        // Don't change URL for profile modal to keep it clean, or allow back button to close it
         window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
     } else {
       window.history.pushState({ path: window.location.pathname }, '', window.location.pathname);
@@ -119,12 +140,21 @@ function App() {
   if (session) {
     return (
       <>
-        {/* 1. Base Layer: Dashboard */}
-        {(currentPage === 'dashboard' || currentPage === 'campaignDetails') && (
+        {/* 1. BASE LAYER: DASHBOARD 
+            Only render if we are in 'dashboard' context
+        */}
+        {viewContext === 'dashboard' && (currentPage === 'dashboard' || currentPage === 'campaignDetails') && (
             <Dashboard session={session} onNavigate={handleNavigate} />
         )}
 
-        {/* 2. Full Page Layers */}
+        {/* 2. BASE LAYER: ADMIN
+            Render if currentPage is admin OR if we are viewing details while in admin context
+        */}
+        {(currentPage === 'admin' || (currentPage === 'campaignDetails' && viewContext === 'admin')) && (
+            <AdminDashboard onNavigate={handleNavigate} />
+        )}
+
+        {/* 3. Full Page Layers */}
         {currentPage === 'createCampaign' && (
             <CreateCampaign session={session} onNavigate={handleNavigate} />
         )}
@@ -132,29 +162,24 @@ function App() {
         {currentPage === 'profileSettings' && (
             <ProfileSettings onBack={() => handleNavigate('dashboard')} />
         )}
-
-        {currentPage === 'admin' && (
-            <AdminDashboard onNavigate={handleNavigate} />
-        )}
         
-        {/* MODIFIED: Passed 'onClose' and 'fromCampaignId' to fix error */}
         {currentPage === 'publicProfile' && (
             <PublicProfile 
                 userId={selectedUserId} 
                 onNavigate={handleNavigate}
-                // FIX 1: Pass onClose to handle the "X" button
-                onClose={() => handleNavigate('dashboard')} 
-                // FIX 2: Pass the history ID so the back arrow works
+                // Smart Close: Return to the correct context (Admin or Dashboard)
+                onClose={() => handleNavigate(viewContext === 'admin' ? 'admin' : 'dashboard')} 
                 fromCampaignId={previousCampaignId}
             />
         )}
 
-        {/* 3. Modal Layer */}
+        {/* 4. Modal Layer */}
         {currentPage === 'campaignDetails' && (
             <CampaignDetails 
               campaignId={selectedCampaignId} 
               campaignData={selectedCampaignData} 
-              onBack={() => handleNavigate('dashboard')} 
+              // Smart Back: Return to the correct context
+              onBack={() => handleNavigate(viewContext === 'admin' ? 'admin' : 'dashboard')} 
               onNavigate={handleNavigate} 
             />
         )}

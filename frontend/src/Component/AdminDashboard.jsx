@@ -177,7 +177,7 @@ export default function AdminDashboard({ onNavigate }) {
                                     <tr>
                                         <th style={{width: '60px'}}>ID</th>
                                         <th>Title</th>
-                                        <th>Creator</th>
+                                        {/* REMOVED CREATOR HEADER */}
                                         <th>Goal</th>
                                         <th>Status</th>
                                         <th style={{textAlign: 'right'}}>Actions</th>
@@ -190,9 +190,9 @@ export default function AdminDashboard({ onNavigate }) {
                                             <td className={styles.titleCell}>
                                                 {c.title.length > 35 ? c.title.substring(0, 35) + '...' : c.title}
                                             </td>
-                                            <td className={styles.creatorCell}>
-                                                {c.organizerId ? c.organizerId.substring(0,6) + '...' : 'Unknown'}
-                                            </td>
+                                            
+                                            {/* REMOVED CREATOR CELL */}
+
                                             <td className={styles.goalCell}>₱{c.goalAmount.toLocaleString()}</td>
                                             <td>
                                                 <span className={styles.statusTag} style={getStatusStyle(c.status)}>
@@ -213,7 +213,6 @@ export default function AdminDashboard({ onNavigate }) {
                                                         <>
                                                             <button 
                                                                 className={styles.approveBtn} 
-                                                                // Use requestAction instead of direct handler
                                                                 onClick={() => requestAction(c.id, 'APPROVE')} 
                                                                 title="Approve"
                                                             >
@@ -221,7 +220,6 @@ export default function AdminDashboard({ onNavigate }) {
                                                             </button>
                                                             <button 
                                                                 className={styles.rejectBtn} 
-                                                                // Use requestAction instead of direct handler
                                                                 onClick={() => requestAction(c.id, 'REJECT')} 
                                                                 title="Reject"
                                                             >
