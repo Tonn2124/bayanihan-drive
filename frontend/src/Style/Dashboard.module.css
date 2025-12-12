@@ -1,91 +1,145 @@
 /* --- GLOBAL LAYOUT --- */
 .dashboardRoot {
   display: flex;
-  height: 100vh;
+  height: 100vh; /* distinct viewport height */
   width: 100vw;
   background-color: var(--bg-color);
-  overflow: hidden;
+  overflow: hidden; /* Prevent entire page from scrolling */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
-  transition: background-color 0.3s, color 0.3s;
 }
 
-/* --- LEFT SIDEBAR (Navigation) --- */
+/* --- LEFT SIDEBAR (Compact) --- */
 .leftSidebar {
-  width: 200px;
+  width: 260px;
   background-color: var(--card-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 16px 8px;
+  padding: 12px; /* Compact padding */
   flex-shrink: 0;
-  overflow-y: auto;
-  transition: background-color 0.3s, border-color 0.3s;
+  height: 100%;
+  overflow-y: auto; /* Only scroll if screen is very short */
 }
 
+/* Brand - Compact */
 .brandArea {
-  margin-bottom: 20px;
-  padding-left: 8px; 
+  margin-bottom: 12px; /* Reduced from 24px */
+  padding-left: 4px;
 }
 
 .brandName {
-  font-size: 1.3rem; 
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--brand-color);
   letter-spacing: -0.5px;
-  white-space: nowrap; 
+  white-space: nowrap;
+}
+
+/* --- WALLET CARD (Sidebar) --- */
+.walletCard {
+  background: linear-gradient(135deg, #1877f2 0%, #004494 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(24, 119, 242, 0.25);
+  margin-bottom: 16px; /* Reduced distance to Menu */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.walletHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.walletLabel {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-weight: 500;
+  margin: 0;
+}
+
+.walletAmount {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 2px 0 0 0;
+  line-height: 1.2;
+}
+
+/* Add Button - Compact & Full Width */
+.walletBtnPrimary {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+  text-align: center;
+}
+
+.walletBtnPrimary:hover {
+  background: white;
+  color: #1877f2;
+}
+
+/* --- MENU NAVIGATION --- */
+.categoryTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 0 8px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
 }
 
 .navMenu {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px; /* Very tight gap */
+  margin-bottom: 12px;
 }
 
-/* Nav Items - Compact */
 .navItem {
   display: flex;
   align-items: center;
-  gap: 10px; 
-  padding: 10px 8px; 
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem; 
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
   transition: background 0.2s;
   text-align: left;
-  white-space: nowrap; 
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .navItem:hover { background-color: var(--nav-hover); }
 .navItemActive { background-color: var(--nav-active-bg); color: var(--nav-active-text); }
 .navIcon { width: 20px; text-align: center; font-size: 1.1rem; }
 
-/* Separator */
+/* Divider */
 .separator {
   height: 1px;
   background-color: var(--separator);
-  margin: 10px 8px;
-}
-
-.categoryTitle {
-  font-size: 0.85rem; 
-  font-weight: 700;
-  color: var(--text-secondary);
-  padding: 0 8px;
-  margin-bottom: 6px;
-  text-transform: uppercase; 
+  margin: 8px 4px;
 }
 
 /* Logout */
 .logoutBtn {
-  margin-top: auto;
-  padding: 12px 8px;
+  margin-top: auto; /* Pushes to bottom */
+  padding: 10px 12px;
   background-color: transparent;
   color: var(--text-secondary);
   border: none;
@@ -94,23 +148,26 @@
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   font-size: 0.9rem;
+  border-radius: 8px;
 }
 .logoutBtn:hover { background-color: var(--nav-hover); color: #c5221f; }
 
 
-/* --- CENTER PANEL (Wide Mode) --- */
+/* --- CENTER PANEL (Fluid Fix) --- */
 .centerPanel {
-  flex: 1; 
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  overflow: hidden; /* Ensure content doesn't break layout */
+  height: 100vh;
+  min-width: 0; /* Important for flex children to shrink */
+  background-color: #f8f9fa;
+  overflow: hidden;
 }
 
 .centerHeader {
-  height: 60px;
+  height: 64px;
   background-color: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
   display: flex;
@@ -118,23 +175,20 @@
   justify-content: space-between;
   padding: 0 24px;
   flex-shrink: 0;
-  box-shadow: 0 1px 2px var(--shadow-color);
   z-index: 10;
-  transition: background-color 0.3s, border-color 0.3s;
 }
 
-.headerTitle { flex: 1; }
-.headerTitle h2 { font-size: 1.1rem; margin: 0; font-weight: 700; color: var(--text-primary); }
-.headerTitle p { font-size: 0.8rem; color: var(--text-secondary); margin: 0; }
+.headerTitle h2 { font-size: 1.25rem; margin: 0; font-weight: 700; color: var(--text-primary); }
+.headerTitle p { font-size: 0.8rem; color: var(--text-secondary); margin: 2px 0 0; }
 
 .headerActions { display: flex; align-items: center; gap: 16px; }
 
 .createBtn {
-  background-color: var(--btn-secondary-bg); 
-  color: var(--btn-secondary-text); 
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
   border: none;
-  padding: 8px 16px; border-radius: 20px; font-weight: 600;
-  cursor: pointer; transition: background 0.2s; font-size: 0.9rem;
+  border-radius: 20px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s; font-size: 0.9rem; padding: 8px 20px;
 }
 .createBtn:hover { background-color: var(--btn-secondary-hover); }
 
@@ -143,146 +197,22 @@
   color: var(--brand-color); display: flex; align-items: center; justify-content: center;
   font-weight: 700; cursor: pointer; border: 1px solid var(--border-color); transition: filter 0.2s;
 }
-.headerProfile:hover { filter: brightness(0.95); }
 
+/* CONTENT AREA - FIXED */
 .scrollableContent {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  width: 100%;       /* Full width */
+  max-width: none;   /* REMOVED 1000px limit */
+  margin: 0;         /* Removed auto margin */
 }
 
-
-/* --- RIGHT SIDEBAR (Wallet) --- */
-.rightSidebar {
-  width: 240px; 
-  background-color: var(--card-bg);
-  border-left: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  transition: background-color 0.3s, border-color 0.3s;
-}
-
-.walletCard {
-  background: linear-gradient(135deg, #1877f2 0%, #004494 100%);
-  color: white; 
-  padding: 16px; 
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
-  margin-bottom: 24px;
-}
-.walletLabel { font-size: 0.8rem; opacity: 0.9; margin-bottom: 4px; }
-.walletAmount { font-size: 1.6rem; font-weight: 800; margin: 4px 0 16px 0; }
-
-.walletActions { display: flex; gap: 8px; }
-
-.walletBtnPrimary {
-  flex: 1; background: white; color: #1877f2; border: none; padding: 6px;
-  border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;
-}
-.walletBtnPrimary:hover { background: #f0f2f5; }
-
-.walletBtnSecondary {
-  flex: 1; background: rgba(255,255,255,0.2); color: white;
-  border: 1px solid rgba(255,255,255,0.4); padding: 6px; border-radius: 6px;
-  font-weight: 600; font-size: 0.85rem; cursor: pointer;
-}
-.walletBtnSecondary:hover { background: rgba(255,255,255,0.3); }
-
-.sectionTitle { font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
-
-/* Responsive */
-@media (max-width: 1024px) { 
-  .rightSidebar { 
-    display: none; 
-  } 
-}
-
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .dashboardRoot { 
-    flex-direction: column; 
-    overflow: auto; /* Allow window scroll on mobile */
-    height: auto; /* Allow height to grow */
-  }
-  .leftSidebar { 
-    width: 100%; 
-    height: auto; 
-    border-right: none; 
-    border-bottom: 1px solid var(--border-color); 
-    padding: 10px;
-    flex-direction: row;
-    overflow-x: auto; /* Horizontal scroll for nav if needed */
-    align-items: center;
-    justify-content: space-between;
-  }
-  .navMenu {
-      flex-direction: row;
-      gap: 10px;
-  }
-  .brandArea {
-      margin-bottom: 0;
-  }
-  .centerPanel { 
-    overflow: visible; 
-    height: auto;
-  }
-  .scrollableContent {
-      overflow: visible;
-      padding: 10px;
-  }
-  /* Hide text on very small screens for nav items if needed, or keep icons */
-  .navItem span:not(.navIcon) {
-      display: none; /* Icon only on mobile top bar */
-  }
-  .logoutBtn {
-      display: none; /* Move logout to settings or profile on mobile */
-  }
-  .categoryTitle {
-      display: none;
-  }
-  .separator {
-      display: none;
-  }
-}
-
-
-/* --- GLOBAL LOADING STYLES (Appended for reuse) --- */
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
-  color: #0056D2;
-}
-
-.loadingSpinner {
-  width: 48px;
-  height: 48px;
-  border: 5px solid rgba(0, 86, 210, 0.15);
-  border-top-color: #0056D2;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 1rem;
-}
-
-.loadingText {
-  font-family: inherit;
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--text-secondary);
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  .dashboardRoot { flex-direction: column; height: auto; overflow: auto; }
+  .leftSidebar { width: 100%; height: auto; border-right: none; padding: 12px; }
+  .navMenu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .walletCard { margin-bottom: 12px; }
+  .scrollableContent { padding: 12px; }
 }
