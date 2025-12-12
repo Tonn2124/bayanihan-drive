@@ -142,9 +142,8 @@ export default function ProfileSettings({ onBack }) {
 
         <div className={styles.glassCard}>
             
-            {/* NEW: Back Button Absolute Top Left of Card */}
             <button onClick={onBack} className={styles.backBtnAbsolute} type="button" title="Back">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
@@ -163,6 +162,7 @@ export default function ProfileSettings({ onBack }) {
                 </div>
                 
                 <div className={styles.avatarInputGroup}>
+                    {/* LABEL acts as the button. INPUT is hidden via CSS. */}
                     <label htmlFor="avatar-upload" className={styles.uploadBtn}>
                         {uploading ? 'Uploading...' : 'Change Photo'}
                     </label>
@@ -171,7 +171,7 @@ export default function ProfileSettings({ onBack }) {
                         type="file" 
                         accept="image/*"
                         onChange={handleImageUpload}
-                        className={styles.hiddenInput}
+                        className={styles.hiddenInput} 
                         disabled={uploading}
                     />
                     <span className={styles.miniLabel}>Max 2MB</span>
@@ -189,21 +189,33 @@ export default function ProfileSettings({ onBack }) {
                     <p>Manage your public information and security</p>
                 </div>
 
-                {error && <div className={styles.alertError}>{error}</div>}
-                {success && <div className={styles.alertSuccess}>{success}</div>}
+                {error && (
+                    <div className={styles.alertError}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '8px'}}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        {error}
+                    </div>
+                )}
+                {success && (
+                    <div className={styles.alertSuccess}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '8px'}}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        {success}
+                    </div>
+                )}
 
                 <form className={styles.formGrid} onSubmit={handleSave}>
+                    
                     <div className={styles.fieldGroup}>
                         <label>Full Name</label>
                         <input type="text" className={styles.input} value={fullName} onChange={(e) => setFullName(e.target.value)} />
                     </div>
+                    
                     <div className={styles.fieldGroup}>
-                        <label>Username (Immutable)</label>
+                        <label>Username</label>
                         <input type="text" className={`${styles.input} ${styles.disabled}`} value={username} disabled />
                     </div>
+
                     <div className={styles.fieldGroupFull}>
                          <label>Bio</label>
-                         {/* UPDATED: Uses .textarea with resize:none */}
                          <textarea className={styles.textarea} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself..." />
                     </div>
 
@@ -213,16 +225,22 @@ export default function ProfileSettings({ onBack }) {
                         <label>Email Address</label>
                         <input type="email" className={styles.input} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
                     </div>
+
                     <div className={styles.fieldGroup}>
+                        <label>New Password</label>
                         <input type="password" className={styles.input} placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                     </div>
+                    
                     <div className={styles.fieldGroup}>
+                        <label>Confirm</label>
                         <input type="password" className={styles.input} placeholder="Confirm" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                     </div>
                     
                     <div className={styles.actionRow}>
                         <button type="button" className={styles.cancelBtn} onClick={onBack}>Cancel</button>
-                        <button type="submit" className={styles.saveBtn} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+                        <button type="submit" className={styles.saveBtn} disabled={saving}>
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </button>
                     </div>
                 </form>
             </div>

@@ -1,68 +1,132 @@
+/* --- LAYOUT --- */
 .adminContainer {
-  padding: 20px;
-  background-color: var(--bg-color);
-  min-height: 100vh;
-  color: var(--text-primary);
+  width: 100%;
+  height: 100vh; /* Fixed full height */
+  background: #F3F4F6;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
 }
 
+/* --- HEADER --- */
 .header {
+  flex: 0 0 auto;
+  padding: 1rem 2rem;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  z-index: 20;
 }
 
 .titleGroup h2 {
   margin: 0;
-  font-size: 1.8rem;
-  color: var(--text-primary);
+  font-size: 1.25rem;
+  color: #111827;
+  font-weight: 800;
+}
+
+.titleGroup p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: #6B7280;
 }
 
 .backButton {
-  padding: 8px 16px;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #D1D5DB;
   border-radius: 6px;
-  color: var(--text-secondary);
+  color: #374151;
   font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
+  transition: all 0.2s;
 }
 .backButton:hover {
-  background-color: var(--nav-hover);
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+  color: #111827;
 }
 
-.filterBar {
+/* --- CONTENT --- */
+.contentWrapper {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  overflow: hidden;
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  overflow-x: auto;
-  padding-bottom: 8px;
+  flex-direction: column;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* --- FILTERS --- */
+.filterBar {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .filterBtn {
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid var(--border-color);
-  background-color: var(--card-bg);
-  color: var(--text-secondary);
+  position: relative;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  border: 1px solid transparent;
+  background: white;
+  color: #6B7280;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  position: relative;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.filterBtn:hover {
+  color: #111827;
+  border-color: #E5E7EB;
 }
 
 .activeFilter {
-  background-color: var(--btn-primary-bg);
+  background: #2563EB;
   color: white;
-  border-color: var(--btn-primary-bg);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+.activeFilter:hover {
+  background: #1D4ED8;
+  color: white;
+  border-color: transparent;
 }
 
-.listContainer {
-  background-color: var(--card-bg);
+.badgeCount {
+  background: #EF4444;
+  color: white;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* --- DATA CARD --- */
+.tableCard {
+  flex: 1;
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 1px 2px var(--shadow-color);
-  padding: 20px;
-  overflow-x: auto;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableContainer {
+  overflow-y: auto;
+  flex: 1;
 }
 
 .table {
@@ -70,47 +134,97 @@
   border-collapse: collapse;
 }
 
-.table th, .table td {
-  padding: 12px;
+/* Sticky Header */
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #F9FAFB;
+  padding: 0.85rem 1.5rem;
   text-align: left;
-  border-bottom: 1px solid var(--border-color);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #E5E7EB;
+  z-index: 10;
 }
 
-.table th {
-  font-weight: 600;
-  color: var(--text-secondary);
+.table tbody td {
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid #F3F4F6;
+  color: #1F2937;
   font-size: 0.9rem;
-  text-transform: uppercase;
+  vertical-align: middle;
 }
+
+.table tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+/* --- COLUMNS --- */
+.idCell { font-family: monospace; color: #6B7280; font-size: 0.85rem; }
+.titleCell { font-weight: 600; color: #111827; }
+.creatorCell { font-size: 0.85rem; color: #6B7280; }
+.goalCell { font-weight: 600; color: #059669; }
 
 .statusTag {
-  padding: 4px 8px;
-  border-radius: 4px;
-  color: white;
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
+/* --- ACTIONS --- */
 .actionButtons {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
-.actionButtons button {
-  background: none;
-  border: none;
+.viewBtn, .approveBtn, .rejectBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
   cursor: pointer;
-  font-size: 1.1rem;
-  padding: 4px;
-  border-radius: 4px;
+  transition: all 0.2s;
 }
-.actionButtons button:hover {
-  background-color: var(--nav-hover);
-}
+
+/* View Button (Neutral) */
+.viewBtn { background: #F3F4F6; color: #4B5563; }
+.viewBtn:hover { background: #E5E7EB; color: #111827; }
+
+/* Approve Button (Green) */
+.approveBtn { background: #ECFDF5; color: #059669; border-color: #A7F3D0; }
+.approveBtn:hover { background: #059669; color: white; border-color: #059669; }
+
+/* Reject Button (Red) */
+.rejectBtn { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+.rejectBtn:hover { background: #DC2626; color: white; border-color: #DC2626; }
 
 .emptyState {
+  padding: 3rem;
   text-align: center;
-  padding: 40px;
-  color: var(--text-secondary);
+  color: #9CA3AF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
+.spinner {
+  border: 3px solid #E5E7EB;
+  border-top: 3px solid #2563EB;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
