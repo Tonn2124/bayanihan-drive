@@ -2,33 +2,70 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/AdminDashboard.module.css'; 
+import Toast from './Toast'; 
+
+// --- Confirmation Modal Component (Internal) ---
+const ConfirmModal = ({ isOpen, message, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+  return (
+    <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', 
+        alignItems: 'center', justifyContent: 'center', zIndex: 1000
+    }}>
+        <div style={{
+            background: 'white', padding: '24px', borderRadius: '12px', 
+            width: '400px', maxWidth: '90%', boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+        }}>
+            <h3 style={{marginTop: 0, fontSize: '1.2rem', color: '#1F2937'}}>Confirm Action</h3>
+            <p style={{color: '#4B5563', marginBottom: '24px'}}>{message}</p>
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '12px'}}>
+                <button 
+                    onClick={onCancel}
+                    style={{
+                        padding: '8px 16px', background: 'white', border: '1px solid #D1D5DB', 
+                        borderRadius: '6px', cursor: 'pointer', color: '#374151'
+                    }}
+                >Cancel</button>
+                <button 
+                    onClick={onConfirm}
+                    style={{
+                        padding: '8px 16px', background: '#2563EB', border: 'none', 
+                        borderRadius: '6px', cursor: 'pointer', color: 'white', fontWeight: 600
+                    }}
+                >Confirm</button>
+            </div>
+        </div>
+    </div>
+  );
+};
 
 export default function AdminDashboard({ onNavigate }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('PENDING'); // Default to PENDING to see action items first
+  const [filter, setFilter] = useState('PENDING'); 
+  const [toast, setToast] = useState(null);
+  
+  // --- New State for Confirmation Modal ---
+  const [confirmState, setConfirmState] = useState({ 
+      isOpen: false, 
+      id: null, 
+      action: null 
+  });
 
-  // 1. Fetch ALL campaigns regardless of status
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       const token = session.access_token;
 
-      // We request ALL data and filter it in the browser. 
-      // This is safer if the backend filter is buggy.
       const response = await axios.get('http://localhost:8080/api/admin/campaigns', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      // If the backend returns an object wrapper, adjust here (e.g., response.data.data)
-      // Assuming response.data is the array:
       setCampaigns(response.data);
-
     } catch (err) {
       console.error("Admin Fetch Error:", err);
-      // Fallback: Try pending endpoint if the main one fails
       try {
           const { data: { session } } = await supabase.auth.getSession();
           const res = await axios.get('http://localhost:8080/api/admin/campaigns/pending', {
@@ -36,7 +73,7 @@ export default function AdminDashboard({ onNavigate }) {
           });
           setCampaigns(res.data);
       } catch(e) {
-          setError("Could not load campaigns. Please try again later.");
+          setError("Could not load campaigns.");
       }
     } finally {
       setLoading(false);
@@ -45,10 +82,17 @@ export default function AdminDashboard({ onNavigate }) {
 
   useEffect(() => {
     fetchCampaigns();
-  }, []); // Empty dependency array = only fetch once on mount
+  }, []); 
 
-  const handleAction = async (id, action) => {
-    if (!window.confirm(`Confirm ${action} for campaign #${id}?`)) return;
+  // 1. Open Modal Instead of Confirm
+  const requestAction = (id, action) => {
+      setConfirmState({ isOpen: true, id, action });
+  };
+
+  // 2. Perform Action (Called by Modal)
+  const performAction = async () => {
+    const { id, action } = confirmState;
+    setConfirmState({ ...confirmState, isOpen: false }); // Close modal
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -58,14 +102,13 @@ export default function AdminDashboard({ onNavigate }) {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Refresh data to update the UI immediately
+        setToast({ msg: `Campaign ${action === 'APPROVE' ? 'Approved' : 'Rejected'} Successfully!`, type: 'success' });
         fetchCampaigns(); 
     } catch (err) {
-        alert(`Failed to ${action.toLowerCase()}.`);
+        setToast({ msg: `Failed to ${action.toLowerCase()}.`, type: 'error' });
     }
   };
 
-  // 2. Client-Side Filtering Logic
   const filteredCampaigns = campaigns.filter(c => {
       if (filter === 'ALL') return true;
       return c.status === filter;
@@ -82,6 +125,14 @@ export default function AdminDashboard({ onNavigate }) {
 
   return (
     <div className={styles.adminContainer}>
+        {/* Render Confirmation Modal */}
+        <ConfirmModal 
+            isOpen={confirmState.isOpen}
+            message={`Are you sure you want to ${confirmState.action} campaign #${confirmState.id}?`}
+            onConfirm={performAction}
+            onCancel={() => setConfirmState({ ...confirmState, isOpen: false })}
+        />
+
         <div className={styles.header}>
             <div className={styles.titleGroup}>
                 <h2>Admin Dashboard</h2>
@@ -93,7 +144,6 @@ export default function AdminDashboard({ onNavigate }) {
         </div>
 
         <div className={styles.contentWrapper}>
-            {/* Filter Tabs */}
             <div className={styles.filterBar}>
                 {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(f => (
                     <button 
@@ -117,7 +167,6 @@ export default function AdminDashboard({ onNavigate }) {
                         <div className={styles.emptyState} style={{color: '#DC2626'}}>{error}</div>
                     ) : (
                         <>
-                        {/* 3. Render filteredCampaigns instead of raw campaigns */}
                         {filteredCampaigns.length === 0 ? (
                             <div className={styles.emptyState}>
                                 <p>No {filter.toLowerCase()} campaigns found.</p>
@@ -157,7 +206,6 @@ export default function AdminDashboard({ onNavigate }) {
                                                         onClick={() => onNavigate('campaignDetails', c.id, 'ADMIN')} 
                                                         title="View Details"
                                                     >
-                                                        {/* Eye Icon */}
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                                     </button>
 
@@ -165,18 +213,18 @@ export default function AdminDashboard({ onNavigate }) {
                                                         <>
                                                             <button 
                                                                 className={styles.approveBtn} 
-                                                                onClick={() => handleAction(c.id, 'APPROVE')} 
+                                                                // Use requestAction instead of direct handler
+                                                                onClick={() => requestAction(c.id, 'APPROVE')} 
                                                                 title="Approve"
                                                             >
-                                                                {/* Check Icon */}
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                                             </button>
                                                             <button 
                                                                 className={styles.rejectBtn} 
-                                                                onClick={() => handleAction(c.id, 'REJECT')} 
+                                                                // Use requestAction instead of direct handler
+                                                                onClick={() => requestAction(c.id, 'REJECT')} 
                                                                 title="Reject"
                                                             >
-                                                                {/* X Icon */}
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                                             </button>
                                                         </>
@@ -193,6 +241,14 @@ export default function AdminDashboard({ onNavigate }) {
                 </div>
             </div>
         </div>
+
+        {toast && (
+            <Toast 
+                message={toast.msg} 
+                type={toast.type} 
+                onClose={() => setToast(null)} 
+            />
+        )}
     </div>
   );
 }
