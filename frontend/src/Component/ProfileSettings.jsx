@@ -3,23 +3,27 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/ProfileSettings.module.css';
 
-export default function ProfileSettings({ onBack }) {
-  const [loading, setLoading] = useState(true);
+// 1. Accept 'profileData' prop
+export default function ProfileSettings({ onBack, profileData }) {
+  
+  // Helper to safely get data from either Supabase (snake_case) or API (camelCase)
+  const getInitVal = (keyCamel, keySnake) => 
+      profileData?.[keyCamel] || profileData?.[keySnake] || '';
+
+  // 2. Initialize State INSTANTLY with passed data
+  const [loading, setLoading] = useState(!profileData); // Only load if we have NO data
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Profile Data
+  // Form Data (Initialized)
   const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [bio, setBio] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [fullName, setFullName] = useState(getInitVal('fullName', 'full_name'));
+  const [username, setUsername] = useState(getInitVal('username', 'username'));
+  const [bio, setBio] = useState(getInitVal('bio', 'bio'));
+  const [avatarUrl, setAvatarUrl] = useState(getInitVal('avatarUrl', 'avatar_url'));
   
-  // Upload State
   const [uploading, setUploading] = useState(false);
-
-  // Password & Email Update
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,19 +34,24 @@ export default function ProfileSettings({ onBack }) {
 
   const fetchProfile = async () => {
     try {
-      setLoading(true);
+      // Don't set loading(true) if we already displayed data via props.
+      // This creates the "Instant Load" feel while we refresh in background.
+      if (!profileData) setLoading(true);
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not logged in");
       
       const token = session.access_token;
       setEmail(session.user.email);
-      setNewEmail(session.user.email);
+      // Only set newEmail if it hasn't been typed in yet
+      if (!newEmail) setNewEmail(session.user.email);
 
       const response = await axios.get('http://localhost:8080/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       const profile = response.data;
+      // Update state with fresh data from server
       setFullName(profile.fullName || '');
       setUsername(profile.username || '');
       setBio(profile.bio || ''); 
@@ -50,7 +59,8 @@ export default function ProfileSettings({ onBack }) {
 
     } catch (err) {
       console.error("Error fetching profile:", err);
-      setError("Could not load profile settings.");
+      // Only show error if we have absolutely nothing to show
+      if (!profileData) setError("Could not load profile settings.");
     } finally {
       setLoading(false);
     }
@@ -108,7 +118,7 @@ export default function ProfileSettings({ onBack }) {
       );
 
       let authUpdates = {};
-      if (newEmail !== email) authUpdates.email = newEmail;
+      if (newEmail && newEmail !== email) authUpdates.email = newEmail;
       if (newPassword) {
          if (newPassword !== confirmPassword) throw new Error("Passwords do not match");
          authUpdates.password = newPassword;

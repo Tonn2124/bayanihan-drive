@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Import Axios
+import { supabase } from '../supabaseClient'; // Import Supabase
 import MyCampaigns from './MyCampaigns';
 import MyDonations from './MyDonations';
 import styles from '../Style/ProfileDetails.module.css';
@@ -9,20 +11,41 @@ const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" heigh
 
 export default function ProfileDetails({ profile, onClose, onEdit, onNavigate }) {
   const [activeTab, setActiveTab] = useState('campaigns');
+  
+  // --- OPTIMIZATION: Fetch once on mount, store here ---
+  const [myCampaigns, setMyCampaigns] = useState(null);
+  const [myDonations, setMyDonations] = useState(null);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if(!session) return;
+            const token = session.access_token;
+
+            // Fetch Campaigns and Donations in parallel
+            const [campaignsRes, donationsRes] = await Promise.all([
+                axios.get('http://localhost:8080/api/campaigns/my-campaigns', { headers: { 'Authorization': `Bearer ${token}` } }),
+                axios.get('http://localhost:8080/api/donations/my-donations', { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+
+            setMyCampaigns(campaignsRes.data || []);
+            setMyDonations(donationsRes.data || []);
+        } catch (e) {
+            console.error("Failed to load profile lists", e);
+        }
+    };
+    fetchAllData();
+  }, []);
 
   if (!profile) return null;
 
-  //Profile Details Navigation
   const handleNavigation = (page, data) => {
-    
     onClose();
-    
-    
     if (onNavigate) {
         onNavigate(page, data);
     }
   };
-  
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -63,19 +86,19 @@ export default function ProfileDetails({ profile, onClose, onEdit, onNavigate })
             <button className={`${styles.tab} ${activeTab === 'donations' ? styles.activeTab : ''}`} onClick={() => setActiveTab('donations')}>My Donation History</button>
         </div>
 
-        {/* Content Area - REUSING COMPONENTS HERE */}
+        {/* Content Area */}
         <div className={styles.contentArea}>
             {activeTab === 'campaigns' ? (
-                
                 <MyCampaigns 
                     onNavigate={handleNavigation} 
                     isModal={true} 
+                    campaignsData={myCampaigns} // Pass Data
                 />
             ) : (
-                
                 <MyDonations 
                     onNavigate={handleNavigation} 
                     isModal={true} 
+                    donationsData={myDonations} // Pass Data
                 />
             )}
         </div>

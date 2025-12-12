@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/AddFundsModal.module.css';
+import Toast from './Toast'; // 1. Import Toast
 
 const PRESET_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
 
@@ -15,14 +16,15 @@ const CloseIcon = () => (
 );
 
 export default function AddFundsModal({ onClose, onSuccess }) {
- // Use string for input to handle formatting, but parse to number for logic
+ 
  const [inputValue, setInputValue] = useState('');
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
+ const [toast, setToast] = useState(null); // 2. Add Toast State
 
  // --- FORMATTING HELPERS ---
 
- // 1. Format for Display (e.g., 1000 -> 1,000.00)
+ // 1. Format for Display 
  const formatCurrency = (val) => {
    if (!val) return '0.00';
    return new Intl.NumberFormat('en-PH', {
@@ -32,16 +34,13 @@ export default function AddFundsModal({ onClose, onSuccess }) {
    }).format(val);
  };
 
- // 2. Format Input while typing (Allow commas, prevent invalid chars)
+ // 2. Format Input 
  const handleInputChange = (e) => {
-   // Remove everything except numbers and dots
    let val = e.target.value.replace(/[^\d.]/g, '');
    
-   // Prevent multiple dots
    const parts = val.split('.');
    if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
    
-   // Limit to 2 decimal places if dot exists
    if (parts.length === 2 && parts[1].length > 2) {
        val = parts[0] + '.' + parts[1].substring(0, 2);
    }
@@ -50,12 +49,11 @@ export default function AddFundsModal({ onClose, onSuccess }) {
    setError(null);
  };
 
- // 3. Format Input on Blur (Add .00 and commas to the INPUT box itself)
+ // 3. Format Input on Blur 
  const handleBlur = () => {
    if (!inputValue) return;
    const num = parseFloat(inputValue.replace(/,/g, ''));
    if (!isNaN(num)) {
-       // Format with commas and decimals
        setInputValue(formatCurrency(num)); 
    }
  };
@@ -71,7 +69,6 @@ export default function AddFundsModal({ onClose, onSuccess }) {
    e.preventDefault();
    setError(null);
 
-   // Clean input to get raw number
    const rawValue = parseFloat(inputValue.replace(/,/g, ''));
    
    if (!rawValue || rawValue <= 0) {
@@ -99,8 +96,14 @@ export default function AddFundsModal({ onClose, onSuccess }) {
        }
      );
 
-     onSuccess();
-     onClose();
+     // 3. Show Success Toast and delay closing
+     setToast({ msg: "Funds added successfully!", type: "success" });
+     
+     setTimeout(() => {
+        onSuccess();
+        onClose();
+     }, 1500);
+
    } catch (error) {
      console.error("Failed to add funds:", error);
      setError(error.response?.data?.message || "Failed to add funds.");
@@ -219,6 +222,15 @@ export default function AddFundsModal({ onClose, onSuccess }) {
                </div>
            </div>
        </div>
+
+       {/* 4. Render Toast */}
+       {toast && (
+            <Toast 
+                message={toast.msg} 
+                type={toast.type} 
+                onClose={() => setToast(null)} 
+            />
+       )}
 
      </div>
    </div>

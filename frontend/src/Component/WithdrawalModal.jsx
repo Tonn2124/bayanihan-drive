@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-import styles from '../Style/WithdrawalModal.module.css'; // Using the new dedicated CSS module
+import styles from '../Style/WithdrawalModal.module.css';
+import Toast from './Toast'; 
 
 // Icons used in the modal
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
@@ -12,22 +13,23 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
   const [paymentMethod, setPaymentMethod] = useState('GCash');
   const [accountDetails, setAccountDetails] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // { msg: '', type: '' }
 
   const handleWithdraw = async (e) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
     
-    // Basic Validation
+    // 1. Validation: Use Toast instead of alert
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-        alert("Please enter a valid amount.");
+        setToast({ msg: "Please enter a valid amount.", type: "error" });
         return;
     }
     if (numAmount > availableBalance) {
-        alert("Amount exceeds available balance.");
+        setToast({ msg: "Amount exceeds available balance.", type: "error" });
         return;
     }
     if (!accountDetails.trim()) {
-        alert("Please provide account details.");
+        setToast({ msg: "Please provide account details.", type: "error" });
         return;
     }
 
@@ -52,13 +54,19 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
         }
       );
 
-      alert("Withdrawal successfully!");
-      onSuccess(); 
-      onClose(); 
+      // 2. Success: Show Toast, then wait 1.5s before closing modal
+      setToast({ msg: "Withdrawal request submitted!", type: "success" });
+      
+      setTimeout(() => {
+          onSuccess(); 
+          onClose(); 
+      }, 1500);
+
     } catch (error) {
       console.error("Withdrawal failed:", error);
       const errMsg = error.response?.data?.message || error.message || "Please try again.";
-      alert("Withdrawal failed. " + errMsg);
+      // 3. Error: Show Toast
+      setToast({ msg: "Withdrawal failed: " + errMsg, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -69,7 +77,7 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         
         {/* Close 'X' Button */}
-        <button className={styles.closeButton} onClick={onClose}>
+        <button className={styles.closeButton} onClick={onClose} disabled={loading}>
             <CloseIcon />
         </button>
 
@@ -86,7 +94,7 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
 
         <form onSubmit={handleWithdraw} className={styles.formWrapper}>
            <div className={styles.formSection}>
-                {/* Amount Input with Currency Symbol */}
+                {/* Amount Input */}
                 <div className={styles.formGroup}>
                     <label className={styles.label}>Amount to Withdraw</label>
                     <div className={styles.inputWrapper}>
@@ -100,18 +108,19 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
                             min="1"
                             step="0.01"
                             placeholder="0.00"
-                            required
+                            disabled={loading}
                         />
                     </div>
                 </div>
 
-                {/* Payment Method Select */}
+                {/* Payment Method */}
                 <div className={styles.formGroup}>
                     <label className={styles.label}>Payment Method</label>
                     <select 
                         className={styles.select}
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
+                        disabled={loading}
                     >
                         <option value="GCash">GCash</option>
                         <option value="Maya">Maya</option>
@@ -119,7 +128,7 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
                     </select>
                 </div>
 
-                {/* Account Details Text Input */}
+                {/* Account Details */}
                 <div className={styles.formGroup}>
                     <label className={styles.label}>Account Details</label>
                     <input 
@@ -128,12 +137,12 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
                         placeholder="e.g. Juan Cruz, 0917xxxxxxx"
                         value={accountDetails}
                         onChange={(e) => setAccountDetails(e.target.value)}
-                        required
+                        disabled={loading}
                     />
                 </div>
            </div>
 
-            {/* Action Buttons at Bottom */}
+            {/* Action Buttons */}
             <div className={styles.actions}>
                 <button type="button" className={styles.cancelButton} onClick={onClose} disabled={loading}>
                     Cancel
@@ -147,6 +156,16 @@ export default function WithdrawalModal({ campaign, availableBalance, onClose, o
                 </button>
             </div>
         </form>
+
+        {/* 4. Render Toast Component */}
+        {toast && (
+            <Toast 
+                message={toast.msg} 
+                type={toast.type} 
+                onClose={() => setToast(null)} 
+            />
+        )}
+
       </div>
     </div>
   );

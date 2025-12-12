@@ -19,21 +19,19 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long> {
     List<Campaign> findByIsActive(boolean isActive);
 
     // --- 1. Public List (Approved & Active) ---
-    // Changed to Native Query to safely cast 'APPROVED' to the postgres enum type.
     @Query(value = "SELECT * FROM campaigns WHERE is_active = true AND status = CAST('APPROVED' AS campaign_status)", nativeQuery = true)
     List<Campaign> findAllActiveAndApproved();
 
-    // --- 2. Search & Filter ---
-    // Added explicit CAST for 'APPROVED' status here too.
+    // --- 2. Search & Filter (FIXED HERE) ---
+    // We cast c.category to TEXT to safely compare it with the incoming String parameter.
     @Query(value = "SELECT * FROM campaigns c WHERE " +
            "c.is_active = true AND c.status = CAST('APPROVED' AS campaign_status) AND " +
            "(LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(c.description) LIKE LOWER(CONCAT('%', :query, '%'))) AND " +
-           "(:category IS NULL OR c.category = CAST(:category AS campaign_category))", 
+           "(:category IS NULL OR CAST(c.category AS text) = :category)", 
            nativeQuery = true)
     List<Campaign> searchCampaigns(@Param("query") String query, @Param("category") String category);
 
     // --- 3. Admin: Filter by Status ---
-    // This uses SpEL :#{#status.name()} to get the string value of the Java Enum, then casts it to Postgres Enum.
     @Query(value = "SELECT * FROM campaigns WHERE status = CAST(:#{#status.name()} AS campaign_status)", nativeQuery = true)
     List<Campaign> findByStatus(@Param("status") CampaignStatus status);
 }
