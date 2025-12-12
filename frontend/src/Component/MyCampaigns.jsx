@@ -4,12 +4,21 @@ import CampaignCard from './CampaignCard';
 import styles from '../Style/CampaignList.module.css';
 import { supabase } from '../supabaseClient';
  
-export default function MyCampaigns({ onNavigate, isModal }) {
+// 1. Accept 'campaignsData' prop
+export default function MyCampaigns({ onNavigate, isModal, campaignsData }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
  
   useEffect(() => {
+    // 2. Optimization: If parent passed data, use it immediately!
+    if (campaignsData) {
+        setCampaigns(campaignsData);
+        setLoading(false);
+        return; 
+    }
+
+    // Fallback: Fetch if no data passed (e.g. used in Dashboard)
     const fetchMyCampaigns = async () => {
       try {
         setLoading(true);
@@ -29,9 +38,8 @@ export default function MyCampaigns({ onNavigate, isModal }) {
       }
     };
     fetchMyCampaigns();
-  }, []);
+  }, [campaignsData]); // Add dependency
  
-  // --- RENDERING HELPERS ---
   if (loading) return <div style={{textAlign: 'center', padding: '2rem', color: '#666'}}>Loading campaigns...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
  
@@ -46,7 +54,6 @@ export default function MyCampaigns({ onNavigate, isModal }) {
  
   return (
     <div style={isModal ? { padding: '0' } : {}}>
-      {/* Hide Header if inside Modal */}
       {!isModal && (
         <h2 style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', color: 'var(--color-text-main)'}}>
             My Campaigns
@@ -65,4 +72,3 @@ export default function MyCampaigns({ onNavigate, isModal }) {
     </div>
   );
 }
- 

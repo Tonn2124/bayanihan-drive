@@ -3,13 +3,20 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import styles from '../Style/MyDonations.module.css';
 
-// 1. Accept 'onNavigate' as a prop
-export default function MyDonations({ isModal, onNavigate }) {
+// 1. Accept 'donationsData' prop
+export default function MyDonations({ isModal, onNavigate, donationsData }) {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // 2. Optimization: Use pre-loaded data if available
+    if (donationsData) {
+        setDonations(donationsData);
+        setLoading(false);
+        return;
+    }
+
     const fetchDonations = async () => {
       try {
         setLoading(true);
@@ -29,13 +36,16 @@ export default function MyDonations({ isModal, onNavigate }) {
       }
     };
     fetchDonations();
-  }, []);
+  }, [donationsData]); // Add dependency
 
-  // 2. Handler to trigger navigation
-  const handleItemClick = (campaignId) => {
+  const handleItemClick = (donation) => {
     if (onNavigate) {
-       // This will trigger the parent's logic to close the modal and change the page
-       onNavigate('campaignDetails', campaignId);
+       // Support Instant Load logic
+       if (donation.campaign) {
+           onNavigate('campaignDetails', donation.campaign);
+       } else {
+           onNavigate('campaignDetails', donation.campaignId);
+       }
     }
   };
 
@@ -65,14 +75,18 @@ export default function MyDonations({ isModal, onNavigate }) {
         <div 
             key={donation.id} 
             className={styles.donationItem}
-            // 3. Attach click event and add pointer cursor
-            onClick={() => handleItemClick(donation.campaignId)}
+            onClick={() => handleItemClick(donation)}
             style={{ cursor: 'pointer' }} 
         >
           <div className={styles.leftSide}>
             <div className={styles.icon}>❤️</div>
             <div className={styles.info}>
-              <h4>Donated to Campaign #{donation.campaignId}</h4>
+              <h4>
+                {donation.campaign?.title 
+                    ? `Donated to: ${donation.campaign.title}` 
+                    : `Donated to Campaign #${donation.campaignId}`
+                }
+              </h4>
               <div className={styles.date}>
                 {new Date(donation.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
               </div>

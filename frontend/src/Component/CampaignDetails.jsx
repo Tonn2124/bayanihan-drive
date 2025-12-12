@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import styles from '../Style/CampaignDetails.module.css';
 import DonateModal from './DonateModal';
 import WithdrawalModal from './WithdrawalModal';
+import Toast from './Toast'; 
 
 // --- Configuration ---
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -12,24 +13,26 @@ const API_BASE_URL = 'http://localhost:8080/api';
 const ShareIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>);
 const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>);
 const CloseIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
-
-// New Icons for Gallery
 const ChevronLeft = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>);
 const ChevronRight = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>);
 
-export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
-  const [campaign, setCampaign] = useState(null);
-  const [organizer, setOrganizer] = useState(null);
-  const [donations, setDonations] = useState([]); 
-  const [loading, setLoading] = useState(true);
+export default function CampaignDetails({ campaignId, campaignData, onBack, onNavigate }) {
+  
+  const [campaign, setCampaign] = useState(campaignData || null);
+  const [loading, setLoading] = useState(!campaignData);
+  const [organizer, setOrganizer] = useState(campaignData?.organizer || null);
+  
+  // FIX: Initialize donations properly
+  const [donations, setDonations] = useState(campaignData?.donations || []); 
+  const [donationsLoading, setDonationsLoading] = useState(!campaignData?.donations);
+
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // UI States
   const [activeTab, setActiveTab] = useState('comments');
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  
-  // --- IMAGE GALLERY STATES ---
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
 
@@ -42,6 +45,7 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const [postingComment, setPostingComment] = useState(false);
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false); 
 
   const fetchSocialData = async () => {
     try {
@@ -59,50 +63,54 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const fetchCampaignData = useCallback(async () => {
     try {
       setError(null);
-      if (!campaign) setLoading(true);
-
       const { data: { session } } = await supabase.auth.getSession();
       setCurrentUser(session?.user || null);
 
-      // 1. Campaign
+      // 1. Fetch Campaign
       const campaignRes = await axios.get(`${API_BASE_URL}/campaigns/${campaignId}`);
-      const campaignData = campaignRes.data;
-      if (!campaignData) throw new Error("Campaign data is empty");
-      setCampaign(campaignData);
+      const freshData = campaignRes.data;
+      if (!freshData) throw new Error("Campaign data is empty");
+      setCampaign(freshData); 
 
-      // 2. Organizer
-      if (campaignData.organizerId) {
+      // 2. Fetch Organizer
+      if (freshData.organizerId) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('full_name, username, avatar_url, id')
-          .eq('id', campaignData.organizerId)
+          .eq('id', freshData.organizerId)
           .single();
         setOrganizer(profileData || {});
       }
 
-      // 3. Donations
+      // 3. Fetch Donations
       try {
+        // Only show loading skeleton if we strictly have NO donations yet
+        if (donations.length === 0) setDonationsLoading(true);
+        
         const donationsRes = await axios.get(`${API_BASE_URL}/donations/campaign/${campaignId}`);
         setDonations(donationsRes.data || []);
       } catch (e) { 
         console.warn("Donations fetch error", e); 
+      } finally {
+        setDonationsLoading(false);
       }
 
       // 4. Social
       await fetchSocialData();
     } catch (err) {
       console.error("Error fetching details:", err);
-      setError(err.message || "Could not load campaign details.");
+      if(!campaign) setError(err.message || "Could not load campaign details.");
     } finally {
       setLoading(false);
     }
-  }, [campaignId, campaign]);
+    // FIX: REMOVED 'campaign' and 'donations' from dependency array to stop infinite loop
+  }, [campaignId]); 
 
   useEffect(() => {
     if (campaignId) fetchCampaignData();
   }, [campaignId, fetchCampaignData]);
 
-  // --- Handlers ---
+  // --- Handlers (Same as before) ---
   const handlePostComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -110,16 +118,17 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        alert("Please log in to comment.");
+        setToast({ msg: "Please log in to comment.", type: "error" });
         setPostingComment(false);
         return;
       }
       await axios.post(`${API_BASE_URL}/social/comments`, { campaignId, content: newComment }, { headers: { 'Authorization': `Bearer ${session.access_token}` } });
       setNewComment('');
+      setToast({ msg: "Comment posted!", type: "success" }); 
       await fetchSocialData();
     } catch (err) {
       console.error(err);
-      alert("Failed to post comment.");
+      setToast({ msg: "Failed to post comment.", type: "error" }); 
     } finally {
       setPostingComment(false);
     }
@@ -134,10 +143,11 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
       await axios.post(`${API_BASE_URL}/social/updates`, { campaignId, title: newUpdateTitle, content: newUpdateContent }, { headers: { 'Authorization': `Bearer ${session.access_token}` } });
       setNewUpdateTitle('');
       setNewUpdateContent('');
+      setToast({ msg: "Update posted successfully!", type: "success" }); 
       await fetchSocialData();
     } catch (err) {
       console.error(err);
-      alert("Failed to post update.");
+      setToast({ msg: "Failed to post update.", type: "error" }); 
     } finally {
       setPostingUpdate(false);
     }
@@ -147,27 +157,25 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
     const baseUrl = window.location.origin + window.location.pathname;
     const shareUrl = `${baseUrl}?campaignId=${campaignId}`;
     if (platform === 'copy') {
-      navigator.clipboard.writeText(shareUrl) 
-        .then(() => alert("Link copied!"), () => alert("Failed to copy"));
-    }
-  };
+        navigator.clipboard.writeText(shareUrl) 
+        .then(() => {
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000); 
+            setToast({ msg: "Link copied to clipboard!", type: "success" });
+        }, () => {
+            setToast({ msg: "Failed to copy link.", type: "error" });
+        });
+      }
+    };
 
-  // --- IMAGE NAVIGATION LOGIC ---
   const getImages = () => {
     if (campaign?.images && campaign.images.length > 0) return campaign.images;
     return campaign?.coverImageUrl ? [campaign.coverImageUrl] : [];
   };
   const images = getImages();
 
-  const handleNextPhoto = (e) => {
-    e.stopPropagation();
-    setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
-
-  const handlePrevPhoto = (e) => {
-    e.stopPropagation();
-    setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
+  const handleNextPhoto = (e) => { e.stopPropagation(); setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1)); };
+  const handlePrevPhoto = (e) => { e.stopPropagation(); setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1)); };
 
   // --- Render Helpers ---
   if (loading) return (
@@ -204,127 +212,73 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
   const availableBalance = currentAmount - (campaign.withdrawnAmount || 0);
 
   return (
-    // OVERLAY
     <div className={styles.overlay} onClick={onBack}>
 
-      {/* --- LIGHTBOX MODAL (FULL SCREEN IMAGE) --- */}
       {showLightbox && (
         <div className={styles.lightboxOverlay} onClick={(e) => { e.stopPropagation(); setShowLightbox(false); }}>
             <button className={styles.closeLightboxBtn} onClick={() => setShowLightbox(false)}><CloseIcon /></button>
-            
             <div className={styles.lightboxContent} onClick={e => e.stopPropagation()}>
                 <img src={images[activeImageIndex]} alt="Full View" className={styles.lightboxImage} />
-                
                 {images.length > 1 && (
-                    <>
-                        <button className={`${styles.lightboxNav} ${styles.lbPrev}`} onClick={handlePrevPhoto}><ChevronLeft/></button>
-                        <button className={`${styles.lightboxNav} ${styles.lbNext}`} onClick={handleNextPhoto}><ChevronRight/></button>
-                        <div className={styles.lightboxCounter}>{activeImageIndex + 1} / {images.length}</div>
-                    </>
+                    <><button className={`${styles.lightboxNav} ${styles.lbPrev}`} onClick={handlePrevPhoto}><ChevronLeft/></button>
+                    <button className={`${styles.lightboxNav} ${styles.lbNext}`} onClick={handleNextPhoto}><ChevronRight/></button>
+                    <div className={styles.lightboxCounter}>{activeImageIndex + 1} / {images.length}</div></>
                 )}
             </div>
         </div>
       )}
       
-      {/* MAIN MODAL CONTAINER */}
       <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
-        
-        {/* --- TOP RIGHT CONTROLS --- */}
         <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '1rem', zIndex: 20 }}>
-            {/* CLOSE BUTTON */}
-            <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close" style={{position: 'static'}}>
-                <CloseIcon />
-            </button>
+            <button className={styles.closeModalBtn} onClick={onBack} aria-label="Close" style={{position: 'static'}}><CloseIcon /></button>
         </div>
 
         {showDonateModal && <DonateModal campaign={campaign} onClose={() => setShowDonateModal(false)} onSuccess={fetchCampaignData} />}
         {showWithdrawModal && <WithdrawalModal campaign={campaign} availableBalance={availableBalance} onClose={() => setShowWithdrawModal(false)} onSuccess={fetchCampaignData} />}
 
         <div className={styles.pageWrapper}>
-            
-            {/* Main Content Grid */}
             <div className={styles.ytLayoutGrid}>
-                
-                {/* LEFT COLUMN: Scrollable Content */}
                 <div className={styles.ytMainColumn}>
-                    
-                    {/* --- HERO IMAGE SECTION (CAROUSEL) --- */}
                     <div className={styles.heroImageWrapper}>
-                        {/* Display Current Image */}
-                        <img 
-                            src={images.length > 0 ? images[activeImageIndex] : 'https://placehold.co/1200x675/EFF6FF/0056D2?text=No+Image'} 
-                            alt={campaign.title} 
-                            className={styles.headerImage} 
-                            onClick={() => setShowLightbox(true)} // Click to Open Lightbox
-                            style={{ cursor: 'zoom-in' }}
-                        />
-                        
+                        <img src={images.length > 0 ? images[activeImageIndex] : 'https://placehold.co/1200x675/EFF6FF/0056D2?text=No+Image'} alt={campaign.title} className={styles.headerImage} onClick={() => setShowLightbox(true)} style={{ cursor: 'zoom-in' }} />
                         {campaign.category && <span className={styles.categoryBadge}>{campaign.category.replace('_', ' ')}</span>}
-
-                        {/* Navigation Buttons (Only if more than 1 image) */}
                         {images.length > 1 && (
-                            <>
-                                <button className={styles.heroNavBtn} style={{left: '10px'}} onClick={handlePrevPhoto}>
-                                    <ChevronLeft />
-                                </button>
-                                <button className={styles.heroNavBtn} style={{right: '10px'}} onClick={handleNextPhoto}>
-                                    <ChevronRight />
-                                </button>
-                                {/* Dots Indicator */}
-                                <div className={styles.heroDots}>
-                                    {images.map((_, idx) => (
-                                        <span key={idx} className={`${styles.dot} ${idx === activeImageIndex ? styles.activeDot : ''}`} />
-                                    ))}
-                                </div>
-                            </>
+                            <><button className={styles.heroNavBtn} style={{left: '10px'}} onClick={handlePrevPhoto}><ChevronLeft /></button>
+                            <button className={styles.heroNavBtn} style={{right: '10px'}} onClick={handleNextPhoto}><ChevronRight /></button>
+                            <div className={styles.heroDots}>{images.map((_, idx) => (<span key={idx} className={`${styles.dot} ${idx === activeImageIndex ? styles.activeDot : ''}`} />))}</div></>
                         )}
                     </div>
 
                     <h1 className={styles.ytTitle}>{campaign.title}</h1>
 
-                    {/* Meta & Action Row */}
                     <div className={styles.ytMetaRow}>
-                        <div 
-                            className={styles.ytOrganizerProfile} 
-                            onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id, campaignId) : null}
-                            style={{ cursor: 'pointer' }}
-                            title="View Public Profile"
-                        >
+                        <div className={styles.ytOrganizerProfile} onClick={() => onNavigate && organizer?.id ? onNavigate('publicProfile', organizer.id, campaignId) : null} style={{ cursor: 'pointer' }} title="View Public Profile">
                             <div className={styles.organizerAvatar}>
-                                {organizer?.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial}
+                                {organizer ? (organizer.avatar_url ? <img src={organizer.avatar_url} alt="Org" /> : organizerInitial) : '?'}
                             </div>
                             <div className={styles.organizerInfo}>
-                                <strong className={styles.organizerName}>{organizerName}</strong>
-                                <span className={styles.organizerUsername}>{organizerUsername} • {updates.length} updates</span>
+                                {organizer ? (
+                                    <><strong className={styles.organizerName}>{organizerName}</strong><span className={styles.organizerUsername}>{organizerUsername} • {updates.length} updates</span></>
+                                ) : (
+                                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}><div style={{width:'120px', height:'14px', background:'#E5E7EB', borderRadius:'4px'}}></div><div style={{width:'80px', height:'12px', background:'#E5E7EB', borderRadius:'4px'}}></div></div>
+                                )}
                             </div>
                         </div>
-
                         <div className={styles.ytActionButtons}>
-                            <button className={styles.pillBtn} onClick={() => handleShare('copy')}>
-                                <ShareIcon /> <span>Share</span>
-                            </button>
+                            <button className={styles.pillBtn} onClick={() => handleShare('copy')}><ShareIcon /> <span>{copySuccess ? "Copied!" : "Share"}</span></button>
                         </div>
                     </div>
 
-                    {/* Description & Tabs Box */}
                     <div className={styles.ytDescriptionBox}>
                         <div className={styles.descMeta}>
                             <span className={styles.descDate}>Created {new Date(campaign.createdAt).toLocaleDateString()}</span>
                             <span className={styles.descTag}>#{campaign.category || 'fundraiser'}</span>
                         </div>
-                        
-                        {/* STORY SECTION */}
-                        <div className={styles.descriptionContent}>
-                            <p className={styles.descriptionText}>{campaign.description}</p>
-                        </div>
-                        
-                        {/* Tabs */}
+                        <div className={styles.descriptionContent}><p className={styles.descriptionText}>{campaign.description}</p></div>
                         <div className={styles.tabsContainer}>
                             <button className={`${styles.tabButton} ${activeTab === 'comments' ? styles.activeTab : ''}`} onClick={() => setActiveTab('comments')}>Comments ({comments.length})</button>
                             <button className={`${styles.tabButton} ${activeTab === 'updates' ? styles.activeTab : ''}`} onClick={() => setActiveTab('updates')}>Updates ({updates.length})</button>
                         </div>
-
-                        {/* UPDATES TAB */}
                         {activeTab === 'updates' && (
                             <div className={styles.tabContentSection}>
                                 {isOrganizer && (
@@ -332,26 +286,19 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                                         <div className={styles.updateFormTitle}>📢 Post a New Update</div>
                                         <input className={styles.formInput} placeholder="Headline..." value={newUpdateTitle} onChange={e => setNewUpdateTitle(e.target.value)} />
                                         <textarea className={styles.formTextarea} placeholder="Share the news..." value={newUpdateContent} onChange={e => setNewUpdateContent(e.target.value)} />
-                                        <div style={{textAlign: 'right'}}>
-                                            <button className={styles.donateButton} style={{width:'auto', marginTop:0, padding:'0.6rem 1.5rem'}} onClick={handlePostUpdate} disabled={postingUpdate}>Post</button>
-                                        </div>
+                                        <div style={{textAlign: 'right'}}><button className={styles.donateButton} style={{width:'auto', marginTop:0, padding:'0.6rem 1.5rem'}} onClick={handlePostUpdate} disabled={postingUpdate}>Post</button></div>
                                     </div>
                                 )}
                                 <div className={styles.timelineFeed}>
                                     {updates.length === 0 ? <div className={styles.emptyState}>No updates yet.</div> : updates.map(u => (
                                         <div key={u.id} className={styles.updateItem}>
-                                            <div className={styles.updateHeader}>
-                                                <h3 className={styles.updateTitle}>{u.title}</h3>
-                                                <span className={styles.updateDate}>{new Date(u.createdAt).toLocaleDateString()}</span>
-                                            </div>
+                                            <div className={styles.updateHeader}><h3 className={styles.updateTitle}>{u.title}</h3><span className={styles.updateDate}>{new Date(u.createdAt).toLocaleDateString()}</span></div>
                                             <div className={styles.updateBody}>{u.content}</div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
-
-                        {/* COMMENTS TAB */}
                         {activeTab === 'comments' && (
                             <div className={styles.tabContentSection}>
                                 <div className={styles.commentInputWrapper}>
@@ -369,10 +316,7 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                                         <div key={c.id} className={styles.commentItem}>
                                             <div className={styles.commentAvatarSmall}>?</div>
                                             <div className={styles.commentContent}>
-                                                <div className={styles.commentHeader}>
-                                                    <span className={styles.commentAuthor}>User</span>
-                                                    <span className={styles.commentTime}>{new Date(c.createdAt).toLocaleDateString()}</span>
-                                                </div>
+                                                <div className={styles.commentHeader}><span className={styles.commentAuthor}>User</span><span className={styles.commentTime}>{new Date(c.createdAt).toLocaleDateString()}</span></div>
                                                 <p>{c.content}</p>
                                             </div>
                                         </div>
@@ -383,32 +327,18 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Fixed Sidebar */}
                 <aside className={styles.ytSidebar}>
                     <div className={styles.donationCard}>
                         <div className={styles.statsGrid}>
-                            <div className={styles.statItem}>
-                                <div className={styles.statValue}>{formatCurrency(currentAmount)}</div>
-                                <div className={styles.statLabel}>raised of {formatCurrency(goalAmount)}</div>
-                            </div>
-                            <div className={styles.statItem}>
-                                <div className={styles.statValue}><HeartIcon /> {donations.length}</div>
-                                <div className={styles.statLabel}>Donors</div>
-                            </div>
+                            <div className={styles.statItem}><div className={styles.statValue}>{formatCurrency(currentAmount)}</div><div className={styles.statLabel}>raised of {formatCurrency(goalAmount)}</div></div>
+                            <div className={styles.statItem}><div className={styles.statValue}><HeartIcon /> {donations.length}</div><div className={styles.statLabel}>Donors</div></div>
                         </div>
                         <div className={styles.progressContainer}>
-                            <div className={styles.progressBar}>
-                                <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
-                            </div>
+                            <div className={styles.progressBar}><div className={styles.progressFill} style={{ width: `${progress}%` }}></div></div>
                             <div className={styles.progressLabel}>{Math.round(progress)}% funded</div>
                         </div>
                         
-                        {/* CONDITIONAL BUTTONS */}
-                        {!isOrganizer && (
-                            <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>
-                                Donate Now
-                            </button>
-                        )}
+                        {!isOrganizer && <button className={styles.donateButton} onClick={() => setShowDonateModal(true)}>Donate Now</button>}
                         
                         {canWithdraw && (
                             <div className={styles.organizerActions}>
@@ -419,28 +349,40 @@ export default function CampaignDetails({ campaignId, onBack, onNavigate }) {
 
                         <div className={styles.donationsSection}>
                             <h4 className={styles.sectionTitle}>Recent Donations</h4>
-                            {/* Scrollable Donations List */}
                             <div className={styles.donationsList}>
-                                {donations.map(d => (
-                                    <div key={d.id} className={styles.donationItem}>
-                                        <div className={styles.donorAvatar}>
-                                            {d.isAnonymous ? '?' : (d.donorName ? d.donorName.charAt(0).toUpperCase() : 'D')}
+                                {/* FIX: RENDER SKELETON IF LOADING */}
+                                {donationsLoading ? (
+                                    // Simple Skeleton for Donations
+                                    [1,2,3].map(i => (
+                                        <div key={i} className={styles.donationItem} style={{opacity: 0.6}}>
+                                            <div className={styles.donorAvatar} style={{background:'#E5E7EB'}}></div>
+                                            <div className={styles.donationContent} style={{width:'100%'}}>
+                                                <div style={{height:'12px', width:'60%', background:'#E5E7EB', borderRadius:'4px', marginBottom:'4px'}}></div>
+                                                <div style={{height:'10px', width:'30%', background:'#E5E7EB', borderRadius:'4px'}}></div>
+                                            </div>
                                         </div>
-                                        <div className={styles.donationContent}>
-                                            <span className={styles.donorName}>
-                                                {d.isAnonymous ? 'Anonymous' : (d.donorName || 'Supporter')}
-                                            </span>
-                                            <span className={styles.donationAmount}>{formatCurrency(d.amount)}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                                {donations.length === 0 && <p className={styles.emptySmall}>No donations yet.</p>}
+                                    ))
+                                ) : (
+                                    <>
+                                        {donations.map(d => (
+                                            <div key={d.id} className={styles.donationItem}>
+                                                <div className={styles.donorAvatar}>{d.isAnonymous ? '?' : (d.donorName ? d.donorName.charAt(0).toUpperCase() : 'D')}</div>
+                                                <div className={styles.donationContent}>
+                                                    <span className={styles.donorName}>{d.isAnonymous ? 'Anonymous' : (d.donorName || 'Supporter')}</span>
+                                                    <span className={styles.donationAmount}>{formatCurrency(d.amount)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {donations.length === 0 && <p className={styles.emptySmall}>No donations yet.</p>}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
                 </aside>
             </div>
         </div>
+        {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       </div>
     </div>
   );

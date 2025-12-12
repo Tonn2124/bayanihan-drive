@@ -123,7 +123,10 @@ export default function Dashboard({ session, onNavigate }) {
       {/* CENTER PANEL */}
       <main className={styles.centerPanel}>
         {activeTab === 'settings' ? (
-            <ProfileSettings onBack={() => { refreshProfile(); setActiveTab('all'); }} />
+            <ProfileSettings
+                profileData={profile} 
+                onBack={() => { refreshProfile(); setActiveTab('all'); }} 
+            />
         ) : activeTab === 'faqs' ? (
             <FAQs />
         ) : (
